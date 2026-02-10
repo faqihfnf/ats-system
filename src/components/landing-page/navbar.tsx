@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
-const navLinks = [
-  { label: "Nilai Kami", href: "#nilai" },
-  { label: "Mengapa Bergabung", href: "#mengapa" },
-  { label: "Testimoni", href: "#testimoni" },
-  { label: "Lowongan", href: "#lowongan" },
-];
+// const navLinks = [
+//   { label: "Nilai Kami", href: "#nilai" },
+//   { label: "Mengapa Bergabung", href: "#mengapa" },
+//   { label: "Testimoni", href: "#testimoni" },
+//   { label: "Lowongan", href: "#lowongan" },
+// ];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -30,11 +30,11 @@ export function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden items-center gap-8 md:flex">
-          {navLinks.map((link) => (
+          {/* {navLinks.map((link) => (
             <a key={link.href} href={link.href} className={`text-sm font-medium transition-colors hover:text-primary ${scrolled ? "text-muted-foreground" : "text-primary-foreground/80 hover:text-primary-foreground"}`}>
               {link.label}
             </a>
-          ))}
+          ))} */}
           <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
             <a href="#lowongan">Lamar Sekarang</a>
           </Button>
@@ -49,11 +49,11 @@ export function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="border-t border-border bg-background px-6 pb-6 pt-4 md:hidden">
-          {navLinks.map((link) => (
+          {/* {navLinks.map((link) => (
             <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="block py-3 text-sm font-medium text-foreground hover:text-primary">
               {link.label}
             </a>
-          ))}
+          ))} */}
           <Button className="mt-3 w-full bg-primary text-primary-foreground hover:bg-primary/90" asChild>
             <a href="#lowongan" onClick={() => setMobileOpen(false)}>
               Lamar Sekarang
