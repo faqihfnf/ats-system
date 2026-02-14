@@ -12,11 +12,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <SidebarInset>
         {/* Header Global Dashboard */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear">
-          <div className="flex justify-between w-full">
-            <div className="flex items-center gap-2">
+          <div className="flex justify-end w-full">
+            {/* <div className="flex items-center gap-2">
               <SidebarTrigger className="ml-48" />
               <Separator orientation="vertical" className="mr-2 h-4" />
-            </div>
+            </div> */}
             <div>
               <Avatar>
                 <AvatarImage src="https://github.com/shadcn.png" />
