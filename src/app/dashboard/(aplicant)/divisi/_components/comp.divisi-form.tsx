@@ -37,13 +37,13 @@ export function DivisiForm({ divisi }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger asChild disabled={loading} suppressHydrationWarning>
         {isEdit ? (
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" suppressHydrationWarning>
             <Pencil className="size-4" />
           </Button>
         ) : (
-          <Button>
+          <Button suppressHydrationWarning>
             <Plus className="size-4 mr-2" />
             Tambah Divisi
           </Button>
