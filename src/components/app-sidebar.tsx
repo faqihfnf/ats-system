@@ -6,6 +6,7 @@ import { BookOpen, Brain, FileUser, GalleryVerticalEnd, Settings2, LogOut, Layou
 
 import { NavMain } from "@/components/nav-main";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, SidebarGroup } from "@/components/ui/sidebar";
+import { logout } from "@/app/actions/auth";
 
 const navMain = [
   {
@@ -14,7 +15,6 @@ const navMain = [
     icon: FileUser,
     items: [
       { title: "Job List", url: "/dashboard/joblist" },
-      { title: "Job Post", url: "/dashboard/jobpost" },
       { title: "Candidates", url: "/dashboard/candidates" },
       { title: "Divisi", url: "/dashboard/divisi" },
       { title: "Position", url: "/dashboard/position" },
@@ -103,7 +103,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer" onClick={() => console.log("Logging out...")}>
+            <SidebarMenuButton className="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer" onClick={() => logout()}>
               <LogOut />
               <span>Logout</span>
             </SidebarMenuButton>
