@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Divisi {
+  id        String     @id @default(cuid())
+  nama      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  positions Position[]
+
+  @@map("divisi")
+}
+
+model Position {
+  id        String   @id @default(cuid())
+  nama      String
+  divisiId  String
+  divisi    Divisi   @relation(fields: [divisiId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("positions")
+}
