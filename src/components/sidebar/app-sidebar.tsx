@@ -4,7 +4,7 @@ import * as React from "react";
 import { usePathname } from "next/navigation"; // ← tambahkan ini
 import { BookOpen, Brain, FileUser, GalleryVerticalEnd, Settings2, LogOut, LayoutDashboard } from "lucide-react";
 
-import { NavMain } from "@/components/nav-main";
+import { NavMain } from "@/components/sidebar/nav-main";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, SidebarGroup } from "@/components/ui/sidebar";
 import { logout } from "@/app/actions/auth";
 
