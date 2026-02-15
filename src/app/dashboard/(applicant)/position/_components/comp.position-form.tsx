@@ -9,18 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pencil, Plus } from "lucide-react";
 import { createPosition, updatePosition } from "../_actions/action.position";
 
-type DivisiOption = { id: string; nama: string };
+type Option = { id: string; nama: string };
 
 type Props = {
-  divisiOptions: DivisiOption[];
-  position?: { id: string; nama: string; divisiId: string };
+  divisiOptions: Option[];
+  levelOptions: Option[];
+  position?: { id: string; nama: string; divisiId: string; levelId: string };
 };
 
-export function PositionForm({ divisiOptions, position }: Props) {
+export function PositionForm({ divisiOptions, levelOptions, position }: Props) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedDivisi, setSelectedDivisi] = useState(position?.divisiId ?? "");
+  const [selectedLevel, setSelectedLevel] = useState(position?.levelId ?? "");
   const isEdit = !!position;
 
   async function handleSubmit(formData: FormData) {
@@ -28,6 +30,7 @@ export function PositionForm({ divisiOptions, position }: Props) {
     setError(null);
 
     formData.set("divisiId", selectedDivisi);
+    formData.set("levelId", selectedLevel);
 
     const result = isEdit
       ? await updatePosition(position.id, formData)
@@ -40,6 +43,7 @@ export function PositionForm({ divisiOptions, position }: Props) {
       setOpen(false);
       setLoading(false);
       setSelectedDivisi("");
+      setSelectedLevel("");
     }
   }
 
@@ -49,15 +53,16 @@ export function PositionForm({ divisiOptions, position }: Props) {
       if (!val) {
         setError(null);
         setSelectedDivisi(position?.divisiId ?? "");
+        setSelectedLevel(position?.levelId ?? "");
       }
     }}>
-      <DialogTrigger asChild>
+      <DialogTrigger asChild suppressHydrationWarning>
         {isEdit ? (
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" suppressHydrationWarning>
             <Pencil className="size-4" />
           </Button>
         ) : (
-          <Button>
+          <Button suppressHydrationWarning>
             <Plus className="size-4 mr-2" />
             Tambah Posisi
           </Button>
@@ -80,18 +85,26 @@ export function PositionForm({ divisiOptions, position }: Props) {
           </div>
           <div className="space-y-2">
             <Label>Divisi</Label>
-            <Select
-              value={selectedDivisi}
-              onValueChange={setSelectedDivisi}
-            >
+            <Select value={selectedDivisi} onValueChange={setSelectedDivisi}>
               <SelectTrigger>
                 <SelectValue placeholder="Pilih divisi..." />
               </SelectTrigger>
               <SelectContent>
-                {divisiOptions.map((divisi) => (
-                  <SelectItem key={divisi.id} value={divisi.id}>
-                    {divisi.nama}
-                  </SelectItem>
+                {divisiOptions.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>{d.nama}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Level</Label>
+            <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih level..." />
+              </SelectTrigger>
+              <SelectContent>
+                {levelOptions.map((l) => (
+                  <SelectItem key={l.id} value={l.id}>{l.nama}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -103,7 +116,7 @@ export function PositionForm({ divisiOptions, position }: Props) {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Batal
             </Button>
-            <Button type="submit" disabled={loading || !selectedDivisi}>
+            <Button type="submit" disabled={loading || !selectedDivisi || !selectedLevel}>
               {loading ? "Menyimpan..." : "Simpan"}
             </Button>
           </div>

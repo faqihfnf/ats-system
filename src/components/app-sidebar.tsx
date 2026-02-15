@@ -14,10 +14,11 @@ const navMain = [
     url: "#",
     icon: FileUser,
     items: [
-      { title: "Job List", url: "/dashboard/joblist" },
       { title: "Candidates", url: "/dashboard/candidates" },
-      { title: "Divisi", url: "/dashboard/divisi" },
+      { title: "Job List", url: "/dashboard/joblist" },
       { title: "Position", url: "/dashboard/position" },
+      { title: "Divisi", url: "/dashboard/divisi" },
+      { title: "Level", url: "/dashboard/level" },
     ],
   },
   {

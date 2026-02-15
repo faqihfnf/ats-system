@@ -7,9 +7,8 @@ export const positionSchema = z.object({
     .min(3, "Nama posisi minimal 3 karakter")
     .max(50, "Nama posisi maksimal 50 karakter")
     .trim(),
-  divisiId: z
-    .string()
-    .min(1, "Divisi harus dipilih"),
+  divisiId: z.string().min(1, "Divisi harus dipilih"),
+  levelId: z.string().min(1, "Level harus dipilih"), 
 });
 
 export type PositionFormValues = z.infer<typeof positionSchema>;

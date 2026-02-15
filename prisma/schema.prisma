@@ -17,11 +17,23 @@ model Divisi {
   @@map("divisi")
 }
 
+model Level {
+  id        String     @id @default(cuid())
+  nama      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  positions Position[]
+
+  @@map("level")
+}
+
 model Position {
   id        String   @id @default(cuid())
   nama      String
   divisiId  String
   divisi    Divisi   @relation(fields: [divisiId], references: [id])
+  levelId   String
+  level     Level    @relation(fields: [levelId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

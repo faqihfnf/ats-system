@@ -1,13 +1,14 @@
 export const dynamic = "force-dynamic";
 
-import { getPositions, getDivisiOptions } from "./_actions/action.position";
+import { getPositions, getDivisiOptions, getLevelOptions } from "./_actions/action.position";
 import { PositionForm } from "./_components/comp.position-form";
 import { PositionTable } from "./_components/comp.position-table";
 
 export default async function PositionPage() {
-  const [positions, divisiOptions] = await Promise.all([
+  const [positions, divisiOptions, levelOptions] = await Promise.all([
     getPositions(),
     getDivisiOptions(),
+    getLevelOptions(),
   ]);
 
   return (
@@ -16,9 +17,9 @@ export default async function PositionPage() {
         <div>
           <h1 className="text-2xl font-semibold">Posisi</h1>
         </div>
-        <PositionForm divisiOptions={divisiOptions} />
+        <PositionForm divisiOptions={divisiOptions} levelOptions={levelOptions} />
       </div>
-      <PositionTable data={positions} divisiOptions={divisiOptions} />
+      <PositionTable data={positions} divisiOptions={divisiOptions} levelOptions={levelOptions} />
     </div>
   );
 }

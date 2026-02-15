@@ -8,6 +8,7 @@ export async function getPositions() {
   return await prisma.position.findMany({
     include: {
       divisi: true,
+      level: true,
     },
     orderBy: { createdAt: "asc" },
   });
@@ -20,10 +21,18 @@ export async function getDivisiOptions() {
   });
 }
 
+export async function getLevelOptions() {
+  return await prisma.level.findMany({
+    orderBy: { nama: "asc" },
+    select: { id: true, nama: true },
+  });
+}
+
 export async function createPosition(formData: FormData) {
   const parsed = positionSchema.safeParse({
     nama: formData.get("nama"),
     divisiId: formData.get("divisiId"),
+    levelId: formData.get("levelId"),
   });
 
   if (!parsed.success) {
@@ -35,6 +44,7 @@ export async function createPosition(formData: FormData) {
       data: {
         nama: parsed.data.nama,
         divisiId: parsed.data.divisiId,
+        levelId: parsed.data.levelId,
       },
     });
     revalidatePath("/dashboard/position");
@@ -48,6 +58,7 @@ export async function updatePosition(id: string, formData: FormData) {
   const parsed = positionSchema.safeParse({
     nama: formData.get("nama"),
     divisiId: formData.get("divisiId"),
+    levelId: formData.get("levelId"),
   });
 
   if (!parsed.success) {
@@ -60,6 +71,7 @@ export async function updatePosition(id: string, formData: FormData) {
       data: {
         nama: parsed.data.nama,
         divisiId: parsed.data.divisiId,
+        levelId: parsed.data.levelId,
       },
     });
     revalidatePath("/dashboard/position");
