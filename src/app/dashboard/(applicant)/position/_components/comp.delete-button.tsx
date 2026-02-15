@@ -2,9 +2,19 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Trash2 } from "lucide-react";
 import { deletePosition } from "../_actions/action.position";
+import { toast } from "sonner";
 
 type Props = {
   id: string;
@@ -12,18 +22,33 @@ type Props = {
 };
 
 export function DeleteButton({ id, nama }: Props) {
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleDelete() {
     setLoading(true);
-    await deletePosition(id);
+    const result = await deletePosition(id);
     setLoading(false);
+
+    if (result?.error) {
+      toast.error(result.error, { position: "top-right" });
+    } else {
+      setOpen(false);
+      setTimeout(() => {
+        toast.success("Posisi berhasil dihapus", { position: "top-right" });
+      }, 150);
+    }
   }
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild suppressHydrationWarning>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-destructive hover:text-destructive"
+          suppressHydrationWarning
+        >
           <Trash2 className="size-4" />
         </Button>
       </AlertDialogTrigger>
@@ -35,14 +60,21 @@ export function DeleteButton({ id, nama }: Props) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Batal</AlertDialogCancel>
-          <AlertDialogAction
+          <AlertDialogCancel disabled={loading}>Batal</AlertDialogCancel>
+          <Button
             onClick={handleDelete}
             disabled={loading}
-            className="bg-destructive hover:bg-destructive/90"
+            className="bg-destructive hover:bg-destructive/90 text-white"
           >
-            {loading ? "Menghapus..." : "Hapus"}
-          </AlertDialogAction>
+            {loading ? (
+              <>
+                <Loader2 className="size-4 mr-2 animate-spin" />
+                Menghapus...
+              </>
+            ) : (
+              "Hapus"
+            )}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

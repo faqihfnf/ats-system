@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Plus } from "lucide-react";
+import { Loader2, Pencil, Plus } from "lucide-react";
 import { createPosition, updatePosition } from "../_actions/action.position";
+import { toast } from "sonner";
 
 type Option = { id: string; nama: string };
 
@@ -44,11 +45,18 @@ export function PositionForm({ divisiOptions, levelOptions, position }: Props) {
       setLoading(false);
       setSelectedDivisi("");
       setSelectedLevel("");
+      setTimeout(() => {
+        toast.success(
+          isEdit ? "Posisi berhasil diubah" : "Posisi berhasil ditambahkan",
+          { position: "top-right" }
+        );
+      }, 150);
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={(val) => {
+      if (loading) return;
       setOpen(val);
       if (!val) {
         setError(null);
@@ -72,7 +80,14 @@ export function PositionForm({ divisiOptions, levelOptions, position }: Props) {
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Posisi" : "Tambah Posisi"}</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            await handleSubmit(formData);
+          }}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="nama">Nama Posisi</Label>
             <Input
@@ -81,11 +96,16 @@ export function PositionForm({ divisiOptions, levelOptions, position }: Props) {
               defaultValue={position?.nama}
               placeholder="contoh: Software Engineer"
               required
+              disabled={loading}
             />
           </div>
           <div className="space-y-2">
             <Label>Divisi</Label>
-            <Select value={selectedDivisi} onValueChange={setSelectedDivisi}>
+            <Select
+              value={selectedDivisi}
+              onValueChange={setSelectedDivisi}
+              disabled={loading}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Pilih divisi..." />
               </SelectTrigger>
@@ -98,7 +118,11 @@ export function PositionForm({ divisiOptions, levelOptions, position }: Props) {
           </div>
           <div className="space-y-2">
             <Label>Level</Label>
-            <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+            <Select
+              value={selectedLevel}
+              onValueChange={setSelectedLevel}
+              disabled={loading}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Pilih level..." />
               </SelectTrigger>
@@ -113,11 +137,23 @@ export function PositionForm({ divisiOptions, levelOptions, position }: Props) {
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={loading}
+            >
               Batal
             </Button>
             <Button type="submit" disabled={loading || !selectedDivisi || !selectedLevel}>
-              {loading ? "Menyimpan..." : "Simpan"}
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                "Simpan"
+              )}
             </Button>
           </div>
         </form>
