@@ -53,7 +53,7 @@ export function DeleteButton({ id, nama, disabled }: Props) {
           </span>
         </TooltipTrigger>
         <TooltipContent>
-          Tidak dapat dihapus karena sedang digunakan di posisi
+          Tidak dapat dihapus!
         </TooltipContent>
       </Tooltip>
     );
