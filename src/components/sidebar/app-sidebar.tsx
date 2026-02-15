@@ -59,11 +59,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname(); // ← deteksi URL aktif
 
   // Set isActive true jika salah satu child URL cocok dengan pathname
-  const withActive = (items: typeof navMain) =>
-    items.map((item) => ({
-      ...item,
-      isActive: item.items?.some((sub) => pathname.startsWith(sub.url)),
-    }));
+const withActive = (items: typeof navMain) =>
+  items.map((item) => ({
+    ...item,
+    isActive: item.items?.some((sub) => pathname === sub.url), // ← exact match
+  }));
 
   return (
     <Sidebar collapsible="icon" {...props}>
