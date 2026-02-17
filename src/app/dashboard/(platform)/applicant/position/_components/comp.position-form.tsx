@@ -106,12 +106,12 @@ export function PositionForm({ divisiOptions, levelOptions, position }: Props) {
               onValueChange={setSelectedDivisi}
               disabled={loading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="cursor-pointer">
                 <SelectValue placeholder="Pilih divisi..." />
               </SelectTrigger>
               <SelectContent>
                 {divisiOptions.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>{d.nama}</SelectItem>
+                  <SelectItem className="cursor-pointer" key={d.id} value={d.id}>{d.nama}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -123,12 +123,12 @@ export function PositionForm({ divisiOptions, levelOptions, position }: Props) {
               onValueChange={setSelectedLevel}
               disabled={loading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="cursor-pointer">
                 <SelectValue placeholder="Pilih level..." />
               </SelectTrigger>
               <SelectContent>
                 {levelOptions.map((l) => (
-                  <SelectItem key={l.id} value={l.id}>{l.nama}</SelectItem>
+                  <SelectItem className="cursor-pointer" key={l.id} value={l.id}>{l.nama}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

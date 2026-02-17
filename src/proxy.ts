@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { prisma } from "./lib/prisma";
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -29,6 +30,14 @@ export async function proxy(request: NextRequest) {
   // Kalau sudah login dan akses /login, redirect ke /dashboard
   if (user && request.nextUrl.pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+   // Proteksi route admin
+  if (user && request.nextUrl.pathname.startsWith("/dashboard/user/users")) {
+    const profile = await prisma.profile.findUnique({ where: { id: user.id } });
+    if (profile?.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
   }
 
   return supabaseResponse;
