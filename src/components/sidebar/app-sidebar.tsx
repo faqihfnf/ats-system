@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation"; // ← tambahkan ini
-import { BookOpen, Brain, FileUser, GalleryVerticalEnd, Settings2, LogOut, LayoutDashboard } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { BookOpen, Brain, FileUser, GalleryVerticalEnd, Settings2, LogOut, LayoutDashboard, User } from "lucide-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, SidebarGroup } from "@/components/ui/sidebar";
@@ -14,11 +14,11 @@ const navMain = [
     url: "#",
     icon: FileUser,
     items: [
-      { title: "Candidates", url: "/dashboard/candidates" },
-      { title: "Job List", url: "/dashboard/joblist" },
-      { title: "Position", url: "/dashboard/position" },
-      { title: "Divisi", url: "/dashboard/divisi" },
-      { title: "Level", url: "/dashboard/level" },
+      { title: "Candidates", url: "/dashboard/applicant/candidates" },
+      { title: "Job List", url: "/dashboard/applicant/joblist" },
+      { title: "Position", url: "/dashboard/applicant/position" },
+      { title: "Divisi", url: "/dashboard/applicant/divisi" },
+      { title: "Level", url: "/dashboard/applicant/level" },
     ],
   },
   {
@@ -40,12 +40,12 @@ const navMain = [
 
 const navSettings = [
   {
-    title: "Settings",
+    title: "User",
     url: "#",
-    icon: Settings2,
+    icon: User,
     items: [
-      { title: "User", url: "/dashboard/settings/user" },
-      { title: "Personal", url: "/dashboard/settings/personal" },
+      { title: "Users", url: "/dashboard/user/users" },
+      { title: "Personal", url: "/dashboard/user/personal" },
     ],
   },
 ];
