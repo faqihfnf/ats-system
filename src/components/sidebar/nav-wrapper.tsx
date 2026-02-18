@@ -18,8 +18,8 @@ export async function NavWrapper() {
       
       items: [
         { title: "Job List", url: "/dashboard/applicant/joblist" },
-        { title: "Candidates", url: "/dashboard/applicant/candidates" },
         { title: "Stages", url: "/dashboard/applicant/stages" },
+        { title: "Branch", url: "/dashboard/applicant/branch" },
         { title: "Position", url: "/dashboard/applicant/position" },
         { title: "Divisi", url: "/dashboard/applicant/divisi" },
         { title: "Level", url: "/dashboard/applicant/level" },
