@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {  StepOne } from "./comp.job-create-step-one";
+import { StepTwo } from "./comp.job-create-step-two";
 
 type Position = { id: string; nama: string; divisi: { nama: string }; level: { nama: string } };
 type Branch = { id: string; name: string };
@@ -66,7 +67,16 @@ export function JobCreateForm({ positions, branches, statuses }: Props) {
               }}
             />
           )}
-          {currentStep === 2 && <div>Step 2 - Coming soon</div>}
+          {currentStep === 2 && (
+            <StepTwo
+              initialData={formData}
+              onNext={(data) => {
+                setFormData({ ...formData, ...data });
+                setCurrentStep(3);
+              }}
+              onBack={() => setCurrentStep(1)}
+            />
+          )}
           {currentStep === 3 && <div>Step 3 - Coming soon</div>}
         </CardContent>
       </Card>
