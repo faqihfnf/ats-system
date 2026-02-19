@@ -24,6 +24,8 @@ export async function NavWrapper() {
         { title: "Divisi", url: "/dashboard/applicant/divisi" },
         { title: "Level", url: "/dashboard/applicant/level" },
         { title: "Status", url: "/dashboard/applicant/status" },
+        { title: "Education", url: "/dashboard/applicant/education" },
+        { title: "Experience", url: "/dashboard/applicant/experience" },
       ],
     },
     {
