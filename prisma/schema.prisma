@@ -36,6 +36,7 @@ model Position {
   level     Level    @relation(fields: [levelId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  jobs      Job[]
 
   @@map("positions")
 }
@@ -47,6 +48,7 @@ model Profile {
   role      Role     @default(RECRUITER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  jobs      Job[]
 
   @@map("profiles")
 }
@@ -72,6 +74,7 @@ model Branch {
   address   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  jobs      Job[]
 
   @@map("branches")
 }
@@ -81,6 +84,7 @@ model EmploymentStatus {
   name      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  jobs      Job[]
 
   @@map("employment_statuses")
 }
@@ -90,6 +94,7 @@ model Education {
   name      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  jobs      Job[]
 
   @@map("educations")
 }
@@ -100,6 +105,47 @@ model Experience {
   minYears  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  jobs      Job[]
 
   @@map("experiences")
+}
+
+model Job {
+  id                 String           @id @default(cuid())
+  // Informasi Umum
+  positionId         String
+  position           Position         @relation(fields: [positionId], references: [id])
+  branchId           String
+  branch             Branch           @relation(fields: [branchId], references: [id])
+  employmentStatusId String
+  employmentStatus   EmploymentStatus @relation(fields: [employmentStatusId], references: [id])
+  province           String
+  city               String
+  minSalary          Int
+  maxSalary          Int
+  showSalary         Boolean          @default(false)
+
+  // Informasi Pekerjaan (nanti step 2)
+  description  String? @db.Text
+  requirements String? @db.Text
+
+  // Kualifikasi (nanti step 3)
+  minEducationId  String?
+  minEducation    Education?  @relation(fields: [minEducationId], references: [id])
+  minExperienceId String?
+  minExperience   Experience? @relation(fields: [minExperienceId], references: [id])
+
+  status    JobStatus @default(DRAFT)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String
+  creator   Profile   @relation(fields: [createdBy], references: [id])
+
+  @@map("jobs")
+}
+
+enum JobStatus {
+  DRAFT
+  OPEN
+  CLOSED
 }
