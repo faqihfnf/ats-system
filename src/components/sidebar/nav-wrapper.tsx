@@ -23,6 +23,7 @@ export async function NavWrapper() {
         { title: "Position", url: "/dashboard/applicant/position" },
         { title: "Divisi", url: "/dashboard/applicant/divisi" },
         { title: "Level", url: "/dashboard/applicant/level" },
+        { title: "Status", url: "/dashboard/applicant/status" },
       ],
     },
     {
