@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Step1InformasiUmum } from "./step1-informasi-umum";
+import {  StepOne } from "./comp.job-create-step-one";
 
 type Position = { id: string; nama: string; divisi: { nama: string }; level: { nama: string } };
 type Branch = { id: string; name: string };
@@ -55,7 +55,7 @@ export function JobCreateForm({ positions, branches, statuses }: Props) {
       <Card>
         <CardContent className="pt-6">
           {currentStep === 1 && (
-            <Step1InformasiUmum
+            <StepOne
               positions={positions}
               branches={branches}
               statuses={statuses}

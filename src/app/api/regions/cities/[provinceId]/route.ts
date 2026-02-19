@@ -10,7 +10,7 @@ export async function GET(
     console.log("Fetching cities for province ID:", provinceId); // debug
     
     const url = `https://emsifa.github.io/api-wilayah-indonesia/api/regencies/${provinceId}.json`;
-    console.log("URL:", url); // debug
+    // console.log("URL:", url); // debug
     
     const response = await fetch(url, {
       cache: "force-cache",
@@ -27,7 +27,7 @@ export async function GET(
     }
     
     const data = await response.json();
-    console.log("Cities data:", data); // debug
+    // console.log("Cities data:", data); // debug
     
     return NextResponse.json(data);
   } catch (error: any) {

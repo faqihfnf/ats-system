@@ -22,7 +22,7 @@ type Props = {
   onNext: (data: any) => void;
 };
 
-export function Step1InformasiUmum({ positions, branches, statuses, initialData, onNext }: Props) {
+export function StepOne({ positions, branches, statuses, initialData, onNext }: Props) {
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [selectedBranch, setSelectedBranch] = useState(initialData.branchId || "");
   const [selectedStatus, setSelectedStatus] = useState(initialData.employmentStatusId || "");
@@ -34,6 +34,41 @@ export function Step1InformasiUmum({ positions, branches, statuses, initialData,
   const [selectedCity, setSelectedCity] = useState(initialData.city || "");
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
+
+  // Salary state dengan format
+  const [minSalary, setMinSalary] = useState(initialData.minSalary || 0);
+  const [maxSalary, setMaxSalary] = useState(initialData.maxSalary || 0);
+  const [minSalaryDisplay, setMinSalaryDisplay] = useState(
+    initialData.minSalary ? formatRupiah(initialData.minSalary) : ""
+  );
+  const [maxSalaryDisplay, setMaxSalaryDisplay] = useState(
+    initialData.maxSalary ? formatRupiah(initialData.maxSalary) : ""
+  );
+
+  // Format number ke Rupiah
+  function formatRupiah(value: number | string): string {
+    const numValue = typeof value === "string" ? parseInt(value.replace(/\D/g, "")) : value;
+    if (isNaN(numValue) || numValue === 0) return "";
+    return numValue.toLocaleString("id-ID");
+  }
+
+  // Handle min salary change
+  function handleMinSalaryChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value.replace(/\D/g, ""); // hapus non-digit
+    const numValue = parseInt(value) || 0;
+    setMinSalary(numValue);
+    setMinSalaryDisplay(formatRupiah(numValue));
+  }
+
+  // Handle max salary change
+  function handleMaxSalaryChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value.replace(/\D/g, "");
+    const numValue = parseInt(value) || 0;
+    setMaxSalary(numValue);
+    setMaxSalaryDisplay(formatRupiah(numValue));
+  }
+
+
 
 // Load provinces on mount
 useEffect(() => {
@@ -189,7 +224,7 @@ useEffect(() => {
             <SelectTrigger>
               <SelectValue placeholder={loadingProvinces ? "Loading..." : "Pilih provinsi..."} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-72">
               {provinces.map((prov) => (
                 <SelectItem key={prov.id} value={prov.name}>
                   {prov.name}
@@ -210,7 +245,7 @@ useEffect(() => {
             <SelectTrigger>
               <SelectValue placeholder={loadingCities ? "Loading..." : "Pilih kota..."} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-72">
               {cities.map((city) => (
                 <SelectItem key={city.id} value={city.name}>
                   {city.name}
@@ -220,28 +255,26 @@ useEffect(() => {
           </Select>
         </div>
 
-        {/* Min Salary */}
+        {/* Min Salary dengan format Rupiah */}
         <div className="space-y-2">
           <Label htmlFor="minSalary">Minimal Salary (Rp) *</Label>
           <Input
             id="minSalary"
-            name="minSalary"
-            type="number"
-            min={0}
-            defaultValue={initialData.minSalary || 0}
+            value={minSalaryDisplay}
+            onChange={handleMinSalaryChange}
+            placeholder="0"
             required
           />
         </div>
 
-        {/* Max Salary */}
+        {/* Max Salary dengan format Rupiah */}
         <div className="space-y-2">
           <Label htmlFor="maxSalary">Maksimal Salary (Rp) *</Label>
           <Input
             id="maxSalary"
-            name="maxSalary"
-            type="number"
-            min={0}
-            defaultValue={initialData.maxSalary || 0}
+            value={maxSalaryDisplay}
+            onChange={handleMaxSalaryChange}
+            placeholder="0"
             required
           />
         </div>
