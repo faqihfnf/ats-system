@@ -11,10 +11,7 @@ export default async function EducationPage() {
     <div className="p-6 space-y-6 w-full">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Pendidikan</h1>
-          <p className="text-sm text-muted-foreground">
-            Kelola tingkat pendidikan
-          </p>
+          <h1 className="text-2xl font-semibold">Pendidikan</h1>  
         </div>
         <EducationForm />
       </div>
