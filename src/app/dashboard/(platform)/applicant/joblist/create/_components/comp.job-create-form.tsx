@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { StepOne } from "./comp.job-create-step-one";
 import { StepTwo } from "./comp.job-create-step-two";
 import { StepThree } from "./comp.job-create-step-three";
+import { toast } from "sonner";
+import { createJob } from "../_actions/action.job-create";
 
 type Position = { id: string; nama: string; divisi: { nama: string }; level: { nama: string } };
 type Branch = { id: string; name: string };
@@ -21,6 +24,7 @@ type Props = {
 };
 
 export function JobCreateForm({ positions, branches, statuses, educations, experiences }: Props) {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({});
 
@@ -32,11 +36,19 @@ export function JobCreateForm({ positions, branches, statuses, educations, exper
 
   async function handleFinalSubmit(step3Data: any) {
     const completeData = { ...formData, ...step3Data };
-    console.log("Complete form data:", completeData);
     
-    // TODO: Call API to create job
-    // const result = await createJob(completeData);
-    // if (result.success) router.push("/dashboard/applicant/joblist");
+    const result = await createJob(completeData);
+    
+    if (result?.error) {
+      toast.error(result.error, { position: "top-right" });
+      return false; // return false untuk tidak close loading
+    } else {
+      toast.success("Lowongan berhasil dibuat", { position: "top-right" });
+      setTimeout(() => {
+        router.push("/dashboard/applicant/joblist");
+      }, 500);
+      return true;
+    }
   }
 
   return (

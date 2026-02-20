@@ -15,7 +15,7 @@ type Props = {
   educations: Education[];
   experiences: Experience[];
   initialData: any;
-  onSubmit: (data: any) => void;
+onSubmit: (data: any) => Promise<boolean>;
   onBack: () => void;
 };
 
@@ -32,34 +32,40 @@ export function StepThree({ educations, experiences, initialData, onSubmit, onBa
   const [validationError, setValidationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setValidationError(null);
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  setValidationError(null);
 
-    const formData = {
-      minEducationId: selectedEducation,
-      minExperienceId: selectedExperience,
-      minAge,
-      maxAge,
-      showAge,
-      gender,
-      showGender,
-      religion,
-      showReligion,
-    };
+  const formData = {
+    minEducationId: selectedEducation,
+    minExperienceId: selectedExperience,
+    minAge,
+    maxAge,
+    showAge,
+    gender,
+    showGender,
+    religion,
+    showReligion,
+  };
 
-    // Validasi dengan Zod
-    const result = jobStepThreeSchema.safeParse(formData);
+  // Validasi dengan Zod
+  const result = jobStepThreeSchema.safeParse(formData);
 
-    if (!result.success) {
-      const firstError = result.error.issues[0];
-      setValidationError(firstError.message);
-      return;
-    }
-
-    setLoading(true);
-    onSubmit(result.data);
+  if (!result.success) {
+    const firstError = result.error.issues[0];
+    setValidationError(firstError.message);
+    return;
   }
+
+  setLoading(true);
+  const success = await onSubmit(result.data);
+  
+  // Only stop loading if submission failed
+  if (!success) {
+    setLoading(false);
+  }
+  // If success, loading will continue until redirect happens
+}
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
