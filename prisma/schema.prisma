@@ -112,7 +112,7 @@ model Experience {
 
 model Job {
   id                 String           @id @default(cuid())
-  // Informasi Umum
+  // Informasi Umum (step 1)
   positionId         String
   position           Position         @relation(fields: [positionId], references: [id])
   branchId           String
@@ -125,15 +125,22 @@ model Job {
   maxSalary          Int
   showSalary         Boolean          @default(false)
 
-  // Informasi Pekerjaan (nanti step 2)
+  // Informasi Pekerjaan (step 2)
   description  String? @db.Text
   requirements String? @db.Text
 
-  // Kualifikasi (nanti step 3)
-  minEducationId  String?
-  minEducation    Education?  @relation(fields: [minEducationId], references: [id])
-  minExperienceId String?
-  minExperience   Experience? @relation(fields: [minExperienceId], references: [id])
+  // Kualifikasi (step 3)
+  minEducationId  String
+  minEducation    Education  @relation(fields: [minEducationId], references: [id])
+  minExperienceId String
+  minExperience   Experience @relation(fields: [minExperienceId], references: [id])
+  minAge          Int
+  maxAge          Int
+  showAge         Boolean    @default(false)
+  gender          Gender     @default(ANY)
+  showGender      Boolean    @default(false)
+  religion        Religion   @default(ANY)
+  showReligion    Boolean    @default(false)
 
   status    JobStatus @default(DRAFT)
   createdAt DateTime  @default(now())
@@ -142,6 +149,22 @@ model Job {
   creator   Profile   @relation(fields: [createdBy], references: [id])
 
   @@map("jobs")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  ANY
+}
+
+enum Religion {
+  ISLAM
+  KRISTEN
+  KATOLIK
+  HINDU
+  BUDDHA
+  KONGHUCU
+  ANY
 }
 
 enum JobStatus {

@@ -3,13 +3,17 @@ export const dynamic = "force-dynamic";
 import { getPositions } from "../../position/_actions/action.position";
 import { getBranches } from "../../branch/_actions/action.branch";
 import { getStatuses } from "../../status/_actions/action.status";
+import { getEducations } from "../../education/_actions/action.education";
+import { getExperiences } from "../../experience/_actions/action.experience";
 import { JobCreateForm } from "./_components/comp.job-create-form";
 
 export default async function JobCreatePage() {
-  const [positions, branches, statuses] = await Promise.all([
+  const [positions, branches, statuses, educations, experiences] = await Promise.all([
     getPositions(),
     getBranches(),
     getStatuses(),
+    getEducations(),
+    getExperiences(),
   ]);
 
   return (
@@ -25,6 +29,8 @@ export default async function JobCreatePage() {
           positions={positions}
           branches={branches}
           statuses={statuses}
+          educations={educations}
+          experiences={experiences}
         />
       </div>
     </div>

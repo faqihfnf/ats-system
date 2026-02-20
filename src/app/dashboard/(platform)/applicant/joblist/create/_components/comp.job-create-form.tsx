@@ -2,20 +2,25 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {  StepOne } from "./comp.job-create-step-one";
+import { StepOne } from "./comp.job-create-step-one";
 import { StepTwo } from "./comp.job-create-step-two";
+import { StepThree } from "./comp.job-create-step-three";
 
 type Position = { id: string; nama: string; divisi: { nama: string }; level: { nama: string } };
 type Branch = { id: string; name: string };
 type Status = { id: string; name: string };
+type Education = { id: string; name: string };
+type Experience = { id: string; name: string; minYears: number };
 
 type Props = {
   positions: Position[];
   branches: Branch[];
   statuses: Status[];
+  educations: Education[];
+  experiences: Experience[];
 };
 
-export function JobCreateForm({ positions, branches, statuses }: Props) {
+export function JobCreateForm({ positions, branches, statuses, educations, experiences }: Props) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({});
 
@@ -24,6 +29,15 @@ export function JobCreateForm({ positions, branches, statuses }: Props) {
     { number: 2, title: "Informasi Pekerjaan" },
     { number: 3, title: "Kualifikasi dan Pengalaman" },
   ];
+
+  async function handleFinalSubmit(step3Data: any) {
+    const completeData = { ...formData, ...step3Data };
+    console.log("Complete form data:", completeData);
+    
+    // TODO: Call API to create job
+    // const result = await createJob(completeData);
+    // if (result.success) router.push("/dashboard/applicant/joblist");
+  }
 
   return (
     <div className="space-y-6">
@@ -77,7 +91,15 @@ export function JobCreateForm({ positions, branches, statuses }: Props) {
               onBack={() => setCurrentStep(1)}
             />
           )}
-          {currentStep === 3 && <div>Step 3 - Coming soon</div>}
+          {currentStep === 3 && (
+            <StepThree
+              educations={educations}
+              experiences={experiences}
+              initialData={formData}
+              onSubmit={handleFinalSubmit}
+              onBack={() => setCurrentStep(2)}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

@@ -25,5 +25,22 @@ export const jobStepTwoSchema = z.object({
     .max(2500, "Persyaratan maksimal 2500 karakter"),
 });
 
+export const jobStepThreeSchema = z.object({
+  minEducationId: z.string().min(1, "Pendidikan minimal harus dipilih"),
+  minExperienceId: z.string().min(1, "Pengalaman minimal harus dipilih"),
+  minAge: z.number().min(17, "Usia minimal tidak boleh kurang dari 17").max(100, "Usia tidak valid"),
+  maxAge: z.number().min(17, "Usia maksimal tidak boleh kurang dari 17").max(100, "Usia tidak valid"),
+  showAge: z.boolean(),
+  gender: z.enum(["MALE", "FEMALE", "ANY"]), 
+  showGender: z.boolean(),
+  religion: z.enum(["ISLAM", "KRISTEN", "KATOLIK", "HINDU", "BUDDHA", "KONGHUCU", "ANY"]),
+  showReligion: z.boolean(),
+}).refine((data) => data.maxAge >= data.minAge, {
+  message: "Usia maksimal harus lebih besar atau sama dengan usia minimal",
+  path: ["maxAge"],
+});
+
+
 export type JobStepOneValues = z.infer<typeof jobStepOneSchema>;
 export type JobStepTwoValues = z.infer<typeof jobStepTwoSchema>;
+export type JobStepThreeValues = z.infer<typeof jobStepThreeSchema>;
