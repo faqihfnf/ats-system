@@ -54,72 +54,107 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
 
   // Handle min salary change
   function handleMinSalaryChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const value = e.target.value.replace(/\D/g, ""); // hapus non-digit
+    const value = e.target.value.replace(/\D/g, "");
     const numValue = parseInt(value) || 0;
     setMinSalary(numValue);
     setMinSalaryDisplay(formatRupiah(numValue));
   }
 
-  // Handle max salary change
-  function handleMaxSalaryChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const value = e.target.value.replace(/\D/g, "");
-    const numValue = parseInt(value) || 0;
-    setMaxSalary(numValue);
-    setMaxSalaryDisplay(formatRupiah(numValue));
-  }
+  // Handle max salary change dengan validasi
+function handleMaxSalaryChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const value = e.target.value.replace(/\D/g, "");
+  const numValue = parseInt(value) || 0;
+  setMaxSalary(numValue);
+  setMaxSalaryDisplay(formatRupiah(numValue));
+}
 
-
-
-// Load provinces on mount
+  // ← Restore selected position dari initialData
 useEffect(() => {
-  async function fetchProvinces() {
-    setLoadingProvinces(true);
-    try {
-      const res = await fetch("/api/regions/provinces");
-      const data: Province[] = await res.json();
-      console.log("Provinces:", data); // ← debug log
-      setProvinces(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Failed to fetch provinces", error);
+  if (initialData.positionId && positions.length > 0 && !selectedPosition) {
+    const pos = positions.find((p) => p.id === initialData.positionId);
+    if (pos) {
+      setSelectedPosition(pos);
     }
-    setLoadingProvinces(false);
   }
-  fetchProvinces();
-}, []);
+}, [initialData.positionId, positions, selectedPosition]);
+
+  // Load provinces on mount
+  useEffect(() => {
+    async function fetchProvinces() {
+      setLoadingProvinces(true);
+      try {
+        const res = await fetch("/api/regions/provinces");
+        const data: Province[] = await res.json();
+        console.log("Provinces:", data);
+        setProvinces(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch provinces", error);
+      }
+      setLoadingProvinces(false);
+    }
+    fetchProvinces();
+  }, []);
+
+  // ← Load cities saat mount jika province sudah ada di initialData
+  useEffect(() => {
+    if (initialData.province && provinces.length > 0 && cities.length === 0) {
+      const province = provinces.find((p) => p.name === initialData.province);
+      if (province) {
+        fetchCitiesForProvince(province.id);
+      }
+    }
+  }, [initialData.province, provinces]);
 
   // Load cities when province changes
-useEffect(() => {
-  if (!selectedProvince) {
-    setCities([]);
-    setSelectedCity("");
-    return;
-  }
+  useEffect(() => {
+    if (!selectedProvince) {
+      setCities([]);
+      setSelectedCity("");
+      return;
+    }
 
-  async function fetchCities() {
-    setLoadingCities(true);
-    setSelectedCity(""); // reset city saat province berubah
-    try {
-      // Cari province by name untuk dapat ID
-      const province = provinces.find((p) => p.name === selectedProvince);
-      if (province) {
-        const res = await fetch(`/api/regions/cities/${province.id}`);
-        const data: City[] = await res.json();
-        console.log("Cities:", data); // ← debug log
-        setCities(Array.isArray(data) ? data : []);
+    // Skip jika province tidak berubah dan cities sudah ada
+    if (selectedProvince === initialData.province && cities.length > 0) {
+      return;
+    }
+
+    async function fetchCities() {
+      setLoadingCities(true);
+      // Jangan reset city kalau ini restore dari initialData
+      if (selectedProvince !== initialData.province) {
+        setSelectedCity("");
       }
+      try {
+        const province = provinces.find((p) => p.name === selectedProvince);
+        if (province) {
+          await fetchCitiesForProvince(province.id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch cities", error);
+        setCities([]);
+      }
+      setLoadingCities(false);
+    }
+    fetchCities();
+  }, [selectedProvince, provinces]);
+
+  // Helper function untuk fetch cities
+  async function fetchCitiesForProvince(provinceId: string) {
+    setLoadingCities(true);
+    try {
+      const res = await fetch(`/api/regions/cities/${provinceId}`);
+      const data: City[] = await res.json();
+      console.log("Cities:", data);
+      setCities(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch cities", error);
       setCities([]);
     }
     setLoadingCities(false);
   }
-  fetchCities();
-}, [selectedProvince, provinces]);
-
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
     
     onNext({
       positionId: selectedPosition?.id,
@@ -127,8 +162,8 @@ useEffect(() => {
       employmentStatusId: selectedStatus,
       province: selectedProvince,
       city: selectedCity,
-      minSalary: Number(formData.get("minSalary")),
-      maxSalary: Number(formData.get("maxSalary")),
+      minSalary,
+      maxSalary,
       showSalary,
     });
   }
@@ -269,15 +304,21 @@ useEffect(() => {
 
         {/* Max Salary dengan format Rupiah */}
         <div className="space-y-2">
-          <Label htmlFor="maxSalary">Maksimal Salary (Rp) *</Label>
-          <Input
-            id="maxSalary"
-            value={maxSalaryDisplay}
-            onChange={handleMaxSalaryChange}
-            placeholder="0"
-            required
-          />
-        </div>
+  <Label htmlFor="maxSalary">Maksimal Salary (Rp) *</Label>
+  <Input
+    id="maxSalary"
+    value={maxSalaryDisplay}
+    onChange={handleMaxSalaryChange}
+    placeholder="0"
+    required
+    className={maxSalary > 0 && maxSalary < minSalary ? "border-destructive" : ""}
+  />
+  {maxSalary > 0 && maxSalary < minSalary && (
+    <p className="text-xs text-destructive">
+      Maksimal salary harus lebih besar atau sama dengan minimal salary
+    </p>
+  )}
+</div>
 
         {/* Show Salary Toggle */}
         <div className="col-span-2 flex items-center gap-2">
@@ -287,7 +328,7 @@ useEffect(() => {
             onCheckedChange={setShowSalary}
           />
           <Label htmlFor="showSalary" className="cursor-pointer">
-            Tampilkan salary ke publik
+            Tampilkan Salary
           </Label>
         </div>
       </div>
@@ -300,7 +341,10 @@ useEffect(() => {
             !selectedBranch ||
             !selectedStatus ||
             !selectedProvince ||
-            !selectedCity
+            !selectedCity ||
+            minSalary === 0 ||
+            maxSalary === 0 ||
+            maxSalary < minSalary
           }
         >
           Selanjutnya
