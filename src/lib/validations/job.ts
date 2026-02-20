@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const jobStep1Schema = z.object({
+export const jobStepOneSchema = z.object({
   positionId: z.string().min(1, "Posisi harus dipilih"),
   branchId: z.string().min(1, "Branch harus dipilih"),
   employmentStatusId: z.string().min(1, "Status kepegawaian harus dipilih"),
@@ -14,4 +14,4 @@ export const jobStep1Schema = z.object({
   path: ["maxSalary"],
 });
 
-export type JobStep1Values = z.infer<typeof jobStep1Schema>;
+export type JobStepOneValues = z.infer<typeof jobStepOneSchema>;

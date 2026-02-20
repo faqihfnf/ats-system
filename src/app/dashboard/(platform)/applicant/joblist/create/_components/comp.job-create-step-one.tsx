@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import { jobStepOneSchema } from "@/lib/validations/job";
 
 type Position = { id: string; nama: string; divisi: { nama: string }; level: { nama: string } };
 type Branch = { id: string; name: string };
@@ -45,6 +45,9 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
     initialData.maxSalary ? formatRupiah(initialData.maxSalary) : ""
   );
 
+  // Validation error state
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   // Format number ke Rupiah
   function formatRupiah(value: number | string): string {
     const numValue = typeof value === "string" ? parseInt(value.replace(/\D/g, "")) : value;
@@ -60,23 +63,23 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
     setMinSalaryDisplay(formatRupiah(numValue));
   }
 
-  // Handle max salary change dengan validasi
-function handleMaxSalaryChange(e: React.ChangeEvent<HTMLInputElement>) {
-  const value = e.target.value.replace(/\D/g, "");
-  const numValue = parseInt(value) || 0;
-  setMaxSalary(numValue);
-  setMaxSalaryDisplay(formatRupiah(numValue));
-}
-
-  // ← Restore selected position dari initialData
-useEffect(() => {
-  if (initialData.positionId && positions.length > 0 && !selectedPosition) {
-    const pos = positions.find((p) => p.id === initialData.positionId);
-    if (pos) {
-      setSelectedPosition(pos);
-    }
+  // Handle max salary change
+  function handleMaxSalaryChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value.replace(/\D/g, "");
+    const numValue = parseInt(value) || 0;
+    setMaxSalary(numValue);
+    setMaxSalaryDisplay(formatRupiah(numValue));
   }
-}, [initialData.positionId, positions, selectedPosition]);
+
+  // Restore selected position dari initialData
+  useEffect(() => {
+    if (initialData.positionId && positions.length > 0 && !selectedPosition) {
+      const pos = positions.find((p) => p.id === initialData.positionId);
+      if (pos) {
+        setSelectedPosition(pos);
+      }
+    }
+  }, [initialData.positionId, positions, selectedPosition]);
 
   // Load provinces on mount
   useEffect(() => {
@@ -85,7 +88,6 @@ useEffect(() => {
       try {
         const res = await fetch("/api/regions/provinces");
         const data: Province[] = await res.json();
-        console.log("Provinces:", data);
         setProvinces(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch provinces", error);
@@ -95,7 +97,7 @@ useEffect(() => {
     fetchProvinces();
   }, []);
 
-  // ← Load cities saat mount jika province sudah ada di initialData
+  // Load cities saat mount jika province sudah ada di initialData
   useEffect(() => {
     if (initialData.province && provinces.length > 0 && cities.length === 0) {
       const province = provinces.find((p) => p.name === initialData.province);
@@ -144,7 +146,6 @@ useEffect(() => {
     try {
       const res = await fetch(`/api/regions/cities/${provinceId}`);
       const data: City[] = await res.json();
-      console.log("Cities:", data);
       setCities(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch cities", error);
@@ -155,9 +156,10 @@ useEffect(() => {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setValidationError(null);
     
-    onNext({
-      positionId: selectedPosition?.id,
+    const formData = {
+      positionId: selectedPosition?.id || "",
       branchId: selectedBranch,
       employmentStatusId: selectedStatus,
       province: selectedProvince,
@@ -165,7 +167,18 @@ useEffect(() => {
       minSalary,
       maxSalary,
       showSalary,
-    });
+    };
+
+    // Validasi dengan Zod
+    const result = jobStepOneSchema.safeParse(formData);
+
+    if (!result.success) {
+      // Ambil error pertama
+      setValidationError(result.error.issues[0].message);
+      return;
+    }
+
+    onNext(result.data);
   }
 
   return (
@@ -304,21 +317,15 @@ useEffect(() => {
 
         {/* Max Salary dengan format Rupiah */}
         <div className="space-y-2">
-  <Label htmlFor="maxSalary">Maksimal Salary (Rp) *</Label>
-  <Input
-    id="maxSalary"
-    value={maxSalaryDisplay}
-    onChange={handleMaxSalaryChange}
-    placeholder="0"
-    required
-    className={maxSalary > 0 && maxSalary < minSalary ? "border-destructive" : ""}
-  />
-  {maxSalary > 0 && maxSalary < minSalary && (
-    <p className="text-xs text-destructive">
-      Maksimal salary harus lebih besar atau sama dengan minimal salary
-    </p>
-  )}
-</div>
+          <Label htmlFor="maxSalary">Maksimal Salary (Rp) *</Label>
+          <Input
+            id="maxSalary"
+            value={maxSalaryDisplay}
+            onChange={handleMaxSalaryChange}
+            placeholder="0"
+            required
+          />
+        </div>
 
         {/* Show Salary Toggle */}
         <div className="col-span-2 flex items-center gap-2">
@@ -328,25 +335,20 @@ useEffect(() => {
             onCheckedChange={setShowSalary}
           />
           <Label htmlFor="showSalary" className="cursor-pointer">
-            Tampilkan Salary
+            Tampilkan salary ke publik
           </Label>
         </div>
       </div>
 
+      {/* Validation Error dari Zod */}
+      {validationError && (
+        <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive rounded-md">
+          {validationError}
+        </div>
+      )}
+
       <div className="flex justify-end">
-        <Button
-          type="submit"
-          disabled={
-            !selectedPosition ||
-            !selectedBranch ||
-            !selectedStatus ||
-            !selectedProvince ||
-            !selectedCity ||
-            minSalary === 0 ||
-            maxSalary === 0 ||
-            maxSalary < minSalary
-          }
-        >
+        <Button type="submit">
           Selanjutnya
         </Button>
       </div>
