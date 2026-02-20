@@ -166,3 +166,18 @@
 .prose a:hover {
   color: #2563eb !important; /* Warna blue-600 */
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px; /* Membuat scrollbar sangat tipis */
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0; /* Warna soft (slate-200) */
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1; /* slate-300 saat hover */
+}
+

@@ -30,7 +30,7 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{label ?? "Platform"}</SidebarGroupLabel>
+      <SidebarGroupLabel className="font-bold">{label ?? "Platform"}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const Icon = item.icon ? iconMap[item.icon] : null;  // ← resolve icon
@@ -47,7 +47,7 @@ export function NavMain({
                 <CollapsibleTrigger asChild suppressHydrationWarning>
                   <SidebarMenuButton suppressHydrationWarning>
                     {Icon && <Icon />}  {/* ← render icon */}
-                    <span>{item.title}</span>
+                    <span className="font-medium cursor-pointer">{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>

@@ -45,7 +45,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
               <SidebarMenuButton asChild>
                 <a href="/dashboard">
                   <LayoutDashboard />
-                  <span>Dashboard</span>
+                  <span className="font-semibold">Dashboard</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { DeleteButton } from "./comp.delete-button";
@@ -45,69 +53,100 @@ export function JobTable({ data, stages }: Props) {
   }
 
   return (
-    <div className="rounded-lg border">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b bg-muted/50">
-            <th className="p-4 text-left text-sm font-medium text-muted-foreground w-full">Role</th>
-            <th className="p-4 text-center text-sm font-medium text-muted-foreground">Stages</th>
-            <th className="p-4 text-center text-sm font-medium text-muted-foreground w-16">Status</th>
-            <th className="p-4 text-center text-sm font-medium text-muted-foreground w-10">Edit</th>
-            <th className="p-4 text-center text-sm font-medium text-muted-foreground w-10">Hapus</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((job) => (
-            <tr key={job.id} className="border-b hover:bg-muted/50">
-              {/* Role Column */}
-              <td className="p-4">
-                <div className="space-y-1">
-                  <Link 
-                    href={`/dashboard/applicant/joblist/${job.id}`}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {job.position.nama}
-                  </Link>
-                  <p className="text-sm text-muted-foreground">
-                    {job.creator.nama} • {format(new Date(job.createdAt), "d MMM yyyy", { locale: idLocale })}
-                  </p>
-                </div>
-              </td>
+    <div className="rounded-xl border  shadow-sm overflow-hidden">
+      <div className="w-full">
+        <Table className="w-full table-fixed border-collapse">
+          <TableHeader>
+            <TableRow className="border-b ">
+              <TableHead className="p-4 text-left text-sm font-semibold  w-80">
+                Job Title
+              </TableHead>
+              <TableHead className="p-4 text-center text-sm font-semibold ">
+                Stages
+              </TableHead>
+              <TableHead className="p-4 text-center text-sm font-semibold  w-32">
+                Status
+              </TableHead>
+              <TableHead className="p-4 text-center text-sm font-semibold  w-12">
+                Edit
+              </TableHead>
+              <TableHead className="p-4 text-center text-sm font-semibold  w-20">
+                Hapus
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((job) => (
+              <TableRow
+                key={job.id}
+                className="border-b last:border-0 transition-colors"
+              >
+                {/* Role */}
+                <TableCell className="p-4 align-middle">
+                  <div className="flex flex-col">
+                    <Link
+                      href={`/dashboard/applicant/joblist/${job.id}`}
+                      className="font-bold text-indigo-600 dark:text-indigo-100 hover:underline text-[15px]"
+                    >
+                      {job.position.nama}
+                    </Link>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      {job.creator.nama} •{" "}
+                      {format(new Date(job.createdAt), "d MMM yyyy", {
+                        locale: idLocale,
+                      })}
+                    </p>
+                  </div>
+                </TableCell>
 
-              {/* Stages Column */}
-              <td className="p-4">
-                <div className="flex items-center gap-6">
-                  {stages.map((stage) => (
-                    <div key={stage.id} className="flex flex-col items-center min-w-16">
-                      <p className="text-2xl font-semibold">0</p>
-                      <p className="text-xs text-muted-foreground text-center">{stage.name}</p>
+                {/* Stages */}
+                <TableCell className="p-4 align-middle">
+                  <div className="w-full overflow-hidden">
+                    <div className="overflow-x-auto pb-2 custom-scrollbar cursor-grab active:cursor-grabbing">
+                      <div className="flex items-center gap-6 min-w-max px-2">
+                        {stages.map((stage) => (
+                          <div
+                            key={stage.id}
+                            className="flex flex-col items-center shrink-0 min-w-24"
+                          >
+                            <span className="text-xl font-bold text-slate-800 dark:text-slate-200">
+                              0
+                            </span>
+                            <span className="text-[10px] font-bold uppercase tracking-tight text-slate-400 dark:text-slate-500 text-center leading-tight whitespace-nowrap">
+                              {stage.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </td>
+                  </div>
+                </TableCell>
 
-              {/* Status Column */}
-              <td className="p-4 text-center">
-                <StatusDropdown status={job.status} jobId={job.id} />
-              </td>
+                {/* Status */}
+                <TableCell className="p-4 text-center align-middle">
+                  <StatusDropdown status={job.status} jobId={job.id} />
+                </TableCell>
 
-              {/* Edit Column */}
-              <td className="p-4 text-center">
-                <Link href={`/dashboard/applicant/joblist/${job.id}/edit`}>
-                  <Button variant="ghost" size="icon" suppressHydrationWarning>
-                    <Pencil className="size-4" />
-                  </Button>
-                </Link>
-              </td>
-
-              {/* Delete Column */}
-              <td className="p-4 text-center">
-                <DeleteButton id={job.id} name={job.position.nama} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                {/* Action */}
+                <TableCell className="p-4 text-center align-middle">
+                  <Link href={`/dashboard/applicant/joblist/${job.id}/edit`}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-full hover:bg-slate-100"
+                    >
+                      <Pencil className="size-4 " />
+                    </Button>
+                  </Link>
+                </TableCell>
+                <TableCell className="p-4 text-center align-middle">
+                  <DeleteButton id={job.id} name={job.position.nama} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
