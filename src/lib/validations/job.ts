@@ -14,4 +14,16 @@ export const jobStepOneSchema = z.object({
   path: ["maxSalary"],
 });
 
+export const jobStepTwoSchema = z.object({
+  description: z
+    .string()
+    .min(100, "Deskripsi minimal 100 karakter")
+    .max(2500, "Deskripsi maksimal 2500 karakter"),
+  requirements: z
+    .string()
+    .min(200, "Persyaratan minimal 200 karakter")
+    .max(2500, "Persyaratan maksimal 2500 karakter"),
+});
+
 export type JobStepOneValues = z.infer<typeof jobStepOneSchema>;
+export type JobStepTwoValues = z.infer<typeof jobStepTwoSchema>;

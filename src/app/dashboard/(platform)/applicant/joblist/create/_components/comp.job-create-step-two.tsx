@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "./rich-text-editor";
+import { jobStepTwoSchema } from "@/lib/validations/job";
 
 type Props = {
   initialData: any;
@@ -14,27 +15,27 @@ type Props = {
 export function StepTwo({ initialData, onNext, onBack }: Props) {
   const [description, setDescription] = useState(initialData.description || "");
   const [requirements, setRequirements] = useState(initialData.requirements || "");
-  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
+    setValidationError(null);
 
-    // Validasi minimal character
-    if (description.length < 100) {
-      setError("Deskripsi minimal 100 karakter");
-      return;
-    }
-
-    if (requirements.length < 200) {
-      setError("Requirements minimal 200 karakter");
-      return;
-    }
-
-    onNext({
+    const formData = {
       description,
       requirements,
-    });
+    };
+
+    // Validasi dengan Zod
+    const result = jobStepTwoSchema.safeParse(formData);
+
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      setValidationError(firstError.message);
+      return;
+    }
+
+    onNext(result.data);
   }
 
   return (
@@ -77,16 +78,18 @@ export function StepTwo({ initialData, onNext, onBack }: Props) {
         </div>
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {/* Validation Error dari Zod */}
+      {validationError && (
+        <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive rounded-md">
+          {validationError}
+        </div>
+      )}
 
       <div className="flex justify-between">
         <Button type="button" variant="outline" onClick={onBack}>
           Kembali
         </Button>
-        <Button
-          type="submit"
-          disabled={description.length < 100 || requirements.length < 200}
-        >
+        <Button type="submit">
           Selanjutnya
         </Button>
       </div>
