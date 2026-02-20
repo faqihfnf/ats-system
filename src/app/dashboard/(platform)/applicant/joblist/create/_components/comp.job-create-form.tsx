@@ -7,7 +7,7 @@ import { StepOne } from "./comp.job-create-step-one";
 import { StepTwo } from "./comp.job-create-step-two";
 import { StepThree } from "./comp.job-create-step-three";
 import { toast } from "sonner";
-import { createJob } from "../_actions/action.job-create";
+import { createJob } from "../../_actions/action.job";
 
 type Position = { id: string; nama: string; divisi: { nama: string }; level: { nama: string } };
 type Branch = { id: string; name: string };

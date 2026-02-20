@@ -3,7 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { z } from "zod";
+
+const jobStatusSchema = z.enum(["DRAFT", "OPEN", "CLOSED"]);
+
 
 export async function createJob(data: any) {
   try {
@@ -58,7 +61,11 @@ export async function createJob(data: any) {
 }
 
 export async function getJobs() {
-  return await prisma.job.findMany({
+  const stages = await prisma.stage.findMany({
+    orderBy: { order: "asc" },
+  });
+
+  const jobs = await prisma.job.findMany({
     include: {
       position: {
         include: {
@@ -74,4 +81,32 @@ export async function getJobs() {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  return { jobs, stages };
+}
+
+export async function deleteJob(id: string) {
+  try {
+    await prisma.job.delete({ where: { id } });
+    revalidatePath("/dashboard/applicant/joblist");
+    return { success: true };
+  } catch {
+    return { error: "Terjadi kesalahan saat menghapus" };
+  }
+}
+
+export async function updateJobStatus(id: string, status: string) {
+  try {
+    // Validasi status
+    const validStatus = jobStatusSchema.parse(status);
+    
+    await prisma.job.update({
+      where: { id },
+      data: { status: validStatus },
+    });
+    revalidatePath("/dashboard/applicant/joblist");
+    return { success: true };
+  } catch {
+    return { error: "Terjadi kesalahan saat mengubah status" };
+  }
 }
