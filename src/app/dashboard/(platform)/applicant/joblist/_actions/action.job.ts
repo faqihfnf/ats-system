@@ -7,19 +7,22 @@ import { z } from "zod";
 
 const jobStatusSchema = z.enum(["DRAFT", "OPEN", "CLOSED"]);
 
-
 export async function createJob(data: any) {
   try {
-    // Get current user
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       return { error: "Tidak terautentikasi" };
     }
 
-    // Create job
-    await prisma.job.create({
+    console.log("Creating job with data:", data); // ← Debug log
+    console.log("Questions:", data.questions); // ← Debug log
+
+    // Create job dengan custom questions
+    const job = await prisma.job.create({
       data: {
         // Step 1
         positionId: data.positionId,
@@ -30,11 +33,11 @@ export async function createJob(data: any) {
         minSalary: data.minSalary,
         maxSalary: data.maxSalary,
         showSalary: data.showSalary,
-        
+
         // Step 2
         description: data.description,
         requirements: data.requirements,
-        
+
         // Step 3
         minEducationId: data.minEducationId,
         minExperienceId: data.minExperienceId,
@@ -45,18 +48,50 @@ export async function createJob(data: any) {
         showGender: data.showGender,
         religion: data.religion,
         showReligion: data.showReligion,
-        
+
+        // Step 4 - Custom Questions
+        ...(data.questions &&
+        Array.isArray(data.questions) &&
+        data.questions.length > 0
+          ? {
+              customQuestions: {
+                create: data.questions.map((q: any, index: number) => ({
+                  question: q.question,
+                  type: q.type,
+                  required: q.required,
+                  order: index + 1,
+                  options:
+                    q.options &&
+                    Array.isArray(q.options) &&
+                    q.options.length > 0
+                      ? JSON.stringify(q.options)
+                      : null,
+                })),
+              },
+            }
+          : {}),
+
         // Meta
         createdBy: user.id,
-        status: "DRAFT", // default status
+        status: "DRAFT",
+      },
+      include: {
+        customQuestions: true, // ← Include untuk verify
       },
     });
 
+    console.log("Job created:", job); // ← Debug log
+    console.log("Custom questions created:", job.customQuestions); // ← Debug log
+
     revalidatePath("/dashboard/applicant/joblist");
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create job error:", error);
-    return { error: "Terjadi kesalahan saat menyimpan lowongan" };
+    console.error("Error details:", error.message);
+    console.error("Error stack:", error.stack);
+    return {
+      error: `Terjadi kesalahan saat menyimpan lowongan: ${error.message}`,
+    };
   }
 }
 
@@ -111,7 +146,7 @@ export async function getAvailablePositions() {
 
   // Filter posisi yang belum digunakan
   const availablePositions = allPositions.filter(
-    (pos) => !usedPositionIds.includes(pos.id)
+    (pos) => !usedPositionIds.includes(pos.id),
   );
 
   return availablePositions;
@@ -131,7 +166,7 @@ export async function updateJobStatus(id: string, status: string) {
   try {
     // Validasi status
     const validStatus = jobStatusSchema.parse(status);
-    
+
     await prisma.job.update({
       where: { id },
       data: { status: validStatus },

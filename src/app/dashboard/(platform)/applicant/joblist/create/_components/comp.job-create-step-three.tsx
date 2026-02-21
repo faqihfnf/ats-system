@@ -4,7 +4,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { jobStepThreeSchema } from "@/lib/validations/job";
 
@@ -15,57 +21,62 @@ type Props = {
   educations: Education[];
   experiences: Experience[];
   initialData: any;
-onSubmit: (data: any) => Promise<boolean>;
+  onSubmit: (data: any) => Promise<boolean>;
   onBack: () => void;
 };
 
-export function StepThree({ educations, experiences, initialData, onSubmit, onBack }: Props) {
-  const [selectedEducation, setSelectedEducation] = useState(initialData.minEducationId || "");
-  const [selectedExperience, setSelectedExperience] = useState(initialData.minExperienceId || "");
+export function StepThree({
+  educations,
+  experiences,
+  initialData,
+  onSubmit,
+  onBack,
+}: Props) {
+  const [selectedEducation, setSelectedEducation] = useState(
+    initialData.minEducationId || "",
+  );
+  const [selectedExperience, setSelectedExperience] = useState(
+    initialData.minExperienceId || "",
+  );
   const [minAge, setMinAge] = useState(initialData.minAge || 18);
   const [maxAge, setMaxAge] = useState(initialData.maxAge || 40);
   const [showAge, setShowAge] = useState(initialData.showAge || false);
   const [gender, setGender] = useState(initialData.gender || "ANY");
   const [showGender, setShowGender] = useState(initialData.showGender || false);
   const [religion, setReligion] = useState(initialData.religion || "ANY");
-  const [showReligion, setShowReligion] = useState(initialData.showReligion || false);
+  const [showReligion, setShowReligion] = useState(
+    initialData.showReligion || false,
+  );
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-  e.preventDefault();
-  setValidationError(null);
+    e.preventDefault();
+    setValidationError(null);
 
-  const formData = {
-    minEducationId: selectedEducation,
-    minExperienceId: selectedExperience,
-    minAge,
-    maxAge,
-    showAge,
-    gender,
-    showGender,
-    religion,
-    showReligion,
-  };
+    const formData = {
+      minEducationId: selectedEducation,
+      minExperienceId: selectedExperience,
+      minAge,
+      maxAge,
+      showAge,
+      gender,
+      showGender,
+      religion,
+      showReligion,
+    };
 
-  // Validasi dengan Zod
-  const result = jobStepThreeSchema.safeParse(formData);
+    // Validasi dengan Zod
+    const result = jobStepThreeSchema.safeParse(formData);
 
-  if (!result.success) {
-    const firstError = result.error.issues[0];
-    setValidationError(firstError.message);
-    return;
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      setValidationError(firstError.message);
+      return;
+    }
+
+    // ← Langsung panggil onSubmit tanpa loading state
+    await onSubmit(result.data);
   }
-
-  setLoading(true);
-  const success = await onSubmit(result.data);
-  
-  // Only stop loading if submission failed
-  if (!success) {
-    setLoading(false);
-  }
-  // If success, loading will continue until redirect happens
-}
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -73,7 +84,10 @@ export function StepThree({ educations, experiences, initialData, onSubmit, onBa
         {/* Pendidikan Minimal */}
         <div className="col-span-2 space-y-2">
           <Label>Pendidikan Minimal *</Label>
-          <Select value={selectedEducation} onValueChange={setSelectedEducation}>
+          <Select
+            value={selectedEducation}
+            onValueChange={setSelectedEducation}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Pilih pendidikan minimal..." />
             </SelectTrigger>
@@ -90,7 +104,10 @@ export function StepThree({ educations, experiences, initialData, onSubmit, onBa
         {/* Pengalaman Minimal */}
         <div className="col-span-2 space-y-2">
           <Label>Pengalaman Minimal *</Label>
-          <Select value={selectedExperience} onValueChange={setSelectedExperience}>
+          <Select
+            value={selectedExperience}
+            onValueChange={setSelectedExperience}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Pilih pengalaman minimal..." />
             </SelectTrigger>
@@ -154,7 +171,11 @@ export function StepThree({ educations, experiences, initialData, onSubmit, onBa
         </div>
 
         <div className="col-span-2 flex items-center gap-2">
-          <Switch id="showGender" checked={showGender} onCheckedChange={setShowGender} />
+          <Switch
+            id="showGender"
+            checked={showGender}
+            onCheckedChange={setShowGender}
+          />
           <Label htmlFor="showGender" className="cursor-pointer">
             Tampilkan jenis kelamin ke publik
           </Label>
@@ -180,7 +201,11 @@ export function StepThree({ educations, experiences, initialData, onSubmit, onBa
         </div>
 
         <div className="col-span-2 flex items-center gap-2">
-          <Switch id="showReligion" checked={showReligion} onCheckedChange={setShowReligion} />
+          <Switch
+            id="showReligion"
+            checked={showReligion}
+            onCheckedChange={setShowReligion}
+          />
           <Label htmlFor="showReligion" className="cursor-pointer">
             Tampilkan agama ke publik
           </Label>
@@ -189,18 +214,16 @@ export function StepThree({ educations, experiences, initialData, onSubmit, onBa
 
       {/* Validation Error */}
       {validationError && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive rounded-md">
+        <div className="text-destructive bg-destructive/10 border-destructive rounded-md border p-3 text-sm">
           {validationError}
         </div>
       )}
 
       <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack} disabled={loading}>
+        <Button type="button" variant="outline" onClick={onBack}>
           Kembali
         </Button>
-        <Button type="submit" disabled={loading}>
-          {loading ? "Menyimpan..." : "Simpan Lowongan"}
-        </Button>
+        <Button type="submit">Selanjutnya</Button>
       </div>
     </form>
   );

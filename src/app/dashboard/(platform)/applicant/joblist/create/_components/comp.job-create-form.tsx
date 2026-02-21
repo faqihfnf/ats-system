@@ -6,10 +6,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StepOne } from "./comp.job-create-step-one";
 import { StepTwo } from "./comp.job-create-step-two";
 import { StepThree } from "./comp.job-create-step-three";
+import { StepFour } from "./comp.job-create-step-four";
 import { toast } from "sonner";
 import { createJob } from "../../_actions/action.job";
 
-type Position = { id: string; nama: string; divisi: { nama: string }; level: { nama: string } };
+type Position = {
+  id: string;
+  nama: string;
+  divisi: { nama: string };
+  level: { nama: string };
+};
 type Branch = { id: string; name: string };
 type Status = { id: string; name: string };
 type Education = { id: string; name: string };
@@ -23,7 +29,13 @@ type Props = {
   experiences: Experience[];
 };
 
-export function JobCreateForm({ positions, branches, statuses, educations, experiences }: Props) {
+export function JobCreateForm({
+  positions,
+  branches,
+  statuses,
+  educations,
+  experiences,
+}: Props) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({});
@@ -32,16 +44,17 @@ export function JobCreateForm({ positions, branches, statuses, educations, exper
     { number: 1, title: "Informasi Umum" },
     { number: 2, title: "Informasi Pekerjaan" },
     { number: 3, title: "Kualifikasi dan Pengalaman" },
+    { number: 4, title: "Custom Questions" }, // ← tambah step 4
   ];
 
-  async function handleFinalSubmit(step3Data: any) {
-    const completeData = { ...formData, ...step3Data };
-    
+  async function handleFinalSubmit(step4Data: any) {
+    const completeData = { ...formData, ...step4Data };
+
     const result = await createJob(completeData);
-    
+
     if (result?.error) {
       toast.error(result.error, { position: "top-right" });
-      return false; // return false untuk tidak close loading
+      return false;
     } else {
       toast.success("Lowongan berhasil dibuat", { position: "top-right" });
       setTimeout(() => {
@@ -56,10 +69,10 @@ export function JobCreateForm({ positions, branches, statuses, educations, exper
       {/* Progress Steps */}
       <div className="flex items-center justify-between">
         {steps.map((step, idx) => (
-          <div key={step.number} className="flex items-center flex-1">
-            <div className="flex flex-col items-center flex-1">
+          <div key={step.number} className="flex flex-1 items-center">
+            <div className="flex flex-1 flex-col items-center">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold ${
                   currentStep >= step.number
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground"
@@ -67,12 +80,16 @@ export function JobCreateForm({ positions, branches, statuses, educations, exper
               >
                 {step.number}
               </div>
-              <p className={`text-sm mt-2 ${currentStep >= step.number ? "text-primary font-medium" : "text-muted-foreground"}`}>
+              <p
+                className={`mt-2 text-center text-sm ${currentStep >= step.number ? "text-primary font-medium" : "text-muted-foreground"}`}
+              >
                 {step.title}
               </p>
             </div>
             {idx < steps.length - 1 && (
-              <div className={`h-0.5 flex-1 ${currentStep > step.number ? "bg-primary" : "bg-muted"}`} />
+              <div
+                className={`h-0.5 flex-1 ${currentStep > step.number ? "bg-primary" : "bg-muted"}`}
+              />
             )}
           </div>
         ))}
@@ -108,8 +125,19 @@ export function JobCreateForm({ positions, branches, statuses, educations, exper
               educations={educations}
               experiences={experiences}
               initialData={formData}
-              onSubmit={handleFinalSubmit}
+              onSubmit={(data) => {
+                setFormData({ ...formData, ...data });
+                setCurrentStep(4);
+                return Promise.resolve(true);
+              }}
               onBack={() => setCurrentStep(2)}
+            />
+          )}
+          {currentStep === 4 && (
+            <StepFour
+              initialData={formData}
+              onSubmit={handleFinalSubmit}
+              onBack={() => setCurrentStep(3)}
             />
           )}
         </CardContent>

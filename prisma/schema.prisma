@@ -142,6 +142,9 @@ model Job {
   religion        Religion   @default(ANY)
   showReligion    Boolean    @default(false)
 
+  // Custom Question (step 4)
+  customQuestions CustomQuestion[]
+
   status    JobStatus @default(DRAFT)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -171,4 +174,33 @@ enum JobStatus {
   DRAFT
   OPEN
   CLOSED
+}
+
+model CustomQuestion {
+  id    String @id @default(cuid())
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  question String
+  type     QuestionType
+  required Boolean      @default(false)
+  order    Int
+
+  options String? // JSON string untuk MULTIPLE_CHOICE, CHECKBOX, DROPDOWN
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("custom_questions")
+}
+
+enum QuestionType {
+  SHORT_TEXT
+  LONG_TEXT
+  NUMBER
+  DATE
+  MULTIPLE_CHOICE
+  CHECKBOX
+  DROPDOWN
+  YES_NO
 }
