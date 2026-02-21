@@ -102,11 +102,11 @@ export default async function JobListingsSection({
                             </span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
-                            <Briefcase className="size-4 text-slate-400" />
+                            <Briefcase className="text-muted-foreground size-4" />
                             <span className="mr-8">
                               {job.employmentStatus.name}
                             </span>
-                            <CalendarDays className="size-4 text-slate-400" />
+                            <CalendarDays className="text-muted-foreground size-4" />
                             <span>
                               {format(new Date(job.createdAt), "dd MMM yyyy")}
                             </span>

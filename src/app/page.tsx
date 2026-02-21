@@ -15,7 +15,7 @@ export default async function Home({ searchParams }: Props) {
   // Tunggu searchParams dari URL
   const resolvedParams = await searchParams;
   return (
-    <main>
+    <main suppressHydrationWarning>
       <Navbar />
       <HeroSection />
       <CoreValuesSection />

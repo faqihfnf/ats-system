@@ -5,7 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Building2, MapPin, Calendar, Briefcase, GraduationCap, Clock, Users, DollarSign, ChevronLeft } from "lucide-react";
+import {
+  Building2,
+  MapPin,
+  Briefcase,
+  GraduationCap,
+  Users,
+  DollarSign,
+  ChevronLeft,
+  CalendarDays,
+  MoonStar,
+  UserRound,
+} from "lucide-react";
 import Link from "next/link";
 import { getPublicJobDetail } from "@/app/(public)/_actions/action.public";
 import { format } from "date-fns";
@@ -16,20 +27,27 @@ type Props = {
 };
 
 export default async function JobDetailPage({ params }: Props) {
-const { id } = await params; 
-  
+  const { id } = await params;
+
   const job = await getPublicJobDetail(id);
   if (!job) {
     notFound();
   }
 
+  const toProperCase = (str: string) => {
+    return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-b from-blue-50 to-white">
-      <div className="max-w-4xl mx-auto py-12 px-4">
+      <div className="mx-auto max-w-4xl px-4 py-12">
         {/* Back Button */}
         <Link href="/">
-          <Button variant="ghost" className="mb-6">
-            <ChevronLeft className="size-4 mr-2" />
+          <Button
+            variant="ghost"
+            className="hover:text-primary mb-6 hover:bg-transparent"
+          >
+            <ChevronLeft className="mr-2 size-4" />
             Kembali ke Lowongan
           </Button>
         </Link>
@@ -37,29 +55,50 @@ const { id } = await params;
         {/* Job Header */}
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex items-start justify-between mb-4">
+            <div className="mb-4 flex items-start justify-between">
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{job.position.divisi.nama}</Badge>
-                  <Badge variant="outline">{job.position.level.nama}</Badge>
-                </div>
                 <h1 className="text-3xl font-bold">{job.position.nama}</h1>
-                <p className="text-muted-foreground">{job.employmentStatus.name}</p>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className="text-primary border-primary"
+                  >
+                    {job.position.divisi.nama}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="text-primary border-primary"
+                  >
+                    {job.position.level.nama}
+                  </Badge>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-10">
               <div className="flex items-center gap-2 text-sm">
-                <Building2 className="size-4 text-muted-foreground" />
+                <Building2 className="text-muted-foreground size-4" />
                 <span>{job.branch.name}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <MapPin className="size-4 text-muted-foreground" />
-                <span>{job.city}, {job.province}</span>
+                <MapPin className="text-muted-foreground size-4" />
+                <span>
+                  {toProperCase(job.city)},
+                  <br />
+                  {toProperCase(job.province)}
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="size-4 text-muted-foreground" />
-                <span>{format(new Date(job.createdAt), "d MMM yyyy", { locale: idLocale })}</span>
+              <div className="flex items-center gap-2 text-sm md:justify-center">
+                <Briefcase className="text-muted-foreground size-4" />
+                <span>{job.employmentStatus.name}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm md:justify-center">
+                <CalendarDays className="text-muted-foreground size-4" />
+                <span>
+                  {format(new Date(job.createdAt), "d MMM yyyy", {
+                    locale: idLocale,
+                  })}
+                </span>
               </div>
             </div>
           </CardHeader>
@@ -68,56 +107,68 @@ const { id } = await params;
         {/* Job Description */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Deskripsi Pekerjaan</CardTitle>
+            <CardTitle className="text-lg">Deskripsi Pekerjaan</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm max-w-none">
-              {job.description || "Tidak ada deskripsi"}
-            </div>
+            <div
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{
+                __html: job.description || "Tidak ada deskripsi",
+              }}
+            />
           </CardContent>
         </Card>
 
         {/* Requirements */}
         <Card className="mb-6">
-          <CardHeader>
+          <CardHeader className="text-lg">
             <CardTitle>Persyaratan</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm max-w-none">
-              {job.requirements || "Tidak ada persyaratan"}
-            </div>
+            <div
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{
+                __html: job.requirements || "Tidak ada persyaratan",
+              }}
+            />
           </CardContent>
         </Card>
 
         {/* Qualifications */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Kualifikasi</CardTitle>
+            <CardTitle className="text-lg">Kualifikasi</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
-              <GraduationCap className="size-5 text-muted-foreground" />
+              <GraduationCap className="text-muted-foreground size-5" />
               <div>
                 <p className="font-medium">Pendidikan Minimal</p>
-                <p className="text-sm text-muted-foreground">{job.minEducation.name}</p>
+                <p className="text-muted-foreground text-sm">
+                  {job.minEducation.name}
+                </p>
               </div>
             </div>
             <Separator />
             <div className="flex items-center gap-3">
-              <Briefcase className="size-5 text-muted-foreground" />
+              <Briefcase className="text-muted-foreground size-5" />
               <div>
                 <p className="font-medium">Pengalaman Minimal</p>
-                <p className="text-sm text-muted-foreground">{job.minExperience.name} ({job.minExperience.minYears} tahun)</p>
+                <p className="text-muted-foreground text-sm">
+                  {job.minExperience.name} ({job.minExperience.minYears} tahun)
+                </p>
               </div>
             </div>
             {job.showAge && (
               <>
                 <Separator />
                 <div className="flex items-center gap-3">
-                  <Users className="size-5 text-muted-foreground" />
+                  <UserRound className="text-muted-foreground size-5" />
                   <div>
                     <p className="font-medium">Rentang Usia</p>
-                    <p className="text-sm text-muted-foreground">{job.minAge} - {job.maxAge} tahun</p>
+                    <p className="text-muted-foreground text-sm">
+                      {job.minAge} - {job.maxAge} tahun
+                    </p>
                   </div>
                 </div>
               </>
@@ -126,11 +177,44 @@ const { id } = await params;
               <>
                 <Separator />
                 <div className="flex items-center gap-3">
-                  <DollarSign className="size-5 text-muted-foreground" />
+                  <DollarSign className="text-muted-foreground size-5" />
                   <div>
                     <p className="font-medium">Rentang Gaji</p>
-                    <p className="text-sm text-muted-foreground">
-                      Rp {job.minSalary.toLocaleString("id-ID")} - Rp {job.maxSalary.toLocaleString("id-ID")}
+                    <p className="text-muted-foreground text-sm">
+                      Rp {job.minSalary.toLocaleString("id-ID")} - Rp{" "}
+                      {job.maxSalary.toLocaleString("id-ID")}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+            {job.showGender && (
+              <>
+                <Separator />
+                <div className="flex items-center gap-3">
+                  <Users className="text-muted-foreground size-5" />
+                  <div>
+                    <p className="font-medium">Jenis Kelamin</p>
+                    <p className="text-muted-foreground text-sm">
+                      {job.gender === "MALE"
+                        ? "Pria"
+                        : job.gender === "FEMALE"
+                          ? "Wanita"
+                          : "Semua"}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+            {job.showReligion && (
+              <>
+                <Separator />
+                <div className="flex items-center gap-3">
+                  <MoonStar className="text-muted-foreground size-5" />
+                  <div>
+                    <p className="font-medium">Agama</p>
+                    <p className="text-muted-foreground text-sm">
+                      {toProperCase(job.religion)}
                     </p>
                   </div>
                 </div>
@@ -143,11 +227,8 @@ const { id } = await params;
         <Card>
           <CardContent className="pt-6">
             <Button size="lg" className="w-full">
-              Lamar Lowongan Ini
+              Lamar Sekarang
             </Button>
-            <p className="text-sm text-muted-foreground text-center mt-4">
-              Pastikan Anda memenuhi semua kualifikasi sebelum melamar
-            </p>
           </CardContent>
         </Card>
       </div>
