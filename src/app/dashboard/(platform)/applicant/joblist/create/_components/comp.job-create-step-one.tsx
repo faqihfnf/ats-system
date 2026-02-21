@@ -185,27 +185,38 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         {/* Posisi */}
-        <div className="col-span-2 space-y-2">
-          <Label>Posisi *</Label>
-          <Select
-            value={selectedPosition?.id || ""}
-            onValueChange={(val) => {
-              const pos = positions.find((p) => p.id === val);
-              setSelectedPosition(pos || null);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Pilih posisi..." />
-            </SelectTrigger>
-            <SelectContent>
-              {positions.map((pos) => (
-                <SelectItem key={pos.id} value={pos.id}>
-                  {pos.nama}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+<div className="col-span-2 space-y-2">
+  <Label>Posisi *</Label>
+  <Select
+    value={selectedPosition?.id || ""}
+    onValueChange={(val) => {
+      const pos = positions.find((p) => p.id === val);
+      setSelectedPosition(pos || null);
+    }}
+  >
+    <SelectTrigger>
+      <SelectValue placeholder="Pilih posisi..." />
+    </SelectTrigger>
+    <SelectContent>
+      {positions.length === 0 ? (
+        <div className="p-2 text-sm text-muted-foreground text-center">
+          Semua posisi sudah digunakan
         </div>
+      ) : (
+        positions.map((pos) => (
+          <SelectItem key={pos.id} value={pos.id}>
+            {pos.nama}
+          </SelectItem>
+        ))
+      )}
+    </SelectContent>
+  </Select>
+  {positions.length === 0 && (
+    <p className="text-xs text-muted-foreground">
+      Semua posisi sudah memiliki lowongan aktif. Tutup lowongan yang ada atau buat posisi baru.
+    </p>
+  )}
+</div>
 
         {/* Divisi (read-only) */}
         <div className="space-y-2">

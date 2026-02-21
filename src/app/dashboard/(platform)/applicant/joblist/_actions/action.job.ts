@@ -85,6 +85,38 @@ export async function getJobs() {
   return { jobs, stages };
 }
 
+export async function getAvailablePositions() {
+  // Ambil semua posisi yang sudah digunakan di job yang masih OPEN atau DRAFT
+  const usedPositions = await prisma.job.findMany({
+    where: {
+      status: {
+        in: ["OPEN", "DRAFT"],
+      },
+    },
+    select: {
+      positionId: true,
+    },
+  });
+
+  const usedPositionIds = usedPositions.map((job) => job.positionId);
+
+  // Ambil semua posisi
+  const allPositions = await prisma.position.findMany({
+    include: {
+      divisi: true,
+      level: true,
+    },
+    orderBy: { nama: "asc" },
+  });
+
+  // Filter posisi yang belum digunakan
+  const availablePositions = allPositions.filter(
+    (pos) => !usedPositionIds.includes(pos.id)
+  );
+
+  return availablePositions;
+}
+
 export async function deleteJob(id: string) {
   try {
     await prisma.job.delete({ where: { id } });

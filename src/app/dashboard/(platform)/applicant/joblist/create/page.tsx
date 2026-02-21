@@ -6,10 +6,11 @@ import { getStatuses } from "../../status/_actions/action.status";
 import { getEducations } from "../../education/_actions/action.education";
 import { getExperiences } from "../../experience/_actions/action.experience";
 import { JobCreateForm } from "./_components/comp.job-create-form";
+import { getAvailablePositions } from "../_actions/action.job";
 
 export default async function JobCreatePage() {
   const [positions, branches, statuses, educations, experiences] = await Promise.all([
-    getPositions(),
+    getAvailablePositions(),
     getBranches(),
     getStatuses(),
     getEducations(),
