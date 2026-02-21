@@ -20,7 +20,7 @@ export function LogoutButton() {
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <SidebarMenuButton
-          className="text-white bg-destructive hover:text-white hover:bg-destructive/70 cursor-pointer"
+          className="text-destructive bg-destructive/20 hover:text-white hover:bg-destructive/80 cursor-pointer"
         >
           <LogOut />
           <span>Logout</span>

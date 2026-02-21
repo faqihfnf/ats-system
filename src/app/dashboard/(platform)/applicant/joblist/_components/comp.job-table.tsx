@@ -86,7 +86,7 @@ export function JobTable({ data, stages }: Props) {
                   <div className="flex flex-col">
                     <Link
                       href={`/dashboard/applicant/joblist/${job.id}`}
-                      className="font-bold text-indigo-600 dark:text-indigo-100 hover:underline text-[15px]"
+                      className="font-bold text-primary hover:underline text-[15px]"
                     >
                       {job.position.nama}
                     </Link>
