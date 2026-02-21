@@ -22,7 +22,6 @@ import {
   Type,
   Highlighter,
   Link as LinkIcon,
-  Baseline,
   ChevronDown,
   AlignJustify,
   Trash2,
