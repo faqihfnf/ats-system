@@ -1,13 +1,19 @@
 import { CoreValuesSection } from "../components/landing-page/core-value";
 import { Footer } from "../components/landing-page/footer";
 import { HeroSection } from "../components/landing-page/hero-section";
-import { JobListingsSection } from "../components/landing-page/job-listing";
 import { Navbar } from "../components/landing-page/navbar";
 import { TestimonialsSection } from "../components/landing-page/testimonial";
 import { WhyJoinSection } from "../components/landing-page/why-join";
 import { CtaSection } from "../components/landing-page/call-to-action";
+import JobListingsSection from "@/components/landing-page/job-listing";
 
-export default function Home() {
+type Props = {
+  searchParams: Promise<{ divisi?: string }>;
+};
+
+export default async function Home({ searchParams }: Props) {
+  // Tunggu searchParams dari URL
+  const resolvedParams = await searchParams;
   return (
     <main>
       <Navbar />
@@ -15,7 +21,7 @@ export default function Home() {
       <CoreValuesSection />
       <WhyJoinSection />
       <TestimonialsSection />
-      <JobListingsSection />
+      <JobListingsSection searchParams={resolvedParams} />
       <CtaSection />
       <Footer />
     </main>
