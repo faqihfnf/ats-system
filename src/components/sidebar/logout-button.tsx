@@ -19,9 +19,7 @@ export function LogoutButton() {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <SidebarMenuButton
-          className="text-destructive bg-destructive/20 hover:text-white hover:bg-destructive/80 cursor-pointer"
-        >
+        <SidebarMenuButton className="text-destructive hover:bg-destructive/80 cursor-pointer bg-transparent font-semibold hover:text-white">
           <LogOut />
           <span>Logout</span>
         </SidebarMenuButton>
@@ -30,14 +28,15 @@ export function LogoutButton() {
         <AlertDialogHeader>
           <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
           <AlertDialogDescription>
-            Apakah Anda yakin ingin keluar? Anda harus login kembali untuk mengakses akun Anda.
+            Apakah Anda yakin ingin keluar? Anda harus login kembali untuk
+            mengakses akun Anda.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Batal</AlertDialogCancel>
-          <AlertDialogAction 
+          <AlertDialogAction
             onClick={() => logout()}
-              className="bg-destructive hover:bg-destructive/90 text-white"
+            className="bg-destructive hover:bg-destructive/90 text-white"
           >
             Logout
           </AlertDialogAction>

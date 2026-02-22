@@ -13,20 +13,23 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { LogoutButton } from "./logout-button";
+import { Separator } from "../ui/separator";
 
 const company = {
   name: "Papandayan Cargo",
   logo: GalleryVerticalEnd,
 };
 
-export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export async function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="pointer-events-none">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                 <company.logo className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -58,7 +61,8 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-           <LogoutButton /> 
+            <Separator className="bg-sidebar-accent my-2" />
+            <LogoutButton />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

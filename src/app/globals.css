@@ -72,18 +72,18 @@
   --chart-3: oklch(60.9% 0.126 221.723);
   --chart-4: oklch(52% 0.105 223.128);
   --chart-5: oklch(45% 0.085 224.283);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar: oklch(30.2% 0.056 229.695);
+  --sidebar-foreground: oklch(0.92 0.004 286.32);
   --sidebar-primary: oklch(60.9% 0.126 221.723);
-  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-primary-foreground: oklch(0.92 0.004 286.32);
+  --sidebar-accent: oklch(39.8% 0.07 227.392);
+  --sidebar-accent-foreground: oklch(0.92 0.004 286.32);
+  --sidebar-border: oklch(60.9% 0.126 221.723);
+  --sidebar-ring: oklch(0.92 0.004 286.32);
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
+  --background: oklch(12.9% 0.042 264.695);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
@@ -106,7 +106,7 @@
   --chart-3: oklch(60.9% 0.126 221.723);
   --chart-4: oklch(52% 0.105 223.128);
   --chart-5: oklch(45% 0.085 224.283);
-  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar: oklch(15.389% 0.08266 271.222);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(71.5% 0.143 215.221);
   --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
@@ -116,9 +116,6 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
-
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -127,7 +124,6 @@
     @apply bg-background text-foreground;
   }
 }
-
 
 /* Menyesuaikan tampilan di dalam editor Tiptap */
 .prose h1 {
@@ -182,5 +178,4 @@
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #cbd5e1; /* slate-300 saat hover */
-        }
-
+}
