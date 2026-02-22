@@ -75,7 +75,7 @@ export default async function JobDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-10">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-10">
               <div className="flex items-center gap-2 text-sm">
                 <Building2 className="text-muted-foreground size-4" />
                 <span>{job.branch.name}</span>
@@ -226,9 +226,11 @@ export default async function JobDetailPage({ params }: Props) {
         {/* Apply Button */}
         <Card>
           <CardContent className="pt-6">
-            <Button size="lg" className="w-full">
-              Lamar Sekarang
-            </Button>
+            <Link href={`/jobs/${job.id}/apply`}>
+              <Button size="lg" className="w-full">
+                Lamar Sekarang
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

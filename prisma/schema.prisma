@@ -59,11 +59,12 @@ enum Role {
 }
 
 model Stage {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  order     Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(cuid())
+  name         String        @unique
+  order        Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
 
   @@map("stages")
 }
@@ -90,11 +91,12 @@ model EmploymentStatus {
 }
 
 model Education {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  jobs      Job[]
+  id           String        @id @default(cuid())
+  name         String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  jobs         Job[]
+  applications Application[]
 
   @@map("educations")
 }
@@ -145,6 +147,8 @@ model Job {
   // Custom Question (step 4)
   customQuestions CustomQuestion[]
 
+  applications Application[]
+
   status    JobStatus @default(DRAFT)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -188,8 +192,9 @@ model CustomQuestion {
 
   options String? // JSON string untuk MULTIPLE_CHOICE, CHECKBOX, DROPDOWN
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  applicationAnswers ApplicationAnswer[]
 
   @@map("custom_questions")
 }
@@ -203,4 +208,70 @@ enum QuestionType {
   CHECKBOX
   DROPDOWN
   YES_NO
+}
+
+model Application {
+  id    String @id @default(cuid())
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id])
+
+  // Data Personal
+  fullName        String
+  email           String
+  phone           String
+  birthPlace      String
+  birthDate       DateTime
+  religion        Religion
+  ktpAddress      String   @db.Text
+  domicileAddress String   @db.Text
+  sameAsKtp       Boolean  @default(false)
+  province        String
+  city            String
+  district        String
+  subdistrict     String
+
+  // Pendidikan & Pekerjaan
+  educationId    String
+  education      Education @relation(fields: [educationId], references: [id])
+  institution    String
+  startYear      Int
+  endYear        String
+  currentSalary  Int?
+  expectedSalary Int
+
+  // Upload CV
+  cvUrl String?
+
+  // Custom Question Answers
+  answers ApplicationAnswer[]
+
+  // Status tracking
+  currentStageId String?
+  currentStage   Stage?          @relation(fields: [currentStageId], references: [id])
+  status         ApplicantStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("applications")
+}
+
+enum ApplicantStatus {
+  ACTIVE
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+model ApplicationAnswer {
+  id            String         @id @default(cuid())
+  applicationId String
+  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      CustomQuestion @relation(fields: [questionId], references: [id])
+
+  answer    String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@map("application_answers")
 }
