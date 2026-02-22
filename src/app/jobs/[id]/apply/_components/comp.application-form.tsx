@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-// import { StepEducation } from "./step-education";
+import { StepEducation } from "./comp.step-education";
 // import { StepCV } from "./step-cv";
 // import { StepCustomQuestions } from "./step-custom-questions";
 import { submitApplication } from "../_actions/action.application";
@@ -102,7 +102,7 @@ export function ApplicationForm({ job, educations }: Props) {
               }}
             />
           )}
-          {/* {currentStep === 2 && (
+          {currentStep === 2 && (
             <StepEducation
               educations={educations}
               initialData={formData}
@@ -112,7 +112,7 @@ export function ApplicationForm({ job, educations }: Props) {
               }}
               onBack={() => setCurrentStep(1)}
             />
-          )} */}
+          )}
           {/* {currentStep === 3 && (
             <StepCV
               initialData={formData}

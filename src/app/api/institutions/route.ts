@@ -1,39 +1,43 @@
+// app/api/institutions/route.ts
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get("search");
+
+  if (!query || query.length < 3) {
+    return NextResponse.json([]);
+  }
+
   try {
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
+    // Base URL dari dokumentasi
+    const baseUrl = "https://use.api.co.id/regional/indonesia/universities";
 
-    const apiKey = process.env.API_UNIVERSITY_KEY;
-
-    if (!apiKey) {
-      console.error("API_UNIVERSITY_KEY not found in environment variables");
-      return NextResponse.json([]);
-    }
-
+    // Parameter pencarian menggunakan 'name'
     const response = await fetch(
-      `https://api.api.co.id/v1/university?name=${encodeURIComponent(search)}`,
+      `${baseUrl}?name=${encodeURIComponent(query)}&size=20`,
       {
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          // Masukkan API Key Anda di sini sesuai dokumentasi
+          "x-api-co-id": process.env.API_UNIVERSITY_KEY || "",
         },
-        cache: "no-store",
       },
     );
 
-    if (!response.ok) {
-      console.error("API response not ok:", response.status);
-      return NextResponse.json([]);
+    const result = await response.json();
+
+    // Berdasarkan dokumentasi, data universitas ada di properti 'data'
+    if (result.is_success && Array.isArray(result.data)) {
+      return NextResponse.json(result.data);
     }
 
-    const data = await response.json();
-
-    // Format response sesuai struktur API
-    // Biasanya response: { data: [...universities] }
-    return NextResponse.json(data.data || []);
-  } catch (error) {
-    console.error("Fetch institutions error:", error);
     return NextResponse.json([]);
+  } catch (error) {
+    console.error("University API Error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch data" },
+      { status: 500 },
+    );
   }
 }
