@@ -3,103 +3,160 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
+import { submitApplication } from "../_actions/action.application";
+import { toast } from "sonner";
 import { StepPersonal } from "./comp.step-personal";
 import { StepEducation } from "./comp.step-education";
 import { StepCV } from "./comp.step-cv";
 import { StepCustomQuestions } from "./comp.step-custom-questions";
-import { submitApplication } from "../_actions/action.application";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { uploadCV } from "@/lib/supabase/storage";
 
-type Props = { job: any; educations: any[] };
+type Job = {
+  id: string;
+  position: { nama: string };
+  customQuestions: any[];
+};
+
+type Education = {
+  id: string;
+  name: string;
+};
+
+type Props = {
+  job: Job;
+  educations: Education[];
+};
 
 export function ApplicationForm({ job, educations }: Props) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<any>({});
+  const [submitting, setSubmitting] = useState(false);
 
-  // Definisi Step secara dinamis
+  const hasCustomQuestions = job.customQuestions.length > 0;
+
   const steps = [
     { number: 1, title: "Data Personal" },
-    { number: 2, title: "Pendidikan" },
+    { number: 2, title: "Pendidikan & Pekerjaan" },
     { number: 3, title: "Upload CV" },
-    ...(job.customQuestions?.length > 0
-      ? [{ number: 4, title: "Pertanyaan" }]
+    ...(hasCustomQuestions
+      ? [{ number: 4, title: "Pertanyaan Tambahan" }]
       : []),
   ];
 
-  const totalSteps = steps.length;
+  async function handleFinalSubmit(finalData: any) {
+    setSubmitting(true);
+    const completeData = { ...formData, ...finalData };
 
-  // Fungsi navigasi yang mendukung Promise<boolean> untuk Step 4
-  const handleNextStep = async (stepData: any): Promise<boolean> => {
-    const updatedData = { ...formData, ...stepData };
-    setFormData(updatedData);
+    // Upload CV jika ada file
+    if (completeData.cvFile) {
+      toast.info("Uploading CV...", { position: "top-right" });
 
-    if (currentStep < totalSteps) {
-      setCurrentStep((prev) => prev + 1);
-      return true;
-    } else {
-      return await handleFinalSubmit(updatedData);
+      const result = await uploadCV(completeData.cvFile);
+
+      if (result.error) {
+        toast.error(result.error, { position: "top-right" });
+        setSubmitting(false);
+        return false;
+      }
+
+      completeData.cvUrl = result.url;
+      delete completeData.cvFile; // Remove file object
     }
-  };
 
-  async function handleFinalSubmit(data: any): Promise<boolean> {
-    const result = await submitApplication(job.id, data);
+    // Submit application
+    const result = await submitApplication(job.id, completeData);
+
     if (result?.error) {
-      toast.error(result.error);
+      toast.error(result.error, { position: "top-right" });
+      setSubmitting(false);
       return false;
+    } else {
+      toast.success("Lamaran berhasil dikirim!", { position: "top-right" });
+      setTimeout(() => {
+        router.push(`/jobs/${job.id}/success`);
+      }, 500);
+      return true;
     }
-    toast.success("Lamaran berhasil dikirim!");
-    router.push(`/jobs/${job.id}/success`);
-    return true;
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 py-10">
-      {/* Progress Bar UI */}
-      <div className="mb-8 flex items-center justify-between px-4">
-        {steps.map((s) => (
-          <div key={s.number} className="flex flex-col items-center gap-2">
-            <div
-              className={cn(
-                "flex size-8 items-center justify-center rounded-full text-sm font-bold",
-                currentStep >= s.number
-                  ? "bg-primary text-white"
-                  : "bg-slate-200 text-slate-500",
-              )}
-            >
-              {s.number}
+    <div className="space-y-6">
+      {/* Progress Steps */}
+      <div className="flex items-center justify-between">
+        {steps.map((step, idx) => (
+          <div key={step.number} className="flex flex-1 items-center">
+            <div className="flex flex-1 flex-col items-center">
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold ${
+                  currentStep >= step.number
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {step.number}
+              </div>
+              <p
+                className={`mt-2 text-center text-sm ${currentStep >= step.number ? "text-primary font-medium" : "text-muted-foreground"}`}
+              >
+                {step.title}
+              </p>
             </div>
-            <span className="text-xs font-medium">{s.title}</span>
+            {idx < steps.length - 1 && (
+              <div
+                className={`h-0.5 flex-1 ${currentStep > step.number ? "bg-primary" : "bg-muted"}`}
+              />
+            )}
           </div>
         ))}
       </div>
 
+      {/* Form Content */}
       <Card>
         <CardContent className="pt-6">
           {currentStep === 1 && (
-            <StepPersonal initialData={formData} onNext={handleNextStep} />
+            <StepPersonal
+              initialData={formData}
+              onNext={(data) => {
+                setFormData({ ...formData, ...data });
+                setCurrentStep(2);
+              }}
+            />
           )}
           {currentStep === 2 && (
             <StepEducation
               educations={educations}
               initialData={formData}
-              onNext={handleNextStep}
+              onNext={(data) => {
+                setFormData({ ...formData, ...data });
+                setCurrentStep(3);
+              }}
               onBack={() => setCurrentStep(1)}
             />
           )}
           {currentStep === 3 && (
             <StepCV
               initialData={formData}
-              onNext={handleNextStep}
+              hasCustomQuestions={hasCustomQuestions}
+              submitting={submitting}
+              onNext={async (data) => {
+                setFormData({ ...formData, ...data });
+                if (hasCustomQuestions) {
+                  // Ada custom questions, lanjut ke step 4
+                  setCurrentStep(4);
+                } else {
+                  // Tidak ada custom questions, langsung submit
+                  await handleFinalSubmit(data);
+                }
+              }}
               onBack={() => setCurrentStep(2)}
             />
           )}
-          {currentStep === 4 && (
+          {currentStep === 4 && hasCustomQuestions && (
             <StepCustomQuestions
               questions={job.customQuestions}
               initialData={formData}
-              onSubmit={handleNextStep}
+              onSubmit={handleFinalSubmit}
               onBack={() => setCurrentStep(3)}
             />
           )}

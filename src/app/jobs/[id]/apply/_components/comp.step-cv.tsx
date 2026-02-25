@@ -8,13 +8,20 @@ import { Upload, FileText, X } from "lucide-react";
 
 type Props = {
   initialData: any;
+  hasCustomQuestions: boolean;
+  submitting: boolean; // ← tambah prop
   onNext: (data: any) => void;
   onBack: () => void;
 };
 
-export function StepCV({ initialData, onNext, onBack }: Props) {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+export function StepCV({
+  initialData,
+  hasCustomQuestions,
+  submitting,
+  onNext,
+  onBack,
+}: Props) {
+  const [file, setFile] = useState<File | null>(initialData.cvFile || null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -28,14 +35,15 @@ export function StepCV({ initialData, onNext, onBack }: Props) {
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
+
     if (!allowedTypes.includes(selectedFile.type)) {
       setValidationError("Format file harus PDF atau DOC/DOCX");
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (selectedFile.size > 5 * 1024 * 1024) {
-      setValidationError("Ukuran file maksimal 5MB");
+    // Validate file size (max 2MB) ← ubah dari 5MB
+    if (selectedFile.size > 2 * 1024 * 1024) {
+      setValidationError("Ukuran file maksimal 2MB");
       return;
     }
 
@@ -47,7 +55,7 @@ export function StepCV({ initialData, onNext, onBack }: Props) {
     setFile(null);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setValidationError(null);
 
@@ -56,24 +64,11 @@ export function StepCV({ initialData, onNext, onBack }: Props) {
       return;
     }
 
-    if (file) {
-      // TODO: Upload file to storage (Supabase Storage or similar)
-      // For now, we'll just store the filename
-      setUploading(true);
-
-      // Simulate upload
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      onNext({
-        cvUrl: file.name, // In production, this should be the actual URL from storage
-      });
-
-      setUploading(false);
-    } else {
-      onNext({
-        cvUrl: initialData.cvUrl,
-      });
-    }
+    // Pass file object ke parent
+    onNext({
+      cvFile: file,
+      cvUrl: initialData.cvUrl,
+    });
   }
 
   return (
@@ -82,7 +77,7 @@ export function StepCV({ initialData, onNext, onBack }: Props) {
         <div className="space-y-2">
           <Label>Upload CV *</Label>
           <p className="text-muted-foreground text-sm">
-            Format: PDF, DOC, DOCX (Maksimal 5MB)
+            Format: PDF, DOC, DOCX (Maksimal 2MB)
           </p>
 
           {!file && !initialData.cvUrl ? (
@@ -97,7 +92,7 @@ export function StepCV({ initialData, onNext, onBack }: Props) {
                   and drop
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  PDF, DOC, DOCX (MAX. 5MB)
+                  PDF, DOC, DOCX (MAX. 2MB)
                 </p>
               </div>
               <Input
@@ -112,7 +107,7 @@ export function StepCV({ initialData, onNext, onBack }: Props) {
             <div className="flex items-center gap-4 rounded-lg border p-4">
               <FileText className="text-primary h-10 w-10" />
               <div className="flex-1">
-                <p className="font-medium">{file?.name || initialData.cvUrl}</p>
+                <p className="font-medium">{file?.name || "CV.pdf"}</p>
                 <p className="text-muted-foreground text-sm">
                   {file
                     ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
@@ -124,6 +119,7 @@ export function StepCV({ initialData, onNext, onBack }: Props) {
                 variant="ghost"
                 size="icon"
                 onClick={handleRemoveFile}
+                disabled={submitting}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -143,12 +139,16 @@ export function StepCV({ initialData, onNext, onBack }: Props) {
           type="button"
           variant="outline"
           onClick={onBack}
-          disabled={uploading}
+          disabled={submitting}
         >
           Kembali
         </Button>
-        <Button type="submit" disabled={uploading}>
-          {uploading ? "Uploading..." : "Selanjutnya"}
+        <Button type="submit" disabled={submitting}>
+          {submitting
+            ? "Mengirim..."
+            : hasCustomQuestions
+              ? "Selanjutnya"
+              : "Kirim Lamaran"}
         </Button>
       </div>
     </form>

@@ -24,6 +24,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { uploadCV } from "@/lib/supabase/storage";
 
 type Question = {
   id: string;

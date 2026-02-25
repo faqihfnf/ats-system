@@ -45,12 +45,17 @@ export async function submitApplication(jobId: string, data: any) {
         cvUrl: data.cvUrl,
         currentStageId: firstStage?.id,
         status: "ACTIVE",
-        answers: {
-          create: data.answers.map((ans: any) => ({
-            questionId: ans.questionId,
-            answer: ans.answer,
-          })),
-        },
+        // ← Fix: hanya create answers jika ada
+        ...(data.answers && data.answers.length > 0
+          ? {
+              answers: {
+                create: data.answers.map((ans: any) => ({
+                  questionId: ans.questionId,
+                  answer: ans.answer,
+                })),
+              },
+            }
+          : {}),
       },
     });
 
