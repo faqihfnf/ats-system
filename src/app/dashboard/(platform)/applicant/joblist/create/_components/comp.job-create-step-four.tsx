@@ -23,20 +23,30 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
+import { toast } from "sonner";
 
 type Props = {
   initialData: any;
   onSubmit: (data: any) => Promise<boolean>;
   onBack: () => void;
+  isEdit?: boolean; // ← tambah
+  lockedQuestionIds?: string[]; // ← tambah
 };
 
-export function StepFour({ initialData, onSubmit, onBack }: Props) {
-  const [questions, setQuestions] = useState<CustomQuestionValues[]>(
-    initialData.questions || [],
-  );
+export function StepFour({
+  initialData,
+  onSubmit,
+  onBack,
+  isEdit = false,
+  lockedQuestionIds = [],
+}: Props) {
+  const [questions, setQuestions] = useState<
+    (CustomQuestionValues & { id?: string })[]
+  >(initialData.questions || []);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingQuestion, setEditingQuestion] =
-    useState<CustomQuestionValues | null>(null);
+  const [editingQuestion, setEditingQuestion] = useState<
+    (CustomQuestionValues & { id?: string }) | null
+  >(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -50,7 +60,7 @@ export function StepFour({ initialData, onSubmit, onBack }: Props) {
     if (editingIndex !== null) {
       // Edit existing
       const updated = [...questions];
-      updated[editingIndex] = question;
+      updated[editingIndex] = { ...question, id: questions[editingIndex].id };
       setQuestions(updated);
       setEditingIndex(null);
     } else {
@@ -68,6 +78,19 @@ export function StepFour({ initialData, onSubmit, onBack }: Props) {
   }
 
   function handleDeleteQuestion(index: number) {
+    const question = questions[index];
+
+    // Check if question is locked (has answers)
+    if (isEdit && question.id && lockedQuestionIds.includes(question.id)) {
+      toast.error(
+        "Pertanyaan ini tidak dapat dihapus karena sudah ada pelamar yang menjawab",
+        {
+          position: "top-right",
+        },
+      );
+      return;
+    }
+
     setQuestions(questions.filter((_, i) => i !== index));
   }
 
@@ -155,6 +178,11 @@ export function StepFour({ initialData, onSubmit, onBack }: Props) {
                     index={index}
                     onEdit={() => handleEditQuestion(index)}
                     onDelete={() => handleDeleteQuestion(index)}
+                    canDelete={
+                      !isEdit ||
+                      !question.id ||
+                      !lockedQuestionIds.includes(question.id)
+                    }
                   />
                 ))}
               </div>

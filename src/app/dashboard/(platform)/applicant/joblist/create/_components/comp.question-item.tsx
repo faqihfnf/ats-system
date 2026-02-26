@@ -9,10 +9,11 @@ import type { CustomQuestionValues } from "@/lib/validations/job";
 
 type Props = {
   id: string;
-  question: CustomQuestionValues;
+  question: CustomQuestionValues & { id?: string };
   index: number;
   onEdit: () => void;
   onDelete: () => void;
+  canDelete?: boolean; // ← tambah prop
 };
 
 const questionTypeLabels = {
@@ -26,7 +27,14 @@ const questionTypeLabels = {
   YES_NO: "Ya/Tidak",
 };
 
-export function QuestionItem({ id, question, index, onEdit, onDelete }: Props) {
+export function QuestionItem({
+  id,
+  question,
+  index,
+  onEdit,
+  onDelete,
+  canDelete = true,
+}: Props) {
   const {
     attributes,
     listeners,
@@ -51,6 +59,7 @@ export function QuestionItem({ id, question, index, onEdit, onDelete }: Props) {
       <button
         {...attributes}
         {...listeners}
+        type="button"
         suppressHydrationWarning
         className="text-muted-foreground hover:text-foreground mt-1 cursor-grab active:cursor-grabbing"
       >
@@ -72,12 +81,21 @@ export function QuestionItem({ id, question, index, onEdit, onDelete }: Props) {
                   Wajib
                 </Badge>
               )}
+              {!canDelete && (
+                <Badge
+                  variant="outline"
+                  className="border-amber-600 text-xs text-amber-600"
+                >
+                  🔒 Terjawab
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
+              type="button"
               onClick={onEdit}
               suppressHydrationWarning
             >
@@ -86,9 +104,11 @@ export function QuestionItem({ id, question, index, onEdit, onDelete }: Props) {
             <Button
               variant="ghost"
               size="icon"
+              type="button"
               onClick={onDelete}
               suppressHydrationWarning
               className="text-destructive hover:text-destructive"
+              disabled={!canDelete}
             >
               <Trash2 className="size-4" />
             </Button>
