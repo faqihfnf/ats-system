@@ -83,7 +83,9 @@ export function StepThree({
       <div className="grid grid-cols-2 gap-4">
         {/* Pendidikan Minimal */}
         <div className="col-span-2 space-y-2">
-          <Label>Pendidikan Minimal *</Label>
+          <Label>
+            Pendidikan Minimal <span className="text-destructive">*</span>
+          </Label>
           <Select
             value={selectedEducation}
             onValueChange={setSelectedEducation}
@@ -103,7 +105,9 @@ export function StepThree({
 
         {/* Pengalaman Minimal */}
         <div className="col-span-2 space-y-2">
-          <Label>Pengalaman Minimal *</Label>
+          <Label>
+            Pengalaman Minimal <span className="text-destructive">*</span>
+          </Label>
           <Select
             value={selectedExperience}
             onValueChange={setSelectedExperience}
@@ -123,7 +127,9 @@ export function StepThree({
 
         {/* Range Usia */}
         <div className="space-y-2">
-          <Label htmlFor="minAge">Usia Minimal *</Label>
+          <Label htmlFor="minAge">
+            Usia Minimal <span className="text-destructive">*</span>
+          </Label>
           <Input
             id="minAge"
             type="number"
@@ -136,7 +142,9 @@ export function StepThree({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="maxAge">Usia Maksimal *</Label>
+          <Label htmlFor="maxAge">
+            Usia Maksimal <span className="text-destructive">*</span>
+          </Label>
           <Input
             id="maxAge"
             type="number"

@@ -4,11 +4,22 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { jobStepOneSchema } from "@/lib/validations/job";
 
-type Position = { id: string; nama: string; divisi: { nama: string }; level: { nama: string } };
+type Position = {
+  id: string;
+  nama: string;
+  divisi: { nama: string };
+  level: { nama: string };
+};
 type Branch = { id: string; name: string };
 type Status = { id: string; name: string };
 type Province = { id: string; name: string };
@@ -22,15 +33,29 @@ type Props = {
   onNext: (data: any) => void;
 };
 
-export function StepOne({ positions, branches, statuses, initialData, onNext }: Props) {
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
-  const [selectedBranch, setSelectedBranch] = useState(initialData.branchId || "");
-  const [selectedStatus, setSelectedStatus] = useState(initialData.employmentStatusId || "");
+export function StepOne({
+  positions,
+  branches,
+  statuses,
+  initialData,
+  onNext,
+}: Props) {
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
+    null,
+  );
+  const [selectedBranch, setSelectedBranch] = useState(
+    initialData.branchId || "",
+  );
+  const [selectedStatus, setSelectedStatus] = useState(
+    initialData.employmentStatusId || "",
+  );
   const [showSalary, setShowSalary] = useState(initialData.showSalary || false);
-  
+
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [cities, setCities] = useState<City[]>([]);
-  const [selectedProvince, setSelectedProvince] = useState(initialData.province || "");
+  const [selectedProvince, setSelectedProvince] = useState(
+    initialData.province || "",
+  );
   const [selectedCity, setSelectedCity] = useState(initialData.city || "");
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
@@ -39,10 +64,10 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
   const [minSalary, setMinSalary] = useState(initialData.minSalary || 0);
   const [maxSalary, setMaxSalary] = useState(initialData.maxSalary || 0);
   const [minSalaryDisplay, setMinSalaryDisplay] = useState(
-    initialData.minSalary ? formatRupiah(initialData.minSalary) : ""
+    initialData.minSalary ? formatRupiah(initialData.minSalary) : "",
   );
   const [maxSalaryDisplay, setMaxSalaryDisplay] = useState(
-    initialData.maxSalary ? formatRupiah(initialData.maxSalary) : ""
+    initialData.maxSalary ? formatRupiah(initialData.maxSalary) : "",
   );
 
   // Validation error state
@@ -50,7 +75,8 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
 
   // Format number ke Rupiah
   function formatRupiah(value: number | string): string {
-    const numValue = typeof value === "string" ? parseInt(value.replace(/\D/g, "")) : value;
+    const numValue =
+      typeof value === "string" ? parseInt(value.replace(/\D/g, "")) : value;
     if (isNaN(numValue) || numValue === 0) return "";
     return numValue.toLocaleString("id-ID");
   }
@@ -157,7 +183,7 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setValidationError(null);
-    
+
     const formData = {
       positionId: selectedPosition?.id || "",
       branchId: selectedBranch,
@@ -185,38 +211,41 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         {/* Posisi */}
-<div className="col-span-2 space-y-2">
-  <Label>Posisi *</Label>
-  <Select
-    value={selectedPosition?.id || ""}
-    onValueChange={(val) => {
-      const pos = positions.find((p) => p.id === val);
-      setSelectedPosition(pos || null);
-    }}
-  >
-    <SelectTrigger>
-      <SelectValue placeholder="Pilih posisi..." />
-    </SelectTrigger>
-    <SelectContent>
-      {positions.length === 0 ? (
-        <div className="p-2 text-sm text-muted-foreground text-center">
-          Semua posisi sudah digunakan
+        <div className="col-span-2 space-y-2">
+          <Label>
+            Posisi <span className="text-destructive">*</span>
+          </Label>
+          <Select
+            value={selectedPosition?.id || ""}
+            onValueChange={(val) => {
+              const pos = positions.find((p) => p.id === val);
+              setSelectedPosition(pos || null);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Pilih posisi..." />
+            </SelectTrigger>
+            <SelectContent>
+              {positions.length === 0 ? (
+                <div className="text-muted-foreground p-2 text-center text-sm">
+                  Semua posisi sudah digunakan
+                </div>
+              ) : (
+                positions.map((pos) => (
+                  <SelectItem key={pos.id} value={pos.id}>
+                    {pos.nama}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+          {positions.length === 0 && (
+            <p className="text-muted-foreground text-xs">
+              Semua posisi sudah memiliki lowongan aktif. Tutup lowongan yang
+              ada atau buat posisi baru.
+            </p>
+          )}
         </div>
-      ) : (
-        positions.map((pos) => (
-          <SelectItem key={pos.id} value={pos.id}>
-            {pos.nama}
-          </SelectItem>
-        ))
-      )}
-    </SelectContent>
-  </Select>
-  {positions.length === 0 && (
-    <p className="text-xs text-muted-foreground">
-      Semua posisi sudah memiliki lowongan aktif. Tutup lowongan yang ada atau buat posisi baru.
-    </p>
-  )}
-</div>
 
         {/* Divisi (read-only) */}
         <div className="space-y-2">
@@ -240,7 +269,9 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
 
         {/* Branch */}
         <div className="space-y-2">
-          <Label>Branch *</Label>
+          <Label>
+            Branch <span className="text-destructive">*</span>
+          </Label>
           <Select value={selectedBranch} onValueChange={setSelectedBranch}>
             <SelectTrigger>
               <SelectValue placeholder="Pilih branch..." />
@@ -257,7 +288,9 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
 
         {/* Status */}
         <div className="space-y-2">
-          <Label>Status Kepegawaian *</Label>
+          <Label>
+            Status Kepegawaian <span className="text-destructive">*</span>
+          </Label>
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
             <SelectTrigger>
               <SelectValue placeholder="Pilih status..." />
@@ -274,14 +307,20 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
 
         {/* Provinsi */}
         <div className="space-y-2">
-          <Label>Provinsi *</Label>
+          <Label>
+            Provinsi <span className="text-destructive">*</span>
+          </Label>
           <Select
             value={selectedProvince}
             onValueChange={setSelectedProvince}
             disabled={loadingProvinces}
           >
             <SelectTrigger>
-              <SelectValue placeholder={loadingProvinces ? "Loading..." : "Pilih provinsi..."} />
+              <SelectValue
+                placeholder={
+                  loadingProvinces ? "Loading..." : "Pilih provinsi..."
+                }
+              />
             </SelectTrigger>
             <SelectContent className="max-h-72">
               {provinces.map((prov) => (
@@ -295,14 +334,18 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
 
         {/* Kota */}
         <div className="space-y-2">
-          <Label>Kota *</Label>
+          <Label>
+            Kota <span className="text-destructive">*</span>
+          </Label>
           <Select
             value={selectedCity}
             onValueChange={setSelectedCity}
             disabled={!selectedProvince || loadingCities}
           >
             <SelectTrigger>
-              <SelectValue placeholder={loadingCities ? "Loading..." : "Pilih kota..."} />
+              <SelectValue
+                placeholder={loadingCities ? "Loading..." : "Pilih kota..."}
+              />
             </SelectTrigger>
             <SelectContent className="max-h-72">
               {cities.map((city) => (
@@ -316,7 +359,9 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
 
         {/* Min Salary dengan format Rupiah */}
         <div className="space-y-2">
-          <Label htmlFor="minSalary">Minimal Salary (Rp) *</Label>
+          <Label htmlFor="minSalary">
+            Minimal Salary (Rp) <span className="text-destructive">*</span>
+          </Label>
           <Input
             id="minSalary"
             value={minSalaryDisplay}
@@ -328,7 +373,9 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
 
         {/* Max Salary dengan format Rupiah */}
         <div className="space-y-2">
-          <Label htmlFor="maxSalary">Maksimal Salary (Rp) *</Label>
+          <Label htmlFor="maxSalary">
+            Maksimal Salary (Rp) <span className="text-destructive">*</span>
+          </Label>
           <Input
             id="maxSalary"
             value={maxSalaryDisplay}
@@ -353,15 +400,13 @@ export function StepOne({ positions, branches, statuses, initialData, onNext }: 
 
       {/* Validation Error dari Zod */}
       {validationError && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive rounded-md">
+        <div className="text-destructive bg-destructive/10 border-destructive rounded-md border p-3 text-sm">
           {validationError}
         </div>
       )}
 
       <div className="flex justify-end">
-        <Button type="submit">
-          Selanjutnya
-        </Button>
+        <Button type="submit">Selanjutnya</Button>
       </div>
     </form>
   );
