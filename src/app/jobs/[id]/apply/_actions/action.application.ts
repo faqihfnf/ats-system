@@ -29,6 +29,7 @@ export async function submitApplication(jobId: string, data: any) {
         birthPlace: data.birthPlace,
         birthDate: new Date(data.birthDate),
         religion: data.religion,
+        gender: data.gender,
         ktpAddress: data.ktpAddress,
         domicileAddress: data.domicileAddress,
         sameAsKtp: data.sameAsKtp,

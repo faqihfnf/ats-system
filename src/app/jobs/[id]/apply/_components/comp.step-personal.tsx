@@ -44,6 +44,7 @@ export function StepPersonal({ initialData, onNext }: Props) {
   );
   const [isOpen, setIsOpen] = useState(false);
   const [religion, setReligion] = useState(initialData.religion || "");
+  const [gender, setGender] = useState(initialData.gender || "");
   const [ktpAddress, setKtpAddress] = useState(initialData.ktpAddress || "");
   const [domicileAddress, setDomicileAddress] = useState(
     initialData.domicileAddress || "",
@@ -197,6 +198,7 @@ export function StepPersonal({ initialData, onNext }: Props) {
       !birthPlace ||
       !birthDate ||
       !religion ||
+      !gender ||
       !ktpAddress ||
       !domicileAddress ||
       !selectedProvince ||
@@ -230,7 +232,9 @@ export function StepPersonal({ initialData, onNext }: Props) {
       <div className="grid grid-cols-2 gap-4">
         {/* Nama Lengkap */}
         <div className="col-span-2 space-y-2">
-          <Label htmlFor="fullName">Nama Lengkap *</Label>
+          <Label htmlFor="fullName">
+            Nama Lengkap <span className="text-destructive"> *</span>
+          </Label>
           <Input
             id="fullName"
             value={fullName}
@@ -242,7 +246,9 @@ export function StepPersonal({ initialData, onNext }: Props) {
 
         {/* Email */}
         <div className="space-y-2">
-          <Label htmlFor="email">Email *</Label>
+          <Label htmlFor="email">
+            Email <span className="text-destructive"> *</span>
+          </Label>
           <Input
             id="email"
             type="email"
@@ -255,7 +261,9 @@ export function StepPersonal({ initialData, onNext }: Props) {
 
         {/* Phone */}
         <div className="space-y-2">
-          <Label htmlFor="phone">No. Handphone *</Label>
+          <Label htmlFor="phone">
+            No. Handphone <span className="text-destructive"> *</span>
+          </Label>
           <Input
             id="phone"
             type="tel"
@@ -268,19 +276,23 @@ export function StepPersonal({ initialData, onNext }: Props) {
 
         {/* Birth Place */}
         <div className="space-y-2">
-          <Label htmlFor="birthPlace">Tempat Lahir *</Label>
+          <Label htmlFor="birthPlace">
+            Tempat Lahir <span className="text-destructive"> *</span>
+          </Label>
           <Input
             id="birthPlace"
             value={birthPlace}
             onChange={(e) => setBirthPlace(e.target.value)}
-            placeholder="Kota kelahiran"
+            placeholder="Kota Kelahiran"
             required
           />
         </div>
 
         {/* Birth Date */}
         <div className="space-y-2">
-          <Label htmlFor="birthDate">Tanggal Lahir *</Label>
+          <Label htmlFor="birthDate">
+            Tanggal Lahir <span className="text-destructive"> *</span>
+          </Label>
           <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -294,7 +306,7 @@ export function StepPersonal({ initialData, onNext }: Props) {
                 {birthDate ? (
                   format(birthDate, "PPP", { locale: idLocale })
                 ) : (
-                  <span>Pilih tanggal lahir anda</span>
+                  <span>Tanggal Lahir</span>
                 )}
               </Button>
             </PopoverTrigger>
@@ -338,11 +350,13 @@ export function StepPersonal({ initialData, onNext }: Props) {
         </div>
 
         {/* Religion */}
-        <div className="col-span-2 space-y-2">
-          <Label>Agama *</Label>
+        <div className="space-y-2">
+          <Label>
+            Agama <span className="text-destructive"> *</span>
+          </Label>
           <Select value={religion} onValueChange={setReligion}>
             <SelectTrigger>
-              <SelectValue placeholder="Pilih agama..." />
+              <SelectValue placeholder="Pilih Agama" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ISLAM">Islam</SelectItem>
@@ -355,9 +369,27 @@ export function StepPersonal({ initialData, onNext }: Props) {
           </Select>
         </div>
 
+        {/* Gender */}
+        <div className="space-y-2">
+          <Label>
+            Jenis Kelamin <span className="text-destructive"> *</span>
+          </Label>
+          <Select value={gender} onValueChange={setGender}>
+            <SelectTrigger>
+              <SelectValue placeholder="Pilih Jenis Kelamin" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="MALE">Laki-laki</SelectItem>
+              <SelectItem value="FEMALE">Perempuan</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* KTP Address */}
         <div className="col-span-2 space-y-2">
-          <Label htmlFor="ktpAddress">Alamat KTP *</Label>
+          <Label htmlFor="ktpAddress">
+            Alamat KTP <span className="text-destructive"> *</span>
+          </Label>
           <Textarea
             id="ktpAddress"
             value={ktpAddress}
@@ -382,7 +414,9 @@ export function StepPersonal({ initialData, onNext }: Props) {
 
         {/* Domicile Address */}
         <div className="col-span-2 space-y-2">
-          <Label htmlFor="domicileAddress">Alamat Domisili *</Label>
+          <Label htmlFor="domicileAddress">
+            Alamat Domisili <span className="text-destructive"> *</span>
+          </Label>
           <Textarea
             id="domicileAddress"
             value={domicileAddress}
@@ -397,7 +431,9 @@ export function StepPersonal({ initialData, onNext }: Props) {
 
         {/* Province */}
         <div className="space-y-2">
-          <Label>Provinsi *</Label>
+          <Label>
+            Provinsi <span className="text-destructive"> *</span>
+          </Label>
           <Select
             value={selectedProvince}
             onValueChange={setSelectedProvince}
@@ -405,9 +441,7 @@ export function StepPersonal({ initialData, onNext }: Props) {
           >
             <SelectTrigger>
               <SelectValue
-                placeholder={
-                  loadingProvinces ? "Loading..." : "Pilih provinsi..."
-                }
+                placeholder={loadingProvinces ? "Loading..." : "Pilih Provinsi"}
               />
             </SelectTrigger>
             <SelectContent className="max-h-72">
@@ -422,7 +456,9 @@ export function StepPersonal({ initialData, onNext }: Props) {
 
         {/* City */}
         <div className="space-y-2">
-          <Label>Kota *</Label>
+          <Label>
+            Kota <span className="text-destructive"> *</span>
+          </Label>
           <Select
             value={selectedCity}
             onValueChange={setSelectedCity}
@@ -430,7 +466,7 @@ export function StepPersonal({ initialData, onNext }: Props) {
           >
             <SelectTrigger>
               <SelectValue
-                placeholder={loadingCities ? "Loading..." : "Pilih kota..."}
+                placeholder={loadingCities ? "Loading..." : "Pilih Kota"}
               />
             </SelectTrigger>
             <SelectContent className="max-h-72">
@@ -445,7 +481,9 @@ export function StepPersonal({ initialData, onNext }: Props) {
 
         {/* District */}
         <div className="space-y-2">
-          <Label>Kecamatan *</Label>
+          <Label>
+            Kecamatan <span className="text-destructive"> *</span>
+          </Label>
           <Select
             value={selectedDistrict}
             onValueChange={setSelectedDistrict}
@@ -454,7 +492,7 @@ export function StepPersonal({ initialData, onNext }: Props) {
             <SelectTrigger>
               <SelectValue
                 placeholder={
-                  loadingDistricts ? "Loading..." : "Pilih kecamatan..."
+                  loadingDistricts ? "Loading..." : "Pilih Kecamatan"
                 }
               />
             </SelectTrigger>
@@ -470,7 +508,9 @@ export function StepPersonal({ initialData, onNext }: Props) {
 
         {/* Village */}
         <div className="space-y-2">
-          <Label>Kelurahan *</Label>
+          <Label>
+            Kelurahan <span className="text-destructive"> *</span>
+          </Label>
           <Select
             value={selectedVillage}
             onValueChange={setSelectedVillage}
@@ -478,9 +518,7 @@ export function StepPersonal({ initialData, onNext }: Props) {
           >
             <SelectTrigger>
               <SelectValue
-                placeholder={
-                  loadingVillages ? "Loading..." : "Pilih kelurahan..."
-                }
+                placeholder={loadingVillages ? "Loading..." : "Pilih Kelurahan"}
               />
             </SelectTrigger>
             <SelectContent className="max-h-72">

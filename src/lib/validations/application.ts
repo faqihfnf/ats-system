@@ -7,6 +7,7 @@ export const applicationSchema = z.object({
   phone: z.string().min(10, "Nomor telepon minimal 10 digit"),
   birthPlace: z.string().min(2, "Tempat lahir tidak boleh kosong"),
   birthDate: z.date("Tanggal lahir tidak valid"),
+  gender: z.enum(["MALE", "FEMALE"]),
   religion: z.enum([
     "ISLAM",
     "KRISTEN",
@@ -14,7 +15,6 @@ export const applicationSchema = z.object({
     "HINDU",
     "BUDDHA",
     "KONGHUCU",
-    "ANY",
   ]),
   ktpAddress: z.string().min(10, "Alamat KTP minimal 10 karakter"),
   domicileAddress: z.string().min(10, "Alamat domisili minimal 10 karakter"),

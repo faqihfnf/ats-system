@@ -222,6 +222,7 @@ model Application {
   birthPlace      String
   birthDate       DateTime
   religion        Religion
+  gender          Gender   @default(MALE)
   ktpAddress      String   @db.Text
   domicileAddress String   @db.Text
   sameAsKtp       Boolean  @default(false)
