@@ -4,7 +4,9 @@ import { NavMain } from "./nav-main";
 
 export async function NavWrapper() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const profile = user
     ? await prisma.profile.findUnique({ where: { id: user.id } })
     : null;
@@ -14,18 +16,41 @@ export async function NavWrapper() {
     {
       title: "Applicant",
       url: "#",
-      icon: "FileUser", 
-      
+      icon: "FileUser",
       items: [
-        { title: "Job List", url: "/dashboard/applicant/joblist" },
-        { title: "Stages", url: "/dashboard/applicant/stages" },
-        { title: "Branch", url: "/dashboard/applicant/branch" },
-        { title: "Position", url: "/dashboard/applicant/position" },
-        { title: "Divisi", url: "/dashboard/applicant/divisi" },
-        { title: "Level", url: "/dashboard/applicant/level" },
-        { title: "Status", url: "/dashboard/applicant/status" },
-        { title: "Education", url: "/dashboard/applicant/education" },
-        { title: "Experience", url: "/dashboard/applicant/experience" },
+        {
+          title: "Job List",
+          url: "/dashboard/applicant/joblist",
+          icon: "Briefcase",
+        },
+        { title: "Stages", url: "/dashboard/applicant/stages", icon: "Layers" },
+        {
+          title: "Branch",
+          url: "/dashboard/applicant/branch",
+          icon: "GitBranch",
+        },
+        {
+          title: "Position",
+          url: "/dashboard/applicant/position",
+          icon: "Target",
+        },
+        { title: "Divisi", url: "/dashboard/applicant/divisi", icon: "Users" },
+        { title: "Level", url: "/dashboard/applicant/level", icon: "BarChart" },
+        {
+          title: "Status",
+          url: "/dashboard/applicant/status",
+          icon: "Activity",
+        },
+        {
+          title: "Education",
+          url: "/dashboard/applicant/education",
+          icon: "GraduationCap",
+        },
+        {
+          title: "Experience",
+          url: "/dashboard/applicant/experience",
+          icon: "History",
+        },
       ],
     },
     {
@@ -33,15 +58,29 @@ export async function NavWrapper() {
       url: "#",
       icon: "Brain",
       items: [
-        { title: "Dashboard", url: "/dashboard/psikotest" },
-        { title: "Explorer", url: "/dashboard/psikotest/explorer" },
+        {
+          title: "Dashboard",
+          url: "/dashboard/psikotest",
+          icon: "LayoutDashboard",
+        },
+        {
+          title: "Explorer",
+          url: "/dashboard/psikotest/explorer",
+          icon: "Compass",
+        },
       ],
     },
     {
       title: "AI Interview",
       url: "#",
       icon: "BookOpen",
-      items: [{ title: "Introduction", url: "/dashboard/ai-interview" }],
+      items: [
+        {
+          title: "Introduction",
+          url: "/dashboard/ai-interview",
+          icon: "MessageSquare",
+        },
+      ],
     },
   ];
 
@@ -51,8 +90,10 @@ export async function NavWrapper() {
       url: "#",
       icon: "Settings2",
       items: [
-        ...(isAdmin ? [{ title: "Users", url: "/dashboard/user/users" }] : []),
-        { title: "Personal", url: "/dashboard/user/personal" },
+        ...(isAdmin
+          ? [{ title: "Users", url: "/dashboard/user/users", icon: "UserCog" }]
+          : []),
+        { title: "Personal", url: "/dashboard/user/personal", icon: "User" },
       ],
     },
   ];

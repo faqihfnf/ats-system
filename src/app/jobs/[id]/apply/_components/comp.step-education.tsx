@@ -169,13 +169,15 @@ export function StepEducation({
       <div className="grid grid-cols-2 gap-4">
         {/* Pendidikan Terakhir */}
         <div className="col-span-2 space-y-2">
-          <Label>Pendidikan Terakhir *</Label>
+          <Label>
+            Pendidikan Terakhir <span className="text-destructive"> *</span>
+          </Label>
           <Select
             value={selectedEducation}
             onValueChange={setSelectedEducation}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Pilih pendidikan terakhir..." />
+              <SelectValue placeholder="Pilih Pendidikan Terakhir" />
             </SelectTrigger>
             <SelectContent>
               {educations.map((edu) => (
@@ -189,7 +191,10 @@ export function StepEducation({
 
         {/* Institution (Combobox with search) */}
         <div className="col-span-2 space-y-2">
-          <Label>Institusi (Universitas/Sekolah) *</Label>
+          <Label>
+            Institusi (Universitas/Sekolah){" "}
+            <span className="text-destructive"> *</span>
+          </Label>
           <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
             <PopoverTrigger asChild>
               <Button
@@ -265,7 +270,9 @@ export function StepEducation({
 
         {/* Tahun Mulai */}
         <div className="space-y-2">
-          <Label>Tahun Mulai *</Label>
+          <Label>
+            Tahun Mulai <span className="text-destructive"> *</span>
+          </Label>
           <Select
             value={startYear.toString()}
             onValueChange={(val) => setStartYear(parseInt(val))}
@@ -285,7 +292,9 @@ export function StepEducation({
 
         {/* Tahun Selesai */}
         <div className="space-y-2">
-          <Label>Tahun Selesai *</Label>
+          <Label>
+            Tahun Selesai <span className="text-destructive"> *</span>
+          </Label>
           <Select
             value={endYear}
             onValueChange={setEndYear}
@@ -334,7 +343,9 @@ export function StepEducation({
 
         {/* Ekspektasi Gaji */}
         <div className="space-y-2">
-          <Label htmlFor="expectedSalary">Ekspektasi Gaji (Rp) *</Label>
+          <Label htmlFor="expectedSalary">
+            Ekspektasi Gaji (Rp) <span className="text-destructive"> *</span>
+          </Label>
           <Input
             id="expectedSalary"
             value={formatRupiah(expectedSalary)}
