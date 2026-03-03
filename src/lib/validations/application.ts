@@ -24,14 +24,23 @@ export const applicationSchema = z.object({
   district: z.string().min(1, "Kecamatan harus dipilih"),
   subdistrict: z.string().min(1, "Kelurahan harus dipilih"),
 
-  // Pendidikan & Pekerjaan
+  // Pendidikan Terakhir
   educationId: z.string().min(1, "Pendidikan terakhir harus dipilih"),
   institution: z.string().min(2, "Institusi tidak boleh kosong"),
   startYear: z
     .number()
     .min(1900, "Tahun mulai tidak valid")
     .max(new Date().getFullYear()),
-  endYear: z.string().min(1, "Tahun selesai harus diisi"), // "present" atau tahun
+  endYear: z.string().min(1, "Tahun selesai harus diisi"),
+
+  // Pengalaman Kerja Terakhir (OPTIONAL)
+  lastJobTitle: z.string().optional(),
+  lastCompany: z.string().optional(),
+  jobStartYear: z.number().optional(),
+  jobEndYear: z.string().optional(),
+  stillWorking: z.boolean().default(false),
+
+  // Gaji
   currentSalary: z.number().optional(),
   expectedSalary: z.number().min(0, "Ekspektasi gaji harus diisi"),
 

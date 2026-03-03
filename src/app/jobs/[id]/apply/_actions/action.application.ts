@@ -37,10 +37,20 @@ export async function submitApplication(jobId: string, data: any) {
         city: data.city,
         district: data.district,
         subdistrict: data.subdistrict,
+        // Pendidikan
         educationId: data.educationId,
         institution: data.institution,
         startYear: data.startYear,
         endYear: data.endYear,
+
+        // Pengalaman Kerja (TAMBAH INI)
+        lastJobTitle: data.lastJobTitle,
+        lastCompany: data.lastCompany,
+        jobStartYear: data.jobStartYear,
+        jobEndYear: data.jobEndYear,
+        stillWorking: data.stillWorking,
+
+        // Gaji
         currentSalary: data.currentSalary,
         expectedSalary: data.expectedSalary,
         cvUrl: data.cvUrl,

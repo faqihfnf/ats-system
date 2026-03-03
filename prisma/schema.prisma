@@ -231,12 +231,21 @@ model Application {
   district        String
   subdistrict     String
 
-  // Pendidikan & Pekerjaan
-  educationId    String
-  education      Education @relation(fields: [educationId], references: [id])
-  institution    String
-  startYear      Int
-  endYear        String
+  // Pendidikan Terakhir
+  educationId String
+  education   Education @relation(fields: [educationId], references: [id])
+  institution String
+  startYear   Int
+  endYear     String
+
+  // Pengalaman Kerja Terakhir 
+  lastJobTitle String?
+  lastCompany  String?
+  jobStartYear Int?
+  jobEndYear   String? // "present" jika masih bekerja
+  stillWorking Boolean @default(false)
+
+  // Gaji
   currentSalary  Int?
   expectedSalary Int
 
