@@ -60,6 +60,7 @@ export const jobStepThreeSchema = z
   });
 
 export const customQuestionSchema = z.object({
+  id: z.string().optional(),
   question: z
     .string()
     .min(5, "Pertanyaan minimal 5 karakter")

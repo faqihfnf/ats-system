@@ -115,7 +115,13 @@ export function JobEditForm({
     .map((q) => q.id);
 
   async function handleFinalSubmit(step4Data: any) {
-    const completeData = { ...formData, ...step4Data };
+    // Explicitly override questions dengan data terbaru
+    const completeData = {
+      ...formData,
+      questions: step4Data.questions, // ← Key fix di sini
+    };
+
+    console.log("Final data being sent:", completeData.questions); // ← Debug
 
     const result = await updateJob(job.id, completeData);
 
@@ -211,7 +217,7 @@ export function JobEditForm({
           {currentStep === 4 && (
             <StepFour
               initialData={formData}
-              onSubmit={handleFinalSubmit}
+              onSubmit={handleFinalSubmit} // ← Gunakan function yang sudah ada
               onBack={() => setCurrentStep(3)}
               isEdit={true}
               lockedQuestionIds={lockedQuestionIds}

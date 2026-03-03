@@ -269,7 +269,19 @@ export async function updateJob(id: string, data: any) {
       );
 
       if (deletedExistingQuestionIds.length > 0) {
-        // Check if any deleted EXISTING question has answers
+        console.log(
+          "Checking answers for deleted questions:",
+          deletedExistingQuestionIds,
+        );
+
+        // Check each question individually
+        for (const qId of deletedExistingQuestionIds) {
+          const count = await prisma.applicationAnswer.count({
+            where: { questionId: qId },
+          });
+          console.log(`Question ${qId}: ${count} answers`);
+        }
+
         const answersCount = await prisma.applicationAnswer.count({
           where: {
             questionId: {
@@ -278,14 +290,41 @@ export async function updateJob(id: string, data: any) {
           },
         });
 
+        console.log("Total answers count for deleted questions:", answersCount);
+
         if (answersCount > 0) {
+          console.log("ERROR: Cannot delete questions with answers");
+
+          // Find which specific questions have answers
+          const questionsWithAnswers = await prisma.applicationAnswer.findMany({
+            where: {
+              questionId: {
+                in: deletedExistingQuestionIds,
+              },
+            },
+            select: {
+              questionId: true,
+              question: {
+                select: {
+                  question: true,
+                },
+              },
+            },
+            distinct: ["questionId"],
+          });
+
+          console.log("Questions with answers:", questionsWithAnswers);
+
           return {
             error:
               "Tidak dapat menghapus pertanyaan yang sudah dijawab oleh pelamar",
           };
         }
 
-        // Safe to delete - no answers
+        console.log(
+          "Safe to delete - deleting questions:",
+          deletedExistingQuestionIds,
+        );
         await prisma.customQuestion.deleteMany({
           where: {
             id: { in: deletedExistingQuestionIds },
@@ -410,7 +449,7 @@ export async function updateJob(id: string, data: any) {
         },
       });
     }
-
+    console.log("=== UPDATE SUCCESS ===");
     revalidatePath("/dashboard/applicant/joblist");
     revalidatePath(`/dashboard/applicant/joblist/${id}`);
     return { success: true };

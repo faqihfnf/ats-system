@@ -60,7 +60,10 @@ export function StepFour({
     if (editingIndex !== null) {
       // Edit existing
       const updated = [...questions];
-      updated[editingIndex] = { ...question, id: questions[editingIndex].id };
+      const existingId = questions[editingIndex].id;
+      updated[editingIndex] = existingId
+        ? { ...question, id: existingId }
+        : question;
       setQuestions(updated);
       setEditingIndex(null);
     } else {
@@ -80,6 +83,9 @@ export function StepFour({
   function handleDeleteQuestion(index: number) {
     const question = questions[index];
 
+    console.log("Deleting question at index:", index);
+    console.log("Question to delete:", question);
+
     // Check if question is locked (has answers)
     if (isEdit && question.id && lockedQuestionIds.includes(question.id)) {
       toast.error(
@@ -91,7 +97,13 @@ export function StepFour({
       return;
     }
 
-    setQuestions(questions.filter((_, i) => i !== index));
+    const newQuestions = questions.filter((_, i) => i !== index);
+    console.log(
+      "Questions after delete:",
+      newQuestions.map((q) => ({ id: q.id, question: q.question })),
+    );
+
+    setQuestions(newQuestions);
   }
 
   function handleDragEnd(event: DragEndEvent) {
@@ -107,10 +119,24 @@ export function StepFour({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setValidationError(null);
+    console.log("=== FRONTEND DEBUG ===");
+    console.log("Current questions state:", questions);
+    console.log(
+      "Questions with IDs:",
+      questions
+        .filter((q) => q.id)
+        .map((q) => ({ id: q.id, question: q.question })),
+    );
+    console.log(
+      "Questions without IDs:",
+      questions.filter((q) => !q.id).map((q) => q.question),
+    );
 
     const formData = {
       questions,
     };
+
+    console.log("Question being submited", questions);
 
     // Validasi dengan Zod
     const result = jobStepFourSchema.safeParse(formData);
@@ -120,6 +146,7 @@ export function StepFour({
       setValidationError(firstError.message);
       return;
     }
+    console.log("After Validation", result.data);
 
     setLoading(true);
     const success = await onSubmit(result.data);
