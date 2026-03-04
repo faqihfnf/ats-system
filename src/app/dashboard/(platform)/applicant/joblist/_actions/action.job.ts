@@ -105,6 +105,11 @@ export async function getJobs() {
       minEducation: true,
       minExperience: true,
       creator: true,
+      applications: {
+        select: {
+          currentStageId: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });

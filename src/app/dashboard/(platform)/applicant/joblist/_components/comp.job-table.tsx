@@ -28,6 +28,9 @@ type Job = {
   creator: {
     nama: string;
   };
+  applications: Array<{
+    currentStageId: string | null;
+  }>;
 };
 
 type Stage = {
@@ -50,6 +53,12 @@ export function JobTable({ data, stages }: Props) {
         </p>
       </div>
     );
+  }
+
+  // Helper function to count candidates per stage for a job
+  function getStageCount(job: Job, stageId: string): number {
+    return job.applications.filter((app) => app.currentStageId === stageId)
+      .length;
   }
 
   return (
@@ -104,19 +113,22 @@ export function JobTable({ data, stages }: Props) {
                   <div className="w-full overflow-hidden">
                     <div className="custom-scrollbar cursor-grab overflow-x-auto pb-2 active:cursor-grabbing">
                       <div className="flex min-w-max items-center gap-6 px-2">
-                        {stages.map((stage) => (
-                          <div
-                            key={stage.id}
-                            className="flex min-w-24 shrink-0 flex-col items-center"
-                          >
-                            <span className="text-xl font-bold text-slate-800 dark:text-slate-200">
-                              0
-                            </span>
-                            <span className="text-center text-[10px] leading-tight font-bold tracking-tight whitespace-nowrap text-slate-400 uppercase dark:text-slate-500">
-                              {stage.name}
-                            </span>
-                          </div>
-                        ))}
+                        {stages.map((stage) => {
+                          const count = getStageCount(job, stage.id);
+                          return (
+                            <div
+                              key={stage.id}
+                              className="flex min-w-24 shrink-0 flex-col items-center"
+                            >
+                              <span className="text-xl font-bold text-slate-800 dark:text-slate-200">
+                                {count}
+                              </span>
+                              <span className="text-center text-[10px] leading-tight font-bold tracking-tight whitespace-nowrap text-slate-400 uppercase dark:text-slate-500">
+                                {stage.name}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
