@@ -85,7 +85,7 @@ export function JobTable({ data, stages }: Props) {
                 <TableCell className="p-4 align-middle">
                   <div className="flex flex-col">
                     <Link
-                      href={`/dashboard/applicant/joblist/${job.id}`}
+                      href={`/dashboard/applicant/joblist/${job.id}/candidates`}
                       className="text-primary text-[15px] font-bold hover:underline"
                     >
                       {job.position.nama}
