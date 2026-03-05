@@ -53,6 +53,7 @@ type Props = {
 };
 
 export function CandidatesView({ job, candidates, stages }: Props) {
+  const [selectedStageId, setSelectedStageId] = useState<string | null>(null); // ← Add selected stage
   const [filters, setFilters] = useState({
     search: "",
     education: "",
@@ -72,6 +73,11 @@ export function CandidatesView({ job, candidates, stages }: Props) {
 
   // Filter candidates
   const filteredCandidates = candidates.filter((candidate) => {
+    // Filter by selected stage (NEW)
+    if (selectedStageId && candidate.currentStageId !== selectedStageId) {
+      return false;
+    }
+
     // Search by name
     if (
       filters.search &&
@@ -135,7 +141,11 @@ export function CandidatesView({ job, candidates, stages }: Props) {
       </div>
 
       {/* Stages Header */}
-      <StagesHeader stages={stageCounts} />
+      <StagesHeader
+        stages={stageCounts}
+        selectedStageId={selectedStageId}
+        onStageClick={setSelectedStageId}
+      />
 
       {/* Main Content */}
       <div className="grid grid-cols-12 gap-6">
