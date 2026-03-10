@@ -80,11 +80,20 @@ export function StepEducation({
   );
 
   // Gaji
+
   const [currentSalary, setCurrentSalary] = useState(
-    initialData.currentSalary || "",
+    initialData.currentSalary
+      ? typeof initialData.currentSalary === "number"
+        ? initialData.currentSalary.toString()
+        : initialData.currentSalary
+      : "",
   );
   const [expectedSalary, setExpectedSalary] = useState(
-    initialData.expectedSalary || "",
+    initialData.expectedSalary
+      ? typeof initialData.expectedSalary === "number"
+        ? initialData.expectedSalary.toString()
+        : initialData.expectedSalary
+      : "",
   );
   const [universities, setUniversities] = useState<University[]>([]);
   const [loadingUniversities, setLoadingUniversities] = useState(false);
@@ -122,7 +131,10 @@ export function StepEducation({
   }, [searchQuery]);
 
   // Format rupiah display
-  function formatRupiah(value: string): string {
+  function formatRupiah(value: string | number): string {
+    if (typeof value === "number") {
+      return value.toLocaleString("id-ID");
+    }
     const numValue = value.replace(/\D/g, "");
     if (!numValue) return "";
     return parseInt(numValue).toLocaleString("id-ID");
@@ -248,7 +260,7 @@ export function StepEducation({
             </Select>
           </div>
 
-          {/* Institution (Combobox with search) */}
+          {/* Institution (Combobox with search + manual input) */}
           <div className="col-span-2 space-y-2">
             <Label>Institusi (Universitas/Sekolah) *</Label>
             <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
@@ -259,7 +271,7 @@ export function StepEducation({
                   aria-expanded={openCombobox}
                   className="w-full justify-between"
                 >
-                  {institution || "Pilih atau ketik nama institusi..."}
+                  {institution || "Cari atau ketik nama institusi..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -282,9 +294,20 @@ export function StepEducation({
                     {!loadingUniversities &&
                       searchQuery.length >= 3 &&
                       universities.length === 0 && (
-                        <CommandEmpty>
-                          Tidak ditemukan. Ketik manual di bawah.
-                        </CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value={searchQuery}
+                            onSelect={(currentValue) => {
+                              setInstitution(currentValue);
+                              setOpenCombobox(false);
+                              setSearchQuery("");
+                            }}
+                            className="text-primary"
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Tambahkan "{searchQuery}"
+                          </CommandItem>
+                        </CommandGroup>
                       )}
                     {universities.length > 0 && (
                       <CommandGroup>
@@ -295,6 +318,7 @@ export function StepEducation({
                             onSelect={(currentValue) => {
                               setInstitution(currentValue);
                               setOpenCombobox(false);
+                              setSearchQuery("");
                             }}
                           >
                             <Check
@@ -308,22 +332,34 @@ export function StepEducation({
                             {uni.name}
                           </CommandItem>
                         ))}
+                        {/* Option to add custom if search has results */}
+                        {searchQuery && (
+                          <CommandItem
+                            value={searchQuery}
+                            onSelect={(currentValue) => {
+                              setInstitution(currentValue);
+                              setOpenCombobox(false);
+                              setSearchQuery("");
+                            }}
+                            className="text-primary border-t"
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Tambahkan "{searchQuery}"
+                          </CommandItem>
+                        )}
                       </CommandGroup>
                     )}
                   </CommandList>
                 </Command>
               </PopoverContent>
             </Popover>
-            <p className="text-muted-foreground text-xs">
-              Atau ketik manual di sini:
-            </p>
-            <Input
-              value={institution}
-              onChange={(e) => setInstitution(e.target.value)}
-              placeholder="Nama institusi"
-            />
+            {institution && (
+              <p className="text-muted-foreground text-xs">
+                Institusi terpilih:{" "}
+                <span className="font-medium">{institution}</span>
+              </p>
+            )}
           </div>
-
           {/* Tahun Mulai */}
           <div className="space-y-2">
             <Label>Tahun Mulai *</Label>
