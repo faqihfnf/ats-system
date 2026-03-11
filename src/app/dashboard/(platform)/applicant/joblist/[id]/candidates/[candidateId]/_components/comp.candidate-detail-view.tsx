@@ -20,6 +20,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { useState } from "react";
+import { ScoreBreakdown } from "./comp.score-breakdown";
 
 type Candidate = {
   id: string;
@@ -65,6 +66,14 @@ type Candidate = {
       type: string;
     };
   }>;
+  totalScore: number | null;
+  educationScore: number | null;
+  experienceScore: number | null;
+  ageScore: number | null;
+  salaryScore: number | null;
+  genderScore: number | null;
+  religionScore: number | null;
+  scoredAt: Date | null;
 };
 
 type Props = {
@@ -153,6 +162,19 @@ export function CandidateDetailView({ candidate, jobId }: Props) {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Score Breakdown - ADD THIS */}
+            <ScoreBreakdown
+              candidateId={candidate.id}
+              totalScore={candidate.totalScore}
+              educationScore={candidate.educationScore}
+              experienceScore={candidate.experienceScore}
+              ageScore={candidate.ageScore}
+              salaryScore={candidate.salaryScore}
+              genderScore={candidate.genderScore}
+              religionScore={candidate.religionScore}
+              scoredAt={candidate.scoredAt}
+            />
 
             {/* Contact Information */}
             <Card>

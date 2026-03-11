@@ -25,7 +25,10 @@ export default async function CandidatesPage({ params }: Props) {
     <div className="w-full px-4 py-8">
       <CandidatesView
         job={candidatesData.job}
-        candidates={candidatesData.candidates}
+        candidates={candidatesData.candidates.map((candidate) => ({
+          ...candidate,
+          totalScore: candidate.totalScore ?? 0,
+        }))}
         stages={stages}
       />
     </div>

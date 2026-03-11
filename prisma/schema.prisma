@@ -260,6 +260,16 @@ model Application {
   currentStage   Stage?          @relation(fields: [currentStageId], references: [id])
   status         ApplicantStatus @default(ACTIVE)
 
+  // AI Scoring
+  totalScore      Int?      @default(0)
+  educationScore  Int?      @default(0)
+  experienceScore Int?      @default(0)
+  ageScore        Int?      @default(0)
+  salaryScore     Int?      @default(0)
+  genderScore     Int?      @default(0)
+  religionScore   Int?      @default(0)
+  scoredAt        DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

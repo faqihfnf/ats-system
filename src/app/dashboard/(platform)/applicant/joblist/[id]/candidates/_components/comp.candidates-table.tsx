@@ -17,10 +17,16 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { updateCandidateStage } from "../_actions/action.candidates";
+import {
+  scoreCandidate,
+  updateCandidateStage,
+} from "../_actions/action.candidates";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Sparkles } from "lucide-react";
 
 type Candidate = {
   id: string;
@@ -28,9 +34,11 @@ type Candidate = {
   email: string;
   phone: string;
   birthDate: Date;
+  totalScore: number;
   district: string;
   city: string;
   education: { name: string };
+  institution: string;
   expectedSalary: number;
   lastJobTitle: string | null;
   lastCompany: string | null;
@@ -49,11 +57,28 @@ type Stage = {
 type Props = {
   candidates: Candidate[];
   stages: Stage[];
-  jobId: string; // ← Add jobId for detail link
+  jobId: string;
 };
 
 export function CandidatesTable({ candidates, stages, jobId }: Props) {
   const router = useRouter();
+  const [scoringId, setScoringId] = useState<string | null>(null);
+
+  async function handleScore(candidateId: string) {
+    setScoringId(candidateId);
+
+    const result = await scoreCandidate(candidateId);
+
+    if (result?.error) {
+      toast.error(result.error, { position: "top-right" });
+    } else {
+      toast.success("Candidate scored successfully!", {
+        position: "top-right",
+      });
+    }
+
+    setScoringId(null);
+  }
 
   async function handleStageChange(candidateId: string, stageId: string) {
     const result = await updateCandidateStage(candidateId, stageId);
@@ -85,7 +110,8 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
             <TableHead className="w-30">Phone</TableHead>
             <TableHead className="w-45">Location</TableHead>
             <TableHead className="w-30">Education</TableHead>
-            <TableHead className="w-30 text-right">Min. Salary</TableHead>
+            <TableHead className="w-30">Institution</TableHead>
+            <TableHead className="w-30 text-right">Exp. Salary</TableHead>
             <TableHead className="w-32.5">Past Role</TableHead>
             <TableHead className="w-32.5">Past Company</TableHead>
             <TableHead className="w-17.5 text-center">YoE</TableHead>
@@ -94,6 +120,9 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
         </TableHeader>
         <TableBody>
           {candidates.map((candidate) => {
+            const isScoring = scoringId === candidate.id;
+            const hasScore =
+              candidate.totalScore !== null && candidate.totalScore > 0;
             const age = calculateAge(candidate.birthDate);
             const yoe = calculateYoE(
               candidate.jobStartYear,
@@ -131,11 +160,43 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
                   </Link>
                 </TableCell>
 
-                {/* Score - AI Generated (placeholder) */}
+                {/* Score Column */}
                 <TableCell className="text-center">
-                  <Badge variant="secondary" className="font-mono text-xs">
-                    0
-                  </Badge>
+                  {hasScore ? (
+                    <div className="flex flex-col items-center gap-1">
+                      <Badge
+                        variant={getScoreBadgeVariant(candidate.totalScore!)}
+                        className="h-8 w-8 rounded-full text-sm"
+                      >
+                        {candidate.totalScore}
+                      </Badge>
+                      <button
+                        onClick={() => handleScore(candidate.id)}
+                        className="text-muted-foreground hover:text-foreground text-xs"
+                        disabled={isScoring}
+                      >
+                        Re-score
+                      </button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleScore(candidate.id)}
+                      disabled={isScoring}
+                    >
+                      {isScoring ? (
+                        <>
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                          Scoring...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3" />
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </TableCell>
 
                 {/* Age */}
@@ -145,7 +206,7 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
 
                 {/* Phone */}
                 <TableCell>
-                  <span className="font-mono text-sm">{candidate.phone}</span>
+                  <span className="text-sm">{candidate.phone}</span>
                 </TableCell>
 
                 {/* Location - District - City */}
@@ -156,6 +217,11 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
                 {/* Education */}
                 <TableCell>
                   <span className="text-sm">{candidate.education.name}</span>
+                </TableCell>
+
+                {/* Institution */}
+                <TableCell>
+                  <span className="text-sm">{candidate.institution}</span>
                 </TableCell>
 
                 {/* Expected Salary */}
@@ -244,4 +310,13 @@ function calculateYoE(
   if (years === 0) return "< 1 year";
   if (years === 1) return "1 year";
   return `${years} years`;
+}
+
+function getScoreBadgeVariant(
+  score: number,
+): "default" | "secondary" | "destructive" | "outline" {
+  if (score >= 80) return "default"; // Green - Excellent
+  if (score >= 60) return "secondary"; // Blue - Good
+  if (score >= 40) return "outline"; // Yellow - Fair
+  return "destructive"; // Red - Poor
 }

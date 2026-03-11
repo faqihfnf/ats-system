@@ -21,6 +21,7 @@ type Candidate = {
   email: string;
   phone: string;
   birthDate: Date;
+  totalScore: number;
   gender: string;
   religion: string;
   province: string;
