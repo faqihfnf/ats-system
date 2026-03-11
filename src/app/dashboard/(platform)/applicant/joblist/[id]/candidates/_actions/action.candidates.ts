@@ -45,3 +45,33 @@ export async function updateCandidateStage(
     return { error: "Gagal mengupdate stage" };
   }
 }
+
+export async function getCandidateDetail(candidateId: string) {
+  const candidate = await prisma.application.findUnique({
+    where: { id: candidateId },
+    include: {
+      education: true,
+      currentStage: true,
+      job: {
+        include: {
+          position: {
+            include: {
+              divisi: true,
+              level: true,
+            },
+          },
+          customQuestions: {
+            orderBy: { order: "asc" },
+          },
+        },
+      },
+      answers: {
+        include: {
+          question: true,
+        },
+      },
+    },
+  });
+
+  return candidate;
+}

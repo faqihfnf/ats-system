@@ -161,7 +161,11 @@ export function CandidatesView({ job, candidates, stages }: Props) {
         {/* Candidates Table */}
         <div className="col-span-9">
           <Card>
-            <CandidatesTable candidates={filteredCandidates} stages={stages} />
+            <CandidatesTable
+              candidates={filteredCandidates}
+              stages={stages}
+              jobId={job.id}
+            />
           </Card>
         </div>
       </div>

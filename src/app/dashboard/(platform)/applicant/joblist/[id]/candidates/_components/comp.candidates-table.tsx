@@ -16,16 +16,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { updateCandidateStage } from "../_actions/action.candidates";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Candidate = {
   id: string;
   fullName: string;
   email: string;
+  phone: string;
   birthDate: Date;
+  district: string;
   city: string;
+  education: { name: string };
   expectedSalary: number;
   lastJobTitle: string | null;
   lastCompany: string | null;
@@ -44,9 +49,10 @@ type Stage = {
 type Props = {
   candidates: Candidate[];
   stages: Stage[];
+  jobId: string; // ← Add jobId for detail link
 };
 
-export function CandidatesTable({ candidates, stages }: Props) {
+export function CandidatesTable({ candidates, stages, jobId }: Props) {
   const router = useRouter();
 
   async function handleStageChange(candidateId: string, stageId: string) {
@@ -73,13 +79,16 @@ export function CandidatesTable({ candidates, stages }: Props) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-62.5">Full Name</TableHead>
-            <TableHead className="w-20 text-center">Age</TableHead>
-            <TableHead className="w-37.5">Location</TableHead>
-            <TableHead className="w-32.5 text-right">Min. Salary</TableHead>
-            <TableHead className="w-37.5">Past Role</TableHead>
-            <TableHead className="w-37.5">Past Company</TableHead>
-            <TableHead className="w-20 text-center">YoE</TableHead>
+            <TableHead className="w-50">Full Name</TableHead>
+            <TableHead className="w-17.5 text-center">Score</TableHead>
+            <TableHead className="w-17.5 text-center">Age</TableHead>
+            <TableHead className="w-30">Phone</TableHead>
+            <TableHead className="w-45">Location</TableHead>
+            <TableHead className="w-30">Education</TableHead>
+            <TableHead className="w-30 text-right">Min. Salary</TableHead>
+            <TableHead className="w-32.5">Past Role</TableHead>
+            <TableHead className="w-32.5">Past Company</TableHead>
+            <TableHead className="w-17.5 text-center">YoE</TableHead>
             <TableHead className="w-45">Stage</TableHead>
           </TableRow>
         </TableHeader>
@@ -96,26 +105,37 @@ export function CandidatesTable({ candidates, stages }: Props) {
               .join("")
               .toUpperCase()
               .slice(0, 2);
+            const location = `${candidate.district} - ${candidate.city}`;
 
             return (
               <TableRow key={candidate.id}>
-                {/* Full Name */}
+                {/* Full Name - Clickable */}
                 <TableCell>
-                  <div className="flex items-center gap-3">
+                  <Link
+                    href={`/dashboard/applicant/joblist/${jobId}/candidates/${candidate.id}`}
+                    className="flex items-center gap-3 transition-opacity hover:opacity-80"
+                  >
                     <Avatar className="h-9 w-9">
                       <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-medium">
+                      <p className="text-sm font-medium hover:underline">
                         {candidate.fullName}
                       </p>
                       <p className="text-muted-foreground text-xs">
                         {candidate.email}
                       </p>
                     </div>
-                  </div>
+                  </Link>
+                </TableCell>
+
+                {/* Score - AI Generated (placeholder) */}
+                <TableCell className="text-center">
+                  <Badge variant="secondary" className="font-mono text-xs">
+                    0
+                  </Badge>
                 </TableCell>
 
                 {/* Age */}
@@ -123,9 +143,19 @@ export function CandidatesTable({ candidates, stages }: Props) {
                   <span className="text-sm">{age}</span>
                 </TableCell>
 
-                {/* Location */}
+                {/* Phone */}
                 <TableCell>
-                  <span className="text-sm">{candidate.city}</span>
+                  <span className="font-mono text-sm">{candidate.phone}</span>
+                </TableCell>
+
+                {/* Location - District - City */}
+                <TableCell>
+                  <span className="text-sm">{location}</span>
+                </TableCell>
+
+                {/* Education */}
+                <TableCell>
+                  <span className="text-sm">{candidate.education.name}</span>
                 </TableCell>
 
                 {/* Expected Salary */}
