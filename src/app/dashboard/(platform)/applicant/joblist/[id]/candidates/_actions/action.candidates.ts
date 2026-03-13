@@ -85,7 +85,7 @@ export async function getCandidateDetail(candidateId: string) {
 
 export async function scoreAndAnalyzeCandidate(candidateId: string) {
   try {
-    console.log("=== START SCORE AND ANALYZE ===");
+    console.log("=== START AI ANALYSIS ===");
     console.log("Candidate ID:", candidateId);
 
     // 1. Get candidate data
@@ -110,47 +110,7 @@ export async function scoreAndAnalyzeCandidate(candidateId: string) {
     console.log("Candidate found:", candidate.fullName);
     console.log("CV URL:", candidate.cvUrl);
 
-    // 2. Calculate Rule-based Score
-    console.log("=== CALCULATING SCORE ===");
-
-    const educations = await prisma.education.findMany({
-      orderBy: { id: "asc" },
-    });
-
-    const educationLevels = new Map<string, number>();
-    educations.forEach((edu, index) => {
-      educationLevels.set(edu.id, index);
-    });
-
-    const candidateYoE = calculateYearsOfExperience(
-      candidate.jobStartYear,
-      candidate.jobEndYear,
-    );
-
-    const candidateAge = calculateAge(candidate.birthDate);
-
-    const scoringResult = calculateScore({
-      candidateEducationId: candidate.educationId,
-      candidateYearsOfExperience: candidateYoE,
-      candidateAge,
-      candidateExpectedSalary: candidate.expectedSalary,
-      candidateGender: candidate.gender,
-      candidateReligion: candidate.religion,
-      jobMinEducationId: candidate.job.minEducationId,
-      jobMinExperience: candidate.job.minExperience.minYears,
-      jobMaxExperience: candidate.job.minExperience.minYears + 5,
-      jobMinAge: candidate.job.minAge,
-      jobMaxAge: candidate.job.maxAge,
-      jobMinSalary: candidate.job.minSalary,
-      jobMaxSalary: candidate.job.maxSalary,
-      jobGender: candidate.job.gender,
-      jobReligion: candidate.job.religion,
-      educationLevels,
-    });
-
-    console.log("Scoring result:", scoringResult);
-
-    // 3. AI Analysis with Gemini
+    // 2. AI Analysis with Gemini (ONLY THIS)
     let aiAnalysis = null;
     let aiError = null;
 
@@ -170,70 +130,51 @@ export async function scoreAndAnalyzeCandidate(candidateId: string) {
         aiError = error instanceof Error ? error.message : "Unknown error";
       }
     } else {
-      console.log("No CV URL, skipping AI analysis");
+      console.log("No CV URL, cannot analyze");
+      return { error: "CV not found, cannot analyze" };
     }
 
-    // 4. Update database
+    // 3. Update database (AI analysis only)
     console.log("=== UPDATING DATABASE ===");
 
-    const updateData = {
-      // Rule-based scoring
-      totalScore: scoringResult.totalScore,
-      educationScore: scoringResult.educationScore,
-      experienceScore: scoringResult.experienceScore,
-      ageScore: scoringResult.ageScore,
-      salaryScore: scoringResult.salaryScore,
-      genderScore: scoringResult.genderScore,
-      religionScore: scoringResult.religionScore,
-      scoredAt: new Date(),
+    if (aiAnalysis) {
+      await prisma.application.update({
+        where: { id: candidateId },
+        data: {
+          aiStrengths: aiAnalysis.strengths,
+          aiWeaknesses: aiAnalysis.weaknesses,
+          aiConclusion: aiAnalysis.conclusion,
+          aiRecommendation: aiAnalysis.recommendation,
+          aiMatchPercentage: aiAnalysis.matchPercentage,
+          analyzedAt: new Date(),
+          analysisVersion: "v1.0",
+        },
+      });
 
-      // AI analysis (if available)
-      ...(aiAnalysis && {
-        aiStrengths: aiAnalysis.strengths,
-        aiWeaknesses: aiAnalysis.weaknesses,
-        aiConclusion: aiAnalysis.conclusion,
-        aiRecommendation: aiAnalysis.recommendation,
-        aiMatchPercentage: aiAnalysis.matchPercentage,
-        analyzedAt: new Date(),
-      }),
-    };
-
-    console.log("Update data:", updateData);
-
-    await prisma.application.update({
-      where: { id: candidateId },
-      data: updateData,
-    });
-
-    console.log("Database updated successfully");
+      console.log("Database updated successfully");
+    } else {
+      console.log("No AI analysis to save");
+      return { error: aiError || "Failed to analyze CV" };
+    }
 
     revalidatePath(
       `/dashboard/applicant/joblist/${candidate.jobId}/candidates`,
     );
 
-    console.log("=== SCORE AND ANALYZE COMPLETE ===");
+    console.log("=== AI ANALYSIS COMPLETE ===");
 
     return {
       success: true,
       data: {
-        scoring: scoringResult,
         analysis: aiAnalysis,
       },
-      ...(aiError && { warnings: [`AI analysis failed: ${aiError}`] }),
     };
   } catch (error) {
-    console.error("=== SCORE AND ANALYZE ERROR ===");
+    console.error("=== AI ANALYSIS ERROR ===");
     console.error("Error:", error);
     return {
       error:
-        error instanceof Error
-          ? error.message
-          : "Failed to score and analyze candidate",
+        error instanceof Error ? error.message : "Failed to analyze candidate",
     };
   }
-}
-
-// Alias for backward compatibility - NOW CALLS scoreAndAnalyzeCandidate
-export async function scoreCandidate(candidateId: string) {
-  return scoreAndAnalyzeCandidate(candidateId);
 }

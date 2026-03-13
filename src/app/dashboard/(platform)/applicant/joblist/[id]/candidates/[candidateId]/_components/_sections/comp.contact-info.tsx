@@ -17,7 +17,7 @@ export function ContactInfo({ email, phone, district, city }: Props) {
       </CardHeader>
       <CardContent className="space-y-3">
         <InfoItem icon={Mail} label="Email" value={email} />
-        <InfoItem icon={Phone} label="Phone" value={phone} mono />
+        <InfoItem icon={Phone} label="Phone" value={phone} />
         <InfoItem
           icon={MapPin}
           label="Location"

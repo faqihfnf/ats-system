@@ -13,6 +13,11 @@ import { WorkExperience } from "./_sections/comp.work-experience";
 import { SalaryInfo } from "./_sections/comp.salary-info";
 import { AdditionalQuestions } from "./_sections/comp.additional-questions";
 import { CVPreview } from "./_sections/comp.cv-preview";
+import { AIAnalysis } from "./_sections/comp.ai-analysis";
+import {
+  calculateAge,
+  calculateYearsOfExperience,
+} from "@/lib/helpers/candidate-helper";
 
 type Candidate = {
   id: string;
@@ -191,17 +196,8 @@ export function CandidateDetailView({ candidate, jobId }: Props) {
       </div>
 
       {/* Bottom Section: Score & Analyze */}
-      <ScoreBreakdown
+      <AIAnalysis
         candidateId={candidate.id}
-        totalScore={candidate.totalScore}
-        educationScore={candidate.educationScore}
-        experienceScore={candidate.experienceScore}
-        ageScore={candidate.ageScore}
-        salaryScore={candidate.salaryScore}
-        genderScore={candidate.genderScore}
-        religionScore={candidate.religionScore}
-        scoredAt={candidate.scoredAt}
-        // AI Analysis props (NEW)
         aiStrengths={candidate.aiStrengths}
         aiWeaknesses={candidate.aiWeaknesses}
         aiConclusion={candidate.aiConclusion}
@@ -211,36 +207,4 @@ export function CandidateDetailView({ candidate, jobId }: Props) {
       />
     </div>
   );
-}
-
-// Helper functions
-function calculateAge(birthDate: Date): number {
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-
-  return age;
-}
-
-function calculateYearsOfExperience(
-  startYear: number | null,
-  endYear: string | null,
-): string {
-  if (!startYear) return "Fresh Graduate";
-
-  const currentYear = new Date().getFullYear();
-  const end = endYear === "present" ? currentYear : parseInt(endYear || "0");
-
-  if (!end || end < startYear) return "Fresh Graduate";
-
-  const years = end - startYear;
-
-  if (years === 0) return "< 1 year";
-  if (years === 1) return "1 year";
-  return `${years} years`;
 }
