@@ -270,6 +270,14 @@ model Application {
   religionScore   Int?      @default(0)
   scoredAt        DateTime?
 
+  // AI Analysis (NEW)
+  aiStrengths       String?   @db.Text // Kelebihan
+  aiWeaknesses      String?   @db.Text // Kekurangan
+  aiConclusion      String?   @db.Text // Kesimpulan
+  aiRecommendation  String? // RECOMMENDED | SUGGESTED | NOT_RECOMMENDED
+  aiMatchPercentage Int? // 0-100
+  analyzedAt        DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

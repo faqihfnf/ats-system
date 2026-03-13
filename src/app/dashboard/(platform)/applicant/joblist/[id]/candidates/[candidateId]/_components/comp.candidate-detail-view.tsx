@@ -51,6 +51,12 @@ type Candidate = {
   genderScore: number | null;
   religionScore: number | null;
   scoredAt: Date | null;
+  aiStrengths: string | null;
+  aiWeaknesses: string | null;
+  aiConclusion: string | null;
+  aiRecommendation: string | null;
+  aiMatchPercentage: number | null;
+  analyzedAt: Date | null;
   job: {
     position: {
       nama: string;
@@ -195,6 +201,13 @@ export function CandidateDetailView({ candidate, jobId }: Props) {
         genderScore={candidate.genderScore}
         religionScore={candidate.religionScore}
         scoredAt={candidate.scoredAt}
+        // AI Analysis props (NEW)
+        aiStrengths={candidate.aiStrengths}
+        aiWeaknesses={candidate.aiWeaknesses}
+        aiConclusion={candidate.aiConclusion}
+        aiRecommendation={candidate.aiRecommendation}
+        aiMatchPercentage={candidate.aiMatchPercentage}
+        analyzedAt={candidate.analyzedAt}
       />
     </div>
   );

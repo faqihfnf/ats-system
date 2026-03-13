@@ -15,11 +15,15 @@ import {
   Church,
   AlertCircle,
   Loader2,
+  ThumbsUp,
+  ThumbsDown,
+  FileText,
 } from "lucide-react";
 import { scoreCandidate } from "../../_actions/action.candidates";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Separator } from "@/components/ui/separator";
 
 type Props = {
   candidateId: string;
@@ -31,6 +35,13 @@ type Props = {
   genderScore: number | null;
   religionScore: number | null;
   scoredAt: Date | null;
+  // AI Analysis props (NEW)
+  aiStrengths: string | null;
+  aiWeaknesses: string | null;
+  aiConclusion: string | null;
+  aiRecommendation: string | null;
+  aiMatchPercentage: number | null;
+  analyzedAt: Date | null;
 };
 
 const WEIGHTS = {
@@ -52,27 +63,49 @@ export function ScoreBreakdown({
   genderScore,
   religionScore,
   scoredAt,
+  aiStrengths,
+  aiWeaknesses,
+  aiConclusion,
+  aiRecommendation,
+  aiMatchPercentage,
+  analyzedAt,
 }: Props) {
   const router = useRouter();
   const [isScoring, setIsScoring] = useState(false);
 
   const hasScore = totalScore !== null && totalScore > 0;
+  const hasAnalysis = aiStrengths !== null && aiWeaknesses !== null;
 
   async function handleScore() {
+    console.log("=== BUTTON CLICKED ===");
+    console.log("Candidate ID:", candidateId);
+
     setIsScoring(true);
 
-    const result = await scoreCandidate(candidateId);
+    try {
+      console.log("Calling scoreCandidate action...");
+      const result = await scoreCandidate(candidateId);
 
-    if (result?.error) {
-      toast.error(result.error, { position: "top-right" });
-    } else {
-      toast.success("Candidate scored successfully!", {
-        position: "top-right",
-      });
-      router.refresh();
+      console.log("=== ACTION RESULT ===");
+      console.log("Result:", result);
+
+      if (result?.error) {
+        console.error("Error from action:", result.error);
+        toast.error(result.error, { position: "top-right" });
+      } else {
+        console.log("Success! Refreshing page...");
+        toast.success("Candidate scored and analyzed successfully!", {
+          position: "top-right",
+        });
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("=== BUTTON HANDLER ERROR ===");
+      console.error("Error:", error);
+      toast.error("An unexpected error occurred", { position: "top-right" });
+    } finally {
+      setIsScoring(false);
     }
-
-    setIsScoring(false);
   }
 
   if (!hasScore) {
@@ -81,26 +114,27 @@ export function ScoreBreakdown({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Sparkles className="h-5 w-5" />
-            Candidate Score
+            Score & Analyze
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Sparkles className="text-muted-foreground mb-4 h-16 w-16" />
-          <p className="text-muted-foreground mb-6 text-center">
+          <p className="text-muted-foreground mb-2 text-center">
             This candidate has not been scored yet.
-            <br />
-            Click the button below to generate AI score.
           </p>
-          <Button onClick={handleScore} disabled={isScoring}>
+          <p className="text-muted-foreground mb-6 text-center text-sm">
+            Click the button below to generate score and AI analysis.
+          </p>
+          <Button onClick={handleScore} disabled={isScoring} size="lg">
             {isScoring ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Scoring...
+                Analyzing...
               </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Generate Score
+                Score & Analyze with AI
               </>
             )}
           </Button>
@@ -117,7 +151,7 @@ export function ScoreBreakdown({
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Sparkles className="h-5 w-5" />
-          Candidate Score Details
+          Score & Analyze
         </CardTitle>
         <Button
           variant="outline"
@@ -128,10 +162,10 @@ export function ScoreBreakdown({
           {isScoring ? (
             <>
               <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-              Re-scoring...
+              Re-analyzing...
             </>
           ) : (
-            "Re-score"
+            "Re-analyze"
           )}
         </Button>
       </CardHeader>
@@ -140,107 +174,211 @@ export function ScoreBreakdown({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            AI candidate scoring can be inaccurate or misleading. Use as
+            AI scoring and analysis can be inaccurate or misleading. Use as
             reference only.
           </AlertDescription>
         </Alert>
 
-        {/* Total Score Circle */}
-        <div className="flex flex-col items-center py-6">
-          <div className="relative h-40 w-40">
-            {/* Background circle */}
-            <svg className="h-full w-full -rotate-90">
-              <circle
-                cx="80"
-                cy="80"
-                r="70"
-                stroke="currentColor"
-                strokeWidth="12"
-                fill="none"
-                className="text-muted"
+        <div className="grid grid-cols-2 gap-6">
+          {/* Left: Rule-based Score */}
+          <div className="space-y-6">
+            <h3 className="text-sm font-semibold">Rule-based Score</h3>
+
+            {/* Total Score Circle */}
+            <div className="flex flex-col items-center py-6">
+              <div className="relative h-32 w-32">
+                <svg className="h-full w-full -rotate-90">
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="10"
+                    fill="none"
+                    className="text-muted"
+                  />
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="10"
+                    fill="none"
+                    strokeDasharray={`${(totalScore / 100) * 351.68} 351.68`}
+                    className={categoryColor}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-bold">{totalScore}%</span>
+                  <span className="text-muted-foreground mt-1 text-xs">
+                    Final score
+                  </span>
+                </div>
+              </div>
+              <Badge className="mt-4" variant={getBadgeVariant(category)}>
+                {category} Match
+              </Badge>
+              {scoredAt && (
+                <p className="text-muted-foreground mt-2 text-xs">
+                  Scored on {new Date(scoredAt).toLocaleString("id-ID")}
+                </p>
+              )}
+            </div>
+
+            {/* Score Breakdown */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold">Score Breakdown</h4>
+
+              <ScoreItem
+                icon={GraduationCap}
+                label="Education"
+                score={educationScore || 0}
+                max={WEIGHTS.EDUCATION}
               />
-              {/* Progress circle */}
-              <circle
-                cx="80"
-                cy="80"
-                r="70"
-                stroke="currentColor"
-                strokeWidth="12"
-                fill="none"
-                strokeDasharray={`${(totalScore / 100) * 439.6} 439.6`}
-                className={categoryColor}
-                strokeLinecap="round"
+              <ScoreItem
+                icon={Briefcase}
+                label="Work Experience"
+                score={experienceScore || 0}
+                max={WEIGHTS.EXPERIENCE}
               />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-bold">{totalScore}%</span>
-              <span className="text-muted-foreground mt-1 text-xs">
-                Candidate final score
-              </span>
+              <ScoreItem
+                icon={Calendar}
+                label="Age"
+                score={ageScore || 0}
+                max={WEIGHTS.AGE}
+              />
+              <ScoreItem
+                icon={DollarSign}
+                label="Salary"
+                score={salaryScore || 0}
+                max={WEIGHTS.SALARY}
+              />
+              <ScoreItem
+                icon={User}
+                label="Gender"
+                score={genderScore || 0}
+                max={WEIGHTS.GENDER}
+              />
+              <ScoreItem
+                icon={Church}
+                label="Religion"
+                score={religionScore || 0}
+                max={WEIGHTS.RELIGION}
+              />
             </div>
           </div>
-          <Badge className="mt-4" variant={getBadgeVariant(category)}>
-            {category} Match
-          </Badge>
-          {scoredAt && (
-            <p className="text-muted-foreground mt-2 text-xs">
-              Scored on {new Date(scoredAt).toLocaleString("id-ID")}
-            </p>
-          )}
-        </div>
 
-        {/* Score Breakdown */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold">Score Breakdown</h4>
+          {/* Right: AI Analysis */}
+          <div className="space-y-6">
+            <h3 className="text-sm font-semibold">AI Analysis</h3>
 
-          <ScoreItem
-            icon={GraduationCap}
-            label="Education"
-            score={educationScore || 0}
-            max={WEIGHTS.EDUCATION}
-          />
+            {hasAnalysis ? (
+              <>
+                {/* AI Match Percentage */}
+                <div className="flex flex-col items-center py-6">
+                  <div className="relative h-32 w-32">
+                    <svg className="h-full w-full -rotate-90">
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="currentColor"
+                        strokeWidth="10"
+                        fill="none"
+                        className="text-muted"
+                      />
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="currentColor"
+                        strokeWidth="10"
+                        fill="none"
+                        strokeDasharray={`${((aiMatchPercentage || 0) / 100) * 351.68} 351.68`}
+                        className={getAIRecommendationColor(aiRecommendation)}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3xl font-bold">
+                        {aiMatchPercentage}%
+                      </span>
+                      <span className="text-muted-foreground mt-1 text-xs">
+                        AI Match
+                      </span>
+                    </div>
+                  </div>
+                  <Badge
+                    className="mt-4"
+                    variant={getAIRecommendationBadge(aiRecommendation)}
+                  >
+                    {getAIRecommendationLabel(aiRecommendation)}
+                  </Badge>
+                  {analyzedAt && (
+                    <p className="text-muted-foreground mt-2 text-xs">
+                      Analyzed on {new Date(analyzedAt).toLocaleString("id-ID")}
+                    </p>
+                  )}
+                </div>
 
-          <ScoreItem
-            icon={Briefcase}
-            label="Work Experience"
-            score={experienceScore || 0}
-            max={WEIGHTS.EXPERIENCE}
-          />
+                {/* Strengths */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <ThumbsUp className="h-4 w-4 text-green-600" />
+                    <h4 className="text-xs font-semibold">Kelebihan</h4>
+                  </div>
+                  <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950">
+                    <p className="text-sm whitespace-pre-line text-green-900 dark:text-green-100">
+                      {aiStrengths}
+                    </p>
+                  </div>
+                </div>
 
-          <ScoreItem
-            icon={Calendar}
-            label="Age"
-            score={ageScore || 0}
-            max={WEIGHTS.AGE}
-          />
+                {/* Weaknesses */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <ThumbsDown className="h-4 w-4 text-red-600" />
+                    <h4 className="text-xs font-semibold">Kekurangan</h4>
+                  </div>
+                  <div className="rounded-lg bg-red-50 p-3 dark:bg-red-950">
+                    <p className="text-sm whitespace-pre-line text-red-900 dark:text-red-100">
+                      {aiWeaknesses}
+                    </p>
+                  </div>
+                </div>
 
-          <ScoreItem
-            icon={DollarSign}
-            label="Salary Expectation"
-            score={salaryScore || 0}
-            max={WEIGHTS.SALARY}
-          />
-
-          <ScoreItem
-            icon={User}
-            label="Gender"
-            score={genderScore || 0}
-            max={WEIGHTS.GENDER}
-          />
-
-          <ScoreItem
-            icon={Church}
-            label="Religion"
-            score={religionScore || 0}
-            max={WEIGHTS.RELIGION}
-          />
+                {/* Conclusion */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                    <h4 className="text-xs font-semibold">Kesimpulan</h4>
+                  </div>
+                  <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-950">
+                    <p className="text-sm text-blue-900 dark:text-blue-100">
+                      {aiConclusion}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Sparkles className="text-muted-foreground mb-3 h-12 w-12" />
+                <p className="text-muted-foreground text-sm">
+                  AI analysis not available yet.
+                  <br />
+                  Click "Re-analyze" to generate.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-// Score Item Component
+// Score Item Component (existing)
 type ScoreItemProps = {
   icon: React.ElementType;
   label: string;
@@ -252,25 +390,25 @@ function ScoreItem({ icon: Icon, label, score, max }: ScoreItemProps) {
   const percentage = Math.round((score / max) * 100);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon className="text-muted-foreground h-4 w-4" />
-          <span className="text-sm">{label}</span>
+          <Icon className="text-muted-foreground h-3 w-3" />
+          <span className="text-xs">{label}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm font-medium">
+          <span className="font-mono text-xs font-medium">
             {score}/{max}
           </span>
           <span className="text-muted-foreground text-xs">{percentage}%</span>
         </div>
       </div>
-      <Progress value={percentage} className="h-2" />
+      <Progress value={percentage} className="h-1.5" />
     </div>
   );
 }
 
-// Helper functions
+// Helper functions (existing)
 function getCategoryFromScore(
   score: number,
 ): "Excellent" | "Good" | "Fair" | "Poor" {
@@ -309,5 +447,47 @@ function getBadgeVariant(
       return "destructive";
     default:
       return "outline";
+  }
+}
+
+// AI Recommendation helpers (NEW)
+function getAIRecommendationColor(recommendation: string | null): string {
+  switch (recommendation) {
+    case "RECOMMENDED":
+      return "text-green-500";
+    case "SUGGESTED":
+      return "text-yellow-500";
+    case "NOT_RECOMMENDED":
+      return "text-red-500";
+    default:
+      return "text-gray-500";
+  }
+}
+
+function getAIRecommendationBadge(
+  recommendation: string | null,
+): "default" | "secondary" | "destructive" {
+  switch (recommendation) {
+    case "RECOMMENDED":
+      return "default";
+    case "SUGGESTED":
+      return "secondary";
+    case "NOT_RECOMMENDED":
+      return "destructive";
+    default:
+      return "secondary";
+  }
+}
+
+function getAIRecommendationLabel(recommendation: string | null): string {
+  switch (recommendation) {
+    case "RECOMMENDED":
+      return "Direkomendasikan";
+    case "SUGGESTED":
+      return "Disarankan";
+    case "NOT_RECOMMENDED":
+      return "Tidak Direkomendasikan";
+    default:
+      return "Tidak Ada Data";
   }
 }

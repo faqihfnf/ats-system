@@ -46,6 +46,7 @@ type Candidate = {
   jobEndYear: string | null;
   currentStageId: string | null;
   currentStage: { id: string; name: string } | null;
+  aiRecommendation: string | null;
 };
 
 type Stage = {
@@ -162,41 +163,41 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
 
                 {/* Score Column */}
                 <TableCell className="text-center">
-                  {hasScore ? (
-                    <div className="flex flex-col items-center gap-1">
-                      <Badge
-                        variant={getScoreBadgeVariant(candidate.totalScore!)}
-                        className="h-8 w-8 rounded-full text-sm"
-                      >
-                        {candidate.totalScore}
+                  <div className="flex flex-col items-center gap-1">
+                    {candidate.totalScore !== null &&
+                    candidate.totalScore > 0 ? (
+                      <>
+                        <Badge
+                          variant={getScoreBadgeVariant(candidate.totalScore)}
+                          className="cursor-pointer px-3 py-1 font-mono text-sm hover:opacity-80"
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/applicant/joblist/${jobId}/candidates/${candidate.id}`,
+                            )
+                          }
+                        >
+                          {candidate.totalScore}
+                        </Badge>
+                        {/* AI Recommendation Badge (NEW) */}
+                        {candidate.aiRecommendation && (
+                          <Badge
+                            variant={getAIRecommendationBadge(
+                              candidate.aiRecommendation,
+                            )}
+                            className="text-xs"
+                          >
+                            {getAIRecommendationShort(
+                              candidate.aiRecommendation,
+                            )}
+                          </Badge>
+                        )}
+                      </>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">
+                        Not scored
                       </Badge>
-                      <button
-                        onClick={() => handleScore(candidate.id)}
-                        className="text-muted-foreground hover:text-foreground text-xs"
-                        disabled={isScoring}
-                      >
-                        Re-score
-                      </button>
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleScore(candidate.id)}
-                      disabled={isScoring}
-                    >
-                      {isScoring ? (
-                        <>
-                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                          Scoring...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-3 w-3" />
-                        </>
-                      )}
-                    </Button>
-                  )}
+                    )}
+                  </div>
                 </TableCell>
 
                 {/* Age */}
@@ -319,4 +320,32 @@ function getScoreBadgeVariant(
   if (score >= 60) return "secondary"; // Blue - Good
   if (score >= 40) return "outline"; // Yellow - Fair
   return "destructive"; // Red - Poor
+}
+
+function getAIRecommendationBadge(
+  recommendation: string,
+): "default" | "secondary" | "destructive" {
+  switch (recommendation) {
+    case "RECOMMENDED":
+      return "default";
+    case "SUGGESTED":
+      return "secondary";
+    case "NOT_RECOMMENDED":
+      return "destructive";
+    default:
+      return "secondary";
+  }
+}
+
+function getAIRecommendationShort(recommendation: string): string {
+  switch (recommendation) {
+    case "RECOMMENDED":
+      return "✓ Recommended";
+    case "SUGGESTED":
+      return "~ Suggested";
+    case "NOT_RECOMMENDED":
+      return "✗ Not Recommended";
+    default:
+      return "";
+  }
 }
