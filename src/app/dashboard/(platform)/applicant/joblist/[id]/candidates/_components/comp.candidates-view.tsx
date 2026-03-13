@@ -39,7 +39,12 @@ type Candidate = {
   currentStage: { id: string; name: string; order: number } | null;
   status: string;
   createdAt: Date;
-  aiRecommendation: "RECOMMENDED" | "SUGGESTED" | "NOT_RECOMMENDED" | null;
+  aiStrengths: string | null;
+  aiWeaknesses: string | null;
+  aiConclusion: string | null;
+  aiRecommendation: string | null;
+  aiMatchPercentage: number | null;
+  analyzedAt: Date | null;
 };
 
 type Stage = {
