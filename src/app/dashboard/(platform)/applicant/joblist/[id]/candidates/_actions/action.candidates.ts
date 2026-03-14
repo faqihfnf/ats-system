@@ -147,7 +147,6 @@ export async function scoreAndAnalyzeCandidate(candidateId: string) {
           aiRecommendation: aiAnalysis.recommendation,
           aiMatchPercentage: aiAnalysis.matchPercentage,
           analyzedAt: new Date(),
-          analysisVersion: "v1.0",
         },
       });
 

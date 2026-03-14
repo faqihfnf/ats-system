@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, FileText } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { ScoreBreakdown } from "./comp.score-breakdown";
 import { ProfileHeader } from "./_sections/comp.profile-header";
 import { ContactInfo } from "./_sections/comp.contact-info";
 import { PersonalInfo } from "./_sections/comp.personal-info";

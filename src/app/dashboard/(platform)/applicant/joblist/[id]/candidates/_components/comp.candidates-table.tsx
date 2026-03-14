@@ -17,7 +17,10 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { updateCandidateStage } from "../_actions/action.candidates";
+import {
+  scoreAndAnalyzeCandidate,
+  updateCandidateStage,
+} from "../_actions/action.candidates";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -31,6 +34,9 @@ import {
 } from "@/lib/helpers/candidate-helper";
 import { cn } from "@/lib/utils";
 import { toUpperCase } from "zod";
+import { Button } from "@/components/ui/button";
+import { Loader2, Sparkles } from "lucide-react";
+import { useState } from "react";
 
 type Candidate = {
   id: string;
@@ -69,7 +75,24 @@ type Props = {
 
 export function CandidatesTable({ candidates, stages, jobId }: Props) {
   const router = useRouter();
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
 
+  async function handleAnalyze(candidateId: string) {
+    setAnalyzingId(candidateId);
+
+    const result = await scoreAndAnalyzeCandidate(candidateId);
+
+    if (result?.error) {
+      toast.error(result.error, { position: "top-right" });
+    } else {
+      toast.success("Candidate analyzed successfully!", {
+        position: "top-right",
+      });
+      router.refresh();
+    }
+
+    setAnalyzingId(null);
+  }
   async function handleStageChange(candidateId: string, stageId: string) {
     const result = await updateCandidateStage(candidateId, stageId);
 
@@ -126,6 +149,7 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
               .slice(0, 2);
             const location = `${candidate.district} - ${candidate.city}`;
             const hasAIScore = candidate.aiMatchPercentage !== null;
+            const isAnalyzing = analyzingId === candidate.id;
 
             return (
               <TableRow key={candidate.id}>
@@ -175,28 +199,58 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
                   </Link>
                 </TableCell>
 
-                {/* AI Match Score - with custom color */}
+                {/* AI Match Score - with Analyze Button */}
                 <TableCell className="text-center">
                   {hasAIScore ? (
-                    <div
-                      className={cn(
-                        "inline-flex cursor-pointer items-center rounded-full p-2 text-sm font-medium transition-opacity hover:opacity-80",
-                        getAIRecommendationBadgeClass(
-                          candidate.aiRecommendation,
-                        ),
-                      )}
-                      onClick={() =>
-                        router.push(
-                          `/dashboard/applicant/joblist/${jobId}/candidates/${candidate.id}`,
-                        )
-                      }
-                    >
-                      {candidate.aiMatchPercentage}%
+                    <div className="flex flex-col items-center gap-1">
+                      <div
+                        className={cn(
+                          "inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-sm font-medium transition-opacity hover:opacity-80",
+                          getAIRecommendationBadgeClass(
+                            candidate.aiRecommendation,
+                          ),
+                        )}
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/applicant/joblist/${jobId}/candidates/${candidate.id}`,
+                          )
+                        }
+                      >
+                        {candidate.aiMatchPercentage}%
+                      </div>
+                      {/* Re-analyze button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="hover:text-primary hover:bg-transparent"
+                        onClick={() => handleAnalyze(candidate.id)}
+                        disabled={isAnalyzing}
+                      >
+                        {isAnalyzing ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3" />
+                        )}
+                      </Button>
                     </div>
                   ) : (
-                    <Badge variant="outline" className="text-xs">
-                      Not analyzed
-                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleAnalyze(candidate.id)}
+                      disabled={isAnalyzing}
+                      className="hover:text-primary hover:bg-transparent"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3" />
+                        </>
+                      )}
+                    </Button>
                   )}
                 </TableCell>
 
