@@ -13,18 +13,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toProperCase } from "@/lib/helpers/candidate-helper";
 import { useState } from "react";
-
-type Candidate = {
-  education: { name: string };
-  gender: string;
-  religion: string;
-  jobStartYear: number | null;
-  jobEndYear: string | null;
-};
+import { Candidate, CandidateFilters } from "@/types/types";
 
 type Props = {
   filters: any;
-  onFiltersChange: (filters: any) => void;
+  onFiltersChange: (filters: CandidateFilters) => void;
   candidates: Candidate[];
 };
 

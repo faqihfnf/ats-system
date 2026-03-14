@@ -2,11 +2,6 @@
 
 import { analyzeCVWithGemini } from "@/lib/gemini/gemini-service";
 import { prisma } from "@/lib/prisma";
-import {
-  calculateScore,
-  calculateYearsOfExperience,
-  calculateAge,
-} from "@/lib/scoring/scoring-engine";
 import { revalidatePath } from "next/cache";
 
 export async function getCandidates(jobId: string) {

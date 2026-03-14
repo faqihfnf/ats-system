@@ -33,39 +33,10 @@ import {
   toProperCase,
 } from "@/lib/helpers/candidate-helper";
 import { cn } from "@/lib/utils";
-import { toUpperCase } from "zod";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
-
-type Candidate = {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  birthDate: Date;
-  gender: string;
-  religion: string;
-  district: string;
-  city: string;
-  education: { name: string };
-  institution: string;
-  expectedSalary: number;
-  lastJobTitle: string | null;
-  lastCompany: string | null;
-  jobStartYear: number | null;
-  jobEndYear: string | null;
-  currentStageId: string | null;
-  currentStage: { id: string; name: string } | null;
-  aiRecommendation: string | null;
-  aiMatchPercentage: number | null;
-};
-
-type Stage = {
-  id: string;
-  name: string;
-  order: number;
-};
+import { Candidate, Stage } from "@/types/types";
 
 type Props = {
   candidates: Candidate[];

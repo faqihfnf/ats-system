@@ -16,38 +16,16 @@ import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-
-type Job = {
-  id: string;
-  status: string;
-  createdAt: Date;
-  position: {
-    nama: string;
-    divisi: { nama: string };
-    level: { nama: string };
-  };
-  creator: {
-    nama: string;
-  };
-  applications: Array<{
-    currentStageId: string | null;
-  }>;
-};
-
-type Stage = {
-  id: string;
-  name: string;
-  order: number;
-};
+import { JobListItem, Stage } from "@/types/types";
 
 type Props = {
-  data: Job[];
+  data: JobListItem[];
   stages: Stage[];
 };
 
 export function JobTable({ data, stages }: Props) {
   // Helper function to count candidates per stage for a job
-  function getStageCount(job: Job, stageId: string): number {
+  function getStageCount(job: JobListItem, stageId: string): number {
     return job.applications.filter((app) => app.currentStageId === stageId)
       .length;
   }

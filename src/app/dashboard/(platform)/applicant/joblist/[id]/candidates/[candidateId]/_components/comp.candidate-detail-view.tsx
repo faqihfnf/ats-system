@@ -17,66 +17,10 @@ import {
   calculateAge,
   calculateYearsOfExperience,
 } from "@/lib/helpers/candidate-helper";
-
-type Candidate = {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  birthPlace: string;
-  birthDate: Date;
-  gender: string;
-  religion: string;
-  ktpAddress: string;
-  domicileAddress: string;
-  province: string;
-  city: string;
-  district: string;
-  subdistrict: string;
-  education: { name: string };
-  institution: string;
-  startYear: number;
-  endYear: string;
-  lastJobTitle: string | null;
-  lastCompany: string | null;
-  jobStartYear: number | null;
-  jobEndYear: string | null;
-  currentSalary: number | null;
-  expectedSalary: number;
-  cvUrl: string | null;
-  currentStage: { name: string } | null;
-  status: string;
-  createdAt: Date;
-  totalScore: number | null;
-  educationScore: number | null;
-  experienceScore: number | null;
-  ageScore: number | null;
-  salaryScore: number | null;
-  genderScore: number | null;
-  religionScore: number | null;
-  scoredAt: Date | null;
-  aiStrengths: string | null;
-  aiWeaknesses: string | null;
-  aiConclusion: string | null;
-  aiRecommendation: string | null;
-  aiMatchPercentage: number | null;
-  analyzedAt: Date | null;
-  job: {
-    position: {
-      nama: string;
-      divisi: { nama: string };
-      level: { nama: string };
-    };
-    customQuestions: any[];
-  };
-  answers: Array<{
-    answer: string;
-    question: { question: string; type: string };
-  }>;
-};
+import { CandidateWithRelations } from "@/types/types";
 
 type Props = {
-  candidate: Candidate;
+  candidate: CandidateWithRelations;
   jobId: string;
 };
 

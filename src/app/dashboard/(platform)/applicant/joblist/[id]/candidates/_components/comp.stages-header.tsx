@@ -1,14 +1,8 @@
 import { cn } from "@/lib/utils";
-
-type Stage = {
-  id: string;
-  name: string;
-  order: number;
-  count: number;
-};
+import { StageWithCount } from "@/types/types";
 
 type Props = {
-  stages: Stage[];
+  stages: StageWithCount[];
   selectedStageId: string | null;
   onStageClick: (stageId: string | null) => void;
 };

@@ -5,53 +5,7 @@ import { Card } from "@/components/ui/card";
 import { StagesHeader } from "./comp.stages-header";
 import { CandidatesFilter } from "./comp.candidates-filter";
 import { CandidatesTable } from "./comp.candidates-table";
-
-type Job = {
-  id: string;
-  position: {
-    nama: string;
-    divisi: { nama: string };
-    level: { nama: string };
-  };
-};
-
-type Candidate = {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  birthDate: Date;
-  totalScore: number;
-  gender: string;
-  religion: string;
-  province: string;
-  city: string;
-  district: string;
-  subdistrict: string;
-  education: { name: string };
-  institution: string;
-  lastJobTitle: string | null;
-  lastCompany: string | null;
-  jobStartYear: number | null;
-  jobEndYear: string | null;
-  expectedSalary: number;
-  currentStageId: string | null;
-  currentStage: { id: string; name: string; order: number } | null;
-  status: string;
-  createdAt: Date;
-  aiStrengths: string | null;
-  aiWeaknesses: string | null;
-  aiConclusion: string | null;
-  aiRecommendation: string | null;
-  aiMatchPercentage: number | null;
-  analyzedAt: Date | null;
-};
-
-type Stage = {
-  id: string;
-  name: string;
-  order: number;
-};
+import { Candidate, CandidateFilters, Job, Stage } from "@/types/types";
 
 type Props = {
   job: Job;
@@ -61,7 +15,7 @@ type Props = {
 
 export function CandidatesView({ job, candidates, stages }: Props) {
   const [selectedStageId, setSelectedStageId] = useState<string | null>(null); // ← Add selected stage
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<CandidateFilters>({
     search: "",
     education: "",
     gender: "",
