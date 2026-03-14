@@ -132,10 +132,11 @@ export function AIAnalysis({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Disclaimer */}
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            AI analysis can be inaccurate or misleading. Use as reference only.
+        <Alert variant="warning" className="text-sm">
+          <AlertCircle className="-mt-1 mr-2 h-5 w-5" />
+          <AlertDescription className="mt-1">
+            AI analysis can be inaccurate or misleading in some cases. Please
+            double check the results!
           </AlertDescription>
         </Alert>
 
