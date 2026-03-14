@@ -183,7 +183,7 @@ export function CandidatesView({ job, candidates, stages }: Props) {
     <div className="space-y-6">
       {/* Job Header */}
       <div>
-        <h1 className="text-2xl font-semibold">{job.position.nama}</h1>
+        <h1 className="mb-1 text-3xl font-semibold">{job.position.nama}</h1>
         <p className="text-muted-foreground text-sm">
           {job.position.divisi.nama} • {job.position.level.nama}
         </p>
