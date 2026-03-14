@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, User, Church } from "lucide-react";
+import { Calendar, User, Star } from "lucide-react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { InfoItem } from "./comp.info-item";
+import { toProperCase } from "@/lib/helpers/candidate-helper";
 
 type Props = {
   birthPlace: string;
@@ -33,7 +34,7 @@ export function PersonalInfo({
         <InfoItem
           icon={Calendar}
           label="Birth Place & Date"
-          value={`${birthPlace}, ${format(birthDate, "PPP", { locale: idLocale })}`}
+          value={`${toProperCase(birthPlace)}, ${format(birthDate, "PPP", { locale: idLocale })}`}
         />
         <InfoItem icon={User} label="Age" value={`${age} years old`} />
         <InfoItem
@@ -41,7 +42,7 @@ export function PersonalInfo({
           label="Gender"
           value={gender === "MALE" ? "Male" : "Female"}
         />
-        <InfoItem icon={Church} label="Religion" value={religion} />
+        <InfoItem icon={Star} label="Religion" value={toProperCase(religion)} />
         <Separator />
         <div className="space-y-2">
           <p className="text-muted-foreground text-xs font-medium">

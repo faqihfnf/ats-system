@@ -11,9 +11,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toProperCase } from "@/lib/helpers/candidate-helper";
+import { useState } from "react";
 
 type Candidate = {
   education: { name: string };
+  gender: string;
+  religion: string;
+  jobStartYear: number | null;
+  jobEndYear: string | null;
 };
 
 type Props = {
@@ -27,52 +33,62 @@ export function CandidatesFilter({
   onFiltersChange,
   candidates,
 }: Props) {
-  // Get unique education values
+  const [resetKey, setResetKey] = useState(0); // ← Add reset key
+
+  // Get unique values
   const educations = Array.from(
     new Set(candidates.map((c) => c.education.name)),
   );
+  const religions = Array.from(new Set(candidates.map((c) => c.religion)));
 
   function handleReset() {
     onFiltersChange({
       search: "",
       education: "",
       gender: "",
+      religion: "",
       minSalary: "",
       maxSalary: "",
       minAge: "",
       maxAge: "",
       location: "",
+      yoe: "",
     });
+    setResetKey((prev) => prev + 1); // ← Force re-render
   }
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Filter & Sort</CardTitle>
-        <Button variant="ghost" size="sm" onClick={handleReset}>
+        <CardTitle className="text-xl">Filter & Sort</CardTitle>
+        <Button variant="ghost" size="lg" onClick={handleReset}>
           Reset
         </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4" key={resetKey}>
+        {" "}
+        {/* ← Add key here */}
         {/* Search */}
         <div className="space-y-2">
           <Label>Search Name</Label>
           <Input
-            placeholder="Search..."
+            placeholder="Cari Nama..."
             value={filters.search}
             onChange={(e) =>
               onFiltersChange({ ...filters, search: e.target.value })
             }
           />
         </div>
-
         {/* Education */}
         <div className="space-y-2">
           <Label>Education</Label>
           <Select
             value={filters.education || undefined}
             onValueChange={(value) =>
-              onFiltersChange({ ...filters, education: value })
+              onFiltersChange({
+                ...filters,
+                education: value === "all" ? "" : value,
+              })
             }
           >
             <SelectTrigger>
@@ -88,16 +104,15 @@ export function CandidatesFilter({
             </SelectContent>
           </Select>
         </div>
-
-        {/* Gender */}
+        {/* Years of Experience */}
         <div className="space-y-2">
-          <Label>Gender</Label>
+          <Label>Years of Experience</Label>
           <Select
-            value={filters.gender || undefined}
+            value={filters.yoe || undefined}
             onValueChange={(value) =>
               onFiltersChange({
                 ...filters,
-                gender: value === "all" ? "" : value,
+                yoe: value === "all" ? "" : value,
               })
             }
           >
@@ -106,12 +121,63 @@ export function CandidatesFilter({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              <SelectItem value="MALE">Male</SelectItem>
-              <SelectItem value="FEMALE">Female</SelectItem>
+              <SelectItem value="fresh">Fresh Graduate (0 years)</SelectItem>
+              <SelectItem value="1-2">1 - 2 years</SelectItem>
+              <SelectItem value="3-5">3 - 5 years</SelectItem>
+              <SelectItem value="5+">5+ years</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
+        {/* Gender & Religion */}
+        <div className="grid grid-cols-2 gap-2">
+          {/* Gender */}
+          <div className="space-y-2">
+            <Label>Gender</Label>
+            <Select
+              value={filters.gender || undefined}
+              onValueChange={(value) =>
+                onFiltersChange({
+                  ...filters,
+                  gender: value === "all" ? "" : value,
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="MALE">Male</SelectItem>
+                <SelectItem value="FEMALE">Female</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Religion */}
+          <div className="space-y-2">
+            <Label>Religion</Label>
+            <Select
+              value={filters.religion || undefined}
+              onValueChange={(value) =>
+                onFiltersChange({
+                  ...filters,
+                  religion: value === "all" ? "" : value,
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {religions.map((religion: string) => (
+                  <SelectItem key={religion} value={religion}>
+                    {toProperCase(religion)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         {/* Salary Range */}
         <div className="space-y-2">
           <Label>Expected Salary (Rp)</Label>
@@ -134,7 +200,6 @@ export function CandidatesFilter({
             />
           </div>
         </div>
-
         {/* Age Range */}
         <div className="space-y-2">
           <Label>Age</Label>
@@ -157,12 +222,11 @@ export function CandidatesFilter({
             />
           </div>
         </div>
-
         {/* Location */}
         <div className="space-y-2">
           <Label>Location</Label>
           <Input
-            placeholder="City name..."
+            placeholder="Cari Kota atau Kecamatan..."
             value={filters.location}
             onChange={(e) =>
               onFiltersChange({ ...filters, location: e.target.value })

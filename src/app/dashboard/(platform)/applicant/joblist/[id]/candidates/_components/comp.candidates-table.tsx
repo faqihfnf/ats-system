@@ -27,8 +27,10 @@ import {
   getAIRecommendationBadgeClass,
   getAIRecommendationIcon,
   getAIRecommendationShort,
+  toProperCase,
 } from "@/lib/helpers/candidate-helper";
 import { cn } from "@/lib/utils";
+import { toUpperCase } from "zod";
 
 type Candidate = {
   id: string;
@@ -36,6 +38,8 @@ type Candidate = {
   email: string;
   phone: string;
   birthDate: Date;
+  gender: string;
+  religion: string;
   district: string;
   city: string;
   education: { name: string };
@@ -91,16 +95,19 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
         <TableHeader>
           <TableRow>
             <TableHead className="w-50">Full Name</TableHead>
-            <TableHead className="w-17.5 text-center">AI Score</TableHead>
-            <TableHead className="w-17.5 text-center">Age</TableHead>
+            <TableHead className="w-17.5">AI Score</TableHead>
+            <TableHead className="w-17.5">Age</TableHead>
             <TableHead className="w-30">Phone</TableHead>
-            <TableHead className="w-50">Location</TableHead>
+            <TableHead className="w-50">Kota</TableHead>
+            <TableHead className="w-50">Kecamatan</TableHead>
             <TableHead className="w-30">Education</TableHead>
             <TableHead className="w-30">Institution</TableHead>
-            <TableHead className="w-30 text-right">Exp. Salary</TableHead>
+            <TableHead className="w-50">Exp. Salary</TableHead>
             <TableHead className="w-32.5">Past Role</TableHead>
             <TableHead className="w-32.5">Past Company</TableHead>
-            <TableHead className="w-17.5 text-center">YoE</TableHead>
+            <TableHead className="w-17.5">YoE</TableHead>
+            <TableHead className="w-20">Gender</TableHead>
+            <TableHead className="w-25">Religion</TableHead>
             <TableHead className="w-45">Stage</TableHead>
           </TableRow>
         </TableHeader>
@@ -146,7 +153,7 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
                         {candidate.aiRecommendation && (
                           <div
                             className={cn(
-                              "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium",
+                              "mt-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium",
                               getAIRecommendationBadgeClass(
                                 candidate.aiRecommendation,
                               ),
@@ -203,9 +210,18 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
                   <span className="text-sm">{candidate.phone}</span>
                 </TableCell>
 
-                {/* Location */}
+                {/* Location - 2 lines: District + City */}
                 <TableCell>
-                  <span className="text-sm">{location}</span>
+                  <span className="text-sm">
+                    {" "}
+                    {toProperCase(candidate.district)}
+                  </span>
+                </TableCell>
+
+                <TableCell>
+                  <span className="text-sm">
+                    {toProperCase(candidate.city)}
+                  </span>
                 </TableCell>
 
                 {/* Education */}
@@ -242,6 +258,20 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
                 {/* Years of Experience */}
                 <TableCell className="text-center">
                   <span className="text-sm">{yoe}</span>
+                </TableCell>
+
+                {/* Gender  */}
+                <TableCell className="text-center">
+                  <span className="text-xs">
+                    {toProperCase(candidate.gender)}
+                  </span>
+                </TableCell>
+
+                {/* Religion */}
+                <TableCell className="text-center">
+                  <span className="text-xs">
+                    {toProperCase(candidate.religion)}
+                  </span>
                 </TableCell>
 
                 {/* Stage Selector */}

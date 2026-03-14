@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { InfoItem } from "./comp.info-item";
+import { toProperCase } from "@/lib/helpers/candidate-helper";
 
 type Props = {
   email: string;
@@ -21,7 +22,7 @@ export function ContactInfo({ email, phone, district, city }: Props) {
         <InfoItem
           icon={MapPin}
           label="Location"
-          value={`${district}, ${city}`}
+          value={`${toProperCase(district)}, ${toProperCase(city)}`}
         />
       </CardContent>
     </Card>

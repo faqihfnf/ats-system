@@ -65,11 +65,13 @@ export function CandidatesView({ job, candidates, stages }: Props) {
     search: "",
     education: "",
     gender: "",
+    religion: "",
     minSalary: "",
     maxSalary: "",
     minAge: "",
     maxAge: "",
     location: "",
+    yoe: "",
   });
 
   // Calculate candidate counts per stage
@@ -103,6 +105,11 @@ export function CandidatesView({ job, candidates, stages }: Props) {
       return false;
     }
 
+    // Filter by religion
+    if (filters.religion && candidate.religion !== filters.religion) {
+      return false;
+    }
+
     // Filter by salary range
     if (
       filters.minSalary &&
@@ -126,12 +133,47 @@ export function CandidatesView({ job, candidates, stages }: Props) {
       return false;
     }
 
-    // Filter by location
-    if (
-      filters.location &&
-      !candidate.city.toLowerCase().includes(filters.location.toLowerCase())
-    ) {
-      return false;
+    // Filter by location (City OR District) - NEW
+    if (filters.location) {
+      const searchTerm = filters.location.toLowerCase();
+      const cityMatch = candidate.city.toLowerCase().includes(searchTerm);
+      const districtMatch = candidate.district
+        .toLowerCase()
+        .includes(searchTerm);
+
+      if (!cityMatch && !districtMatch) {
+        return false;
+      }
+    }
+
+    // Filter by Years of Experience
+    if (filters.yoe) {
+      const currentYear = new Date().getFullYear();
+      const startYear = candidate.jobStartYear;
+      const endYear =
+        candidate.jobEndYear === "present"
+          ? currentYear
+          : parseInt(candidate.jobEndYear || "0");
+
+      let yearsOfExp = 0;
+      if (startYear && endYear && endYear >= startYear) {
+        yearsOfExp = endYear - startYear;
+      }
+
+      switch (filters.yoe) {
+        case "fresh":
+          if (yearsOfExp > 0) return false; // Exactly 0 years
+          break;
+        case "1-2":
+          if (yearsOfExp < 1 || yearsOfExp > 2) return false;
+          break;
+        case "3-5":
+          if (yearsOfExp < 3 || yearsOfExp > 5) return false;
+          break;
+        case "5+":
+          if (yearsOfExp < 5) return false;
+          break;
+      }
     }
 
     return true;

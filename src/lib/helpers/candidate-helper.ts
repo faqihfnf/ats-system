@@ -1,5 +1,14 @@
 import { Trophy, AlertCircle, CircleX } from "lucide-react";
 
+// Convert text to proper case (Title Case)
+export function toProperCase(text: string): string {
+  return text
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 // Calculate age from birth date
 export function calculateAge(birthDate: Date): number {
   const today = new Date();
