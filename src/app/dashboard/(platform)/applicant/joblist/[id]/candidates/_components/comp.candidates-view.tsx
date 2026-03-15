@@ -6,6 +6,7 @@ import { StagesHeader } from "./comp.stages-header";
 import { CandidatesFilter } from "./comp.candidates-filter";
 import { CandidatesTable } from "./comp.candidates-table";
 import { Candidate, CandidateFilters, Job, Stage } from "@/types/types";
+import { calculateAge } from "@/lib/helpers/candidate-helper";
 
 type Props = {
   job: Job;
@@ -176,15 +177,15 @@ export function CandidatesView({ job, candidates, stages }: Props) {
   );
 }
 
-function calculateAge(birthDate: Date): number {
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
+// function calculateAge(birthDate: Date): number {
+//   const today = new Date();
+//   const birth = new Date(birthDate);
+//   let age = today.getFullYear() - birth.getFullYear();
+//   const monthDiff = today.getMonth() - birth.getMonth();
 
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
+//   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+//     age--;
+//   }
 
-  return age;
-}
+//   return age;
+// }

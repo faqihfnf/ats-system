@@ -13,7 +13,6 @@ export type Candidate = {
   city: string;
   province: string;
   subdistrict: string;
-  education: { name: string };
   ktpAddress: string;
   domicileAddress: string;
   educationId: string;
@@ -51,6 +50,22 @@ export type Candidate = {
 
   createdAt: Date;
   updatedAt: Date;
+
+  // Relations
+  education: {
+    id: string;
+    name: string;
+  };
+  currentStage: {
+    id: string;
+    name: string;
+  } | null;
+  job?: {
+    // ← Make optional since not always included
+    position: {
+      nama: string;
+    };
+  };
 };
 
 // Candidate with relations (for detail page)

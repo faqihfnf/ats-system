@@ -33,6 +33,15 @@ export async function getCandidates(jobId: string) {
     include: {
       education: true,
       currentStage: true,
+      job: {
+        select: {
+          position: {
+            select: {
+              nama: true,
+            },
+          },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -232,5 +241,81 @@ export async function deleteCandidate(candidateId: string) {
   } catch (error) {
     console.error("Delete candidate error:", error);
     return { error: "Failed to delete candidate" };
+  }
+}
+export async function transferCandidate(
+  candidateId: string,
+  fromJobId: string,
+  toJobId: string,
+) {
+  try {
+    // 1. Get first stage
+    const firstStage = await prisma.stage.findFirst({
+      orderBy: { order: "asc" },
+    });
+
+    if (!firstStage) {
+      return { error: "No stages found in the system" };
+    }
+
+    // 2. Verify target job exists
+    const targetJob = await prisma.job.findUnique({
+      where: { id: toJobId },
+    });
+
+    if (!targetJob) {
+      return { error: "Target job not found" };
+    }
+
+    // 3. Delete all custom question answers (ApplicationAnswer)
+    await prisma.applicationAnswer.deleteMany({
+      where: { applicationId: candidateId },
+    });
+
+    // 4. Update candidate to new job and reset stage
+    await prisma.application.update({
+      where: { id: candidateId },
+      data: {
+        jobId: toJobId,
+        currentStageId: firstStage.id,
+      },
+    });
+
+    revalidatePath(`/dashboard/applicant/joblist/${fromJobId}/candidates`);
+    revalidatePath(`/dashboard/applicant/joblist/${toJobId}/candidates`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Transfer candidate error:", error);
+    return { error: "Failed to transfer candidate" };
+  }
+}
+
+// Get all active jobs for transfer dropdown
+export async function getActiveJobs() {
+  try {
+    const jobs = await prisma.job.findMany({
+      where: {
+        status: "OPEN",
+      },
+      select: {
+        id: true,
+        position: {
+          select: {
+            nama: true,
+            divisi: { select: { nama: true } },
+            level: { select: { nama: true } },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return jobs;
+  } catch (error) {
+    console.error("Get active jobs error:", error);
+    return [];
   }
 }

@@ -8,7 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Download, FileText, MessageCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRightLeft,
+  Download,
+  FileText,
+  MessageCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { ProfileHeader } from "./_sections/comp.profile-header";
@@ -29,6 +35,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { updateCandidateStage } from "../../_actions/action.candidates";
 import { CandidateWithRelations, Stage } from "@/types/types";
+import { TransferCandidateDialog } from "../../_components/comp.transfer-candidate-dialog";
 
 type Props = {
   candidate: CandidateWithRelations;
@@ -39,6 +46,7 @@ type Props = {
 export function CandidateDetailView({ candidate, jobId, stages }: Props) {
   const router = useRouter();
   const [showCV, setShowCV] = useState(true);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
 
   const initials = candidate.fullName
     .split(" ")
@@ -93,10 +101,19 @@ export function CandidateDetailView({ candidate, jobId, stages }: Props) {
           </Button>
         </Link>
         <div className="flex items-center gap-2">
-          {/* WhatsApp Invite Button - NEW */}
+          {/* Transfer Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowTransferDialog(true)}
+          >
+            <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-600" />
+            Pindahkan
+          </Button>
+          {/* WhatsApp Invite Button */}
           <Button variant="outline" size="sm" onClick={handleInvite}>
             <MessageCircle className="mr-2 h-4 w-4 text-green-600" />
-            Undang Kandidat
+            Undang
           </Button>
           {/* Stage Selector */}
           <div className="flex items-center gap-2">
@@ -212,6 +229,17 @@ export function CandidateDetailView({ candidate, jobId, stages }: Props) {
         aiRecommendation={candidate.aiRecommendation}
         aiMatchPercentage={candidate.aiMatchPercentage}
         analyzedAt={candidate.analyzedAt}
+      />
+
+      {/* Transfer Dialog */}
+      <TransferCandidateDialog
+        open={showTransferDialog}
+        onOpenChange={setShowTransferDialog}
+        candidateId={candidate.id}
+        candidateName={candidate.fullName}
+        currentJobId={jobId}
+        currentJobTitle={candidate.job.position.nama}
+        currentStage={candidate.currentStage?.name || "Not Set"}
       />
     </div>
   );

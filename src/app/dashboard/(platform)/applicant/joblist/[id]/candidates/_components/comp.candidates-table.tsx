@@ -329,6 +329,8 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
                     candidateName={candidate.fullName}
                     phone={candidate.phone}
                     jobId={jobId}
+                    jobTitle={candidate.job?.position?.nama || "Unknown Job"}
+                    currentStage={candidate.currentStage?.name || "Not Set"}
                   />
                 </TableCell>
               </TableRow>

@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   getCandidateDetail,
   getCandidateNavigation,
@@ -25,15 +25,24 @@ type Props = {
 export default async function CandidateDetailPage({ params }: Props) {
   const { id, candidateId } = await params;
 
-  const [candidate, navigation, stages] = await Promise.all([
+  const [candidate, stages] = await Promise.all([
     getCandidateDetail(candidateId),
-    getCandidateNavigation(candidateId, id),
     getStages(),
   ]);
 
   if (!candidate || !stages) {
     notFound();
   }
+
+  // ✅ DETECT MISMATCH: If URL jobId doesn't match candidate's actual jobId, redirect
+  if (candidate.jobId !== id) {
+    redirect(
+      `/dashboard/applicant/joblist/${candidate.jobId}/candidates/${candidateId}`,
+    );
+  }
+
+  // Now get navigation with correct jobId
+  const navigation = await getCandidateNavigation(candidateId, candidate.jobId);
 
   return (
     <div className="w-full space-y-6 px-4 py-8">
@@ -55,7 +64,10 @@ export default async function CandidateDetailPage({ params }: Props) {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href={`/dashboard/applicant/joblist/${id}/candidates`}>
+                {/* ✅ Use candidate.jobId instead of URL param */}
+                <Link
+                  href={`/dashboard/applicant/joblist/${candidate.jobId}/candidates`}
+                >
                   {candidate.job.position.nama}
                 </Link>
               </BreadcrumbLink>
@@ -69,7 +81,7 @@ export default async function CandidateDetailPage({ params }: Props) {
 
         {/* Prev/Next Navigation */}
         <CandidateDetailHeader
-          jobId={id}
+          jobId={candidate.jobId} // ✅ Use candidate.jobId
           prevCandidate={navigation.prev}
           nextCandidate={navigation.next}
           current={navigation.current}
@@ -78,7 +90,11 @@ export default async function CandidateDetailPage({ params }: Props) {
       </div>
 
       {/* Detail View */}
-      <CandidateDetailView candidate={candidate} jobId={id} stages={stages} />
+      <CandidateDetailView
+        candidate={candidate}
+        jobId={candidate.jobId} // ✅ Use candidate.jobId
+        stages={stages}
+      />
     </div>
   );
 }

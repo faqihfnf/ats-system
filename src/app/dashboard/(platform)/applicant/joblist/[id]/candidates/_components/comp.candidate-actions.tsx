@@ -19,17 +19,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreVertical, Trash2, MessageCircle, Ellipsis } from "lucide-react";
+import { Trash2, MessageCircle, ArrowRightLeft, Ellipsis } from "lucide-react";
 import { useState } from "react";
 import { deleteCandidate } from "../_actions/action.candidates";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { TransferCandidateDialog } from "./comp.transfer-candidate-dialog";
 
 type Props = {
   candidateId: string;
   candidateName: string;
   phone: string;
   jobId: string;
+  jobTitle: string;
+  currentStage: string;
 };
 
 export function CandidateActions({
@@ -37,22 +40,21 @@ export function CandidateActions({
   candidateName,
   phone,
   jobId,
+  jobTitle,
+  currentStage,
 }: Props) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Format phone number for WhatsApp (remove non-digits, add country code if needed)
   function formatWhatsAppNumber(phoneNumber: string): string {
-    // Remove all non-digit characters
     let cleaned = phoneNumber.replace(/\D/g, "");
 
-    // If starts with 0, replace with 62 (Indonesia country code)
     if (cleaned.startsWith("0")) {
       cleaned = "62" + cleaned.substring(1);
     }
 
-    // If doesn't start with country code, add 62
     if (!cleaned.startsWith("62")) {
       cleaned = "62" + cleaned;
     }
@@ -78,7 +80,7 @@ export function CandidateActions({
     if (result?.error) {
       toast.error(result.error, { position: "top-right" });
     } else {
-      toast.success("Candidate deleted successfully", {
+      toast.success("", {
         position: "top-right",
       });
       router.refresh();
@@ -91,7 +93,7 @@ export function CandidateActions({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger asChild className="ml-auto cursor-pointer">
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Ellipsis className="h-4 w-4" />
           </Button>
@@ -104,6 +106,14 @@ export function CandidateActions({
             <MessageCircle className="mr-2 h-4 w-4 text-green-600" />
             <span>Undang Kandidat</span>
           </DropdownMenuItem>
+
+          {/* Transfer to Another Job */}
+          <DropdownMenuItem onClick={() => setShowTransferDialog(true)}>
+            <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-600" />
+            <span>Pindah Kandidat</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
 
           {/* Delete */}
           <DropdownMenuItem
@@ -138,6 +148,17 @@ export function CandidateActions({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Transfer Dialog */}
+      <TransferCandidateDialog
+        open={showTransferDialog}
+        onOpenChange={setShowTransferDialog}
+        candidateId={candidateId}
+        candidateName={candidateName}
+        currentJobId={jobId}
+        currentJobTitle={jobTitle}
+        currentStage={currentStage}
+      />
     </>
   );
 }
