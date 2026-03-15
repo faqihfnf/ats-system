@@ -172,3 +172,40 @@ export async function scoreAndAnalyzeCandidate(candidateId: string) {
     };
   }
 }
+
+export async function getCandidateNavigation(
+  candidateId: string,
+  jobId: string,
+) {
+  try {
+    // Get all candidates for this job, ordered by createdAt
+    const candidates = await prisma.application.findMany({
+      where: { jobId },
+      select: {
+        id: true,
+        fullName: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const currentIndex = candidates.findIndex((c) => c.id === candidateId);
+
+    if (currentIndex === -1) {
+      return { prev: null, next: null, current: 0, total: 0 };
+    }
+
+    return {
+      prev: currentIndex > 0 ? candidates[currentIndex - 1] : null,
+      next:
+        currentIndex < candidates.length - 1
+          ? candidates[currentIndex + 1]
+          : null,
+      current: currentIndex + 1,
+      total: candidates.length,
+    };
+  } catch (error) {
+    console.error("Error getting candidate navigation:", error);
+    return { prev: null, next: null, current: 0, total: 0 };
+  }
+}

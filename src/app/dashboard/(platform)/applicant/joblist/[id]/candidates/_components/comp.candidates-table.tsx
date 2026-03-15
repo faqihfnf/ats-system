@@ -89,20 +89,20 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
         <TableHeader>
           <TableRow>
             <TableHead className="w-50">Full Name</TableHead>
-            <TableHead className="w-17.5">AI Score</TableHead>
+            <TableHead className="w-17.5 text-center">AI Score</TableHead>
             <TableHead className="w-17.5">Age</TableHead>
-            <TableHead className="w-30">Phone</TableHead>
+            <TableHead className="w-30 text-center">Phone</TableHead>
             <TableHead className="w-50">Kota</TableHead>
             <TableHead className="w-50">Kecamatan</TableHead>
             <TableHead className="w-30">Education</TableHead>
             <TableHead className="w-30">Institution</TableHead>
-            <TableHead className="w-50">Exp. Salary</TableHead>
+            <TableHead className="w-50 text-center">Exp. Salary</TableHead>
             <TableHead className="w-32.5">Past Role</TableHead>
             <TableHead className="w-32.5">Past Company</TableHead>
             <TableHead className="w-17.5">YoE</TableHead>
             <TableHead className="w-20">Gender</TableHead>
             <TableHead className="w-25">Religion</TableHead>
-            <TableHead className="w-45">Stage</TableHead>
+            <TableHead className="w-45 text-center">Stage</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

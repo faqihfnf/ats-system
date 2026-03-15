@@ -77,7 +77,7 @@ export function NavMain({
     items?: {
       title: string;
       url: string;
-      icon?: string; // Tambahkan ini
+      icon?: string;
     }[];
   }[];
 }) {
@@ -104,13 +104,12 @@ export function NavMain({
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild suppressHydrationWarning>
                   <SidebarMenuButton
+                    className="cursor-pointer"
                     suppressHydrationWarning
                     tooltip={item.title}
                   >
                     {Icon && <Icon />}
-                    <span className="cursor-pointer font-medium">
-                      {item.title}
-                    </span>
+                    <span className="font-medium">{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>

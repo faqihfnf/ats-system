@@ -1,6 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowLeft, Download, FileText } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,14 +24,20 @@ import {
   calculateAge,
   calculateYearsOfExperience,
 } from "@/lib/helpers/candidate-helper";
-import { CandidateWithRelations } from "@/types/types";
+
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { updateCandidateStage } from "../../_actions/action.candidates";
+import { CandidateWithRelations, Stage } from "@/types/types";
 
 type Props = {
   candidate: CandidateWithRelations;
   jobId: string;
+  stages: Stage[];
 };
 
-export function CandidateDetailView({ candidate, jobId }: Props) {
+export function CandidateDetailView({ candidate, jobId, stages }: Props) {
+  const router = useRouter();
   const [showCV, setShowCV] = useState(true);
 
   const initials = candidate.fullName
@@ -41,6 +54,17 @@ export function CandidateDetailView({ candidate, jobId }: Props) {
   );
   const isPDF = candidate.cvUrl?.toLowerCase().endsWith(".pdf");
 
+  async function handleStageChange(stageId: string) {
+    const result = await updateCandidateStage(candidate.id, stageId);
+
+    if (result?.error) {
+      toast.error(result.error, { position: "top-right" });
+    } else {
+      toast.success("Stage updated successfully", { position: "top-right" });
+      router.refresh();
+    }
+  }
+
   return (
     <div className="w-full space-y-6">
       {/* Header */}
@@ -52,6 +76,25 @@ export function CandidateDetailView({ candidate, jobId }: Props) {
           </Button>
         </Link>
         <div className="flex items-center gap-2">
+          {/* Stage Selector */}
+          <div className="flex items-center gap-2">
+            <Select
+              value={candidate.currentStageId || ""}
+              onValueChange={handleStageChange}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Select stage..." />
+              </SelectTrigger>
+              <SelectContent>
+                {stages.map((stage) => (
+                  <SelectItem key={stage.id} value={stage.id}>
+                    {stage.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {candidate.cvUrl && (
             <>
               <Button
