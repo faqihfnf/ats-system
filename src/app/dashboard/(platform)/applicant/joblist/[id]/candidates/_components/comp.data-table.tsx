@@ -23,13 +23,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChevronDown, Columns3, TableProperties } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -68,6 +69,11 @@ export function DataTable<TData, TValue>({
     });
   const [rowSelection, setRowSelection] = React.useState({});
 
+  // Temporary state for column visibility (before Apply)
+  const [tempColumnVisibility, setTempColumnVisibility] =
+    React.useState(columnVisibility);
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+
   const table = useReactTable({
     data,
     columns,
@@ -87,58 +93,153 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  // Map column ID to display name
+  const getDisplayName = (id: string): string => {
+    const names: Record<string, string> = {
+      fullName: "Full Name",
+      aiScore: "AI Score",
+      age: "Age",
+      city: "City",
+      education: "Education",
+      expectedSalary: "Expected Salary",
+      pastRole: "Past Role",
+      yoe: "Years of Experience",
+      phone: "Phone",
+      district: "District",
+      institution: "Institution",
+      pastCompany: "Past Company",
+      gender: "Gender",
+      religion: "Religion",
+      stage: "Stage",
+    };
+    return names[id] || id;
+  };
+
+  // Check if all columns are selected
+  const areAllColumnsSelected = React.useMemo(() => {
+    const hideableColumns = table
+      .getAllColumns()
+      .filter((column) => column.getCanHide());
+    return hideableColumns.every(
+      (column) => tempColumnVisibility[column.id] !== false,
+    );
+  }, [tempColumnVisibility, table]);
+
+  // Handle Select All / Deselect All (Toggle)
+  const handleToggleAll = () => {
+    const hideableColumns = table
+      .getAllColumns()
+      .filter((column) => column.getCanHide());
+
+    if (areAllColumnsSelected) {
+      // Deselect all
+      const allHidden: VisibilityState = {};
+      hideableColumns.forEach((column) => {
+        allHidden[column.id] = false;
+      });
+      setTempColumnVisibility(allHidden);
+    } else {
+      // Select all
+      const allVisible: VisibilityState = {};
+      hideableColumns.forEach((column) => {
+        allVisible[column.id] = true;
+      });
+      setTempColumnVisibility(allVisible);
+    }
+  };
+
+  // Handle Apply button
+  const handleApply = () => {
+    setColumnVisibility(tempColumnVisibility);
+    setIsPopoverOpen(false);
+  };
+
+  // Handle Cancel/Close - reset to current state
+  const handleCancel = () => {
+    setTempColumnVisibility(columnVisibility);
+    setIsPopoverOpen(false);
+  };
+
+  // When popover opens, sync temp state with current state
+  React.useEffect(() => {
+    if (isPopoverOpen) {
+      setTempColumnVisibility(columnVisibility);
+    }
+  }, [isPopoverOpen, columnVisibility]);
+
   return (
     <div className="space-y-4 p-2">
       {/* Toolbar */}
       <div className="flex items-center justify-between">
-        {/* Column Visibility Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger className="w-42" asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-16 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                // Map column ID to display name
-                const getDisplayName = (id: string): string => {
-                  const names: Record<string, string> = {
-                    fullName: "Full Name",
-                    aiScore: "AI Score",
-                    age: "Age",
-                    city: "City",
-                    education: "Education",
-                    expectedSalary: "Exp Salary",
-                    pastRole: "Past Role",
-                    yoe: "Years of Experience",
-                    phone: "Phone",
-                    district: "District",
-                    institution: "Institution",
-                    pastCompany: "Past Company",
-                    gender: "Gender",
-                    religion: "Religion",
-                    stage: "Stage",
-                  };
-                  return names[id] || id;
-                };
+        {/* Column Visibility Popover */}
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Columns3 className="ml-auto h-5 w-5 cursor-pointer" />
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-65 p-2">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b p-3">
+              <h4 className="text-sm font-semibold">Manage Columns</h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary h-auto p-0 text-xs hover:bg-transparent"
+                onClick={handleToggleAll}
+              >
+                {areAllColumnsSelected ? "Clear all" : "Select all"}
+              </Button>
+            </div>
 
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {getDisplayName(column.id)}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            {/* Column List */}
+            <div className="max-h-75 overflow-y-auto p-2">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <div
+                      key={column.id}
+                      className="hover:bg-accent flex items-center space-x-2 rounded-sm px-2 py-1.5"
+                    >
+                      <Checkbox
+                        checked={tempColumnVisibility[column.id] !== false}
+                        onCheckedChange={(value) => {
+                          setTempColumnVisibility((prev) => ({
+                            ...prev,
+                            [column.id]: !!value,
+                          }));
+                        }}
+                        id={`column-${column.id}`}
+                      />
+                      <label
+                        htmlFor={`column-${column.id}`}
+                        className="flex-1 cursor-pointer text-sm"
+                      >
+                        {getDisplayName(column.id)}
+                      </label>
+                    </div>
+                  );
+                })}
+            </div>
+
+            <Separator />
+
+            {/* Footer with Apply/Cancel buttons */}
+            <div className="flex items-center justify-between gap-2 p-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancel}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleApply} className="flex-1">
+                Apply
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Selected Row Count */}
@@ -148,7 +249,6 @@ export function DataTable<TData, TValue>({
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
             {table.getFilteredRowModel().rows.length} row(s) selected
           </p>
-          {/* TODO: Bulk actions here (Score All, Transfer All, etc.) */}
         </div>
       )}
 
