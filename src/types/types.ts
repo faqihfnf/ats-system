@@ -77,10 +77,8 @@ export type Job = {
   id: string;
   status: string;
   createdAt: Date;
-  title: string;
   description: string | null;
   requirements: string | null;
-  responsibilities: string | null;
   minSalary: number;
   maxSalary: number;
   minAge: number;
@@ -93,7 +91,7 @@ export type Job = {
   minEducation: Education;
   minExperience: Experience;
   customQuestions: CustomQuestion[];
-  applications: Candidate[];
+  applications?: Candidate[];
   creator: {
     id: string;
     nama: string;

@@ -37,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Candidate, Stage } from "@/types/types";
+import { CandidateActions } from "./comp.candidate-actions";
 
 type Props = {
   candidates: Candidate[];
@@ -103,6 +104,7 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
             <TableHead className="w-20">Gender</TableHead>
             <TableHead className="w-25">Religion</TableHead>
             <TableHead className="w-45 text-center">Stage</TableHead>
+            <TableHead className="w-20 text-center">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -118,7 +120,7 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
               .join("")
               .toUpperCase()
               .slice(0, 2);
-            const location = `${candidate.district} - ${candidate.city}`;
+
             const hasAIScore = candidate.aiMatchPercentage !== null;
             const isAnalyzing = analyzingId === candidate.id;
 
@@ -318,6 +320,16 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
                       ))}
                     </SelectContent>
                   </Select>
+                </TableCell>
+
+                {/* Action Menu - NEW */}
+                <TableCell className="text-center">
+                  <CandidateActions
+                    candidateId={candidate.id}
+                    candidateName={candidate.fullName}
+                    phone={candidate.phone}
+                    jobId={jobId}
+                  />
                 </TableCell>
               </TableRow>
             );

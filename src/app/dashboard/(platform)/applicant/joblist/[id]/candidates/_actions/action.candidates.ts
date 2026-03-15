@@ -14,6 +14,15 @@ export async function getCandidates(jobId: string) {
           level: true,
         },
       },
+      minEducation: true,
+      minExperience: true,
+      creator: {
+        select: {
+          id: true,
+          nama: true,
+        },
+      },
+      customQuestions: true,
     },
   });
 
@@ -28,7 +37,10 @@ export async function getCandidates(jobId: string) {
     orderBy: { createdAt: "desc" },
   });
 
-  return { job, candidates };
+  return {
+    job: { ...job, applications: candidates },
+    candidates,
+  };
 }
 
 export async function updateCandidateStage(
@@ -207,5 +219,18 @@ export async function getCandidateNavigation(
   } catch (error) {
     console.error("Error getting candidate navigation:", error);
     return { prev: null, next: null, current: 0, total: 0 };
+  }
+}
+
+export async function deleteCandidate(candidateId: string) {
+  try {
+    await prisma.application.delete({
+      where: { id: candidateId },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Delete candidate error:", error);
+    return { error: "Failed to delete candidate" };
   }
 }

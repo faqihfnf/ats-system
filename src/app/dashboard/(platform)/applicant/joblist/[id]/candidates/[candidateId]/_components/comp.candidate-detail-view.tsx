@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Download, FileText } from "lucide-react";
+import { ArrowLeft, Download, FileText, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { ProfileHeader } from "./_sections/comp.profile-header";
@@ -65,6 +65,23 @@ export function CandidateDetailView({ candidate, jobId, stages }: Props) {
     }
   }
 
+  function handleInvite() {
+    let cleaned = candidate.phone.replace(/\D/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "62" + cleaned.substring(1);
+    }
+    if (!cleaned.startsWith("62")) {
+      cleaned = "62" + cleaned;
+    }
+
+    const message = encodeURIComponent(
+      `Halo ${candidate.fullName}, terima kasih telah melamar di perusahaan kami. Kami ingin mengundang Anda untuk tahap selanjutnya.`,
+    );
+    const whatsappUrl = `https://wa.me/${cleaned}?text=${message}`;
+
+    window.open(whatsappUrl, "_blank");
+  }
+
   return (
     <div className="w-full space-y-6">
       {/* Header */}
@@ -76,6 +93,11 @@ export function CandidateDetailView({ candidate, jobId, stages }: Props) {
           </Button>
         </Link>
         <div className="flex items-center gap-2">
+          {/* WhatsApp Invite Button - NEW */}
+          <Button variant="outline" size="sm" onClick={handleInvite}>
+            <MessageCircle className="mr-2 h-4 w-4 text-green-600" />
+            Undang Kandidat
+          </Button>
           {/* Stage Selector */}
           <div className="flex items-center gap-2">
             <Select
