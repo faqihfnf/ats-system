@@ -138,19 +138,6 @@ export const columns: ColumnDef<CandidateColumn>[] = [
               >
                 {candidate.aiMatchPercentage}%
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hover:text-primary h-6 px-1 hover:bg-transparent"
-                onClick={() => candidate.onAnalyze(candidate.id)}
-                disabled={isAnalyzing}
-              >
-                {isAnalyzing ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Sparkles className="h-3 w-3" />
-                )}
-              </Button>
             </>
           ) : (
             <Button

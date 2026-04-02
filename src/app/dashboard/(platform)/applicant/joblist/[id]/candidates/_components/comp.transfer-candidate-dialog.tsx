@@ -169,6 +169,7 @@ export function TransferCandidateDialog({
               <ul className="mt-2 list-inside list-disc space-y-1">
                 <li>Jawaban custom questions akan dihapus</li>
                 <li>Stage akan direset ke tahap awal</li>
+                <li>Score & analisa AI akan direset.</li>
                 <li className="text-green-600">
                   CV dan data pribadi tetap tersimpan
                 </li>

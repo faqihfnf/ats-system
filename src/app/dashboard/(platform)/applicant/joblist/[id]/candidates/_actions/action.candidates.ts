@@ -278,6 +278,22 @@ export async function transferCandidate(
       data: {
         jobId: toJobId,
         currentStageId: firstStage.id,
+        // Reset AI Scoring
+        totalScore: 0,
+        educationScore: 0,
+        experienceScore: 0,
+        ageScore: 0,
+        salaryScore: 0,
+        genderScore: 0,
+        religionScore: 0,
+        scoredAt: null,
+        // Reset AI Analysis
+        aiStrengths: null,
+        aiWeaknesses: null,
+        aiConclusion: null,
+        aiRecommendation: null,
+        aiMatchPercentage: null,
+        analyzedAt: null,
       },
     });
 
