@@ -12,7 +12,17 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toProperCase } from "@/lib/helpers/candidate-helper";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+
+function formatRupiahInput(value: string): string {
+  if (!value) return "";
+  const num = value.replace(/\D/g, "");
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function parseRupiahInput(value: string): string {
+  return value.replace(/\D/g, "");
+}
 import { Candidate, CandidateFilters } from "@/types/types";
 
 type Props = {
@@ -26,7 +36,13 @@ export function CandidatesFilter({
   onFiltersChange,
   candidates,
 }: Props) {
-  const [resetKey, setResetKey] = useState(0); // ← Add reset key
+  const [resetKey, setResetKey] = useState(0);
+  const [minSalaryDisplay, setMinSalaryDisplay] = useState(
+    formatRupiahInput(filters.minSalary),
+  );
+  const [maxSalaryDisplay, setMaxSalaryDisplay] = useState(
+    formatRupiahInput(filters.maxSalary),
+  );
 
   // Get unique values
   const educations = Array.from(
@@ -47,7 +63,9 @@ export function CandidatesFilter({
       location: "",
       yoe: "",
     });
-    setResetKey((prev) => prev + 1); // ← Force re-render
+    setMinSalaryDisplay("");
+    setMaxSalaryDisplay("");
+    setResetKey((prev) => prev + 1);
   }
 
   return (
@@ -176,20 +194,24 @@ export function CandidatesFilter({
           <Label>Expected Salary (Rp)</Label>
           <div className="grid grid-cols-2 gap-2">
             <Input
-              type="number"
+              inputMode="numeric"
               placeholder="Min"
-              value={filters.minSalary}
-              onChange={(e) =>
-                onFiltersChange({ ...filters, minSalary: e.target.value })
-              }
+              value={minSalaryDisplay}
+              onChange={(e) => {
+                const raw = parseRupiahInput(e.target.value);
+                setMinSalaryDisplay(formatRupiahInput(raw));
+                onFiltersChange({ ...filters, minSalary: raw });
+              }}
             />
             <Input
-              type="number"
+              inputMode="numeric"
               placeholder="Max"
-              value={filters.maxSalary}
-              onChange={(e) =>
-                onFiltersChange({ ...filters, maxSalary: e.target.value })
-              }
+              value={maxSalaryDisplay}
+              onChange={(e) => {
+                const raw = parseRupiahInput(e.target.value);
+                setMaxSalaryDisplay(formatRupiahInput(raw));
+                onFiltersChange({ ...filters, maxSalary: raw });
+              }}
             />
           </div>
         </div>

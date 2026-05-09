@@ -147,6 +147,7 @@ const SidebarProvider = React.forwardRef<
       <SidebarContext.Provider value={contextValue}>
         <TooltipProvider delayDuration={0}>
           <div
+            suppressHydrationWarning
             style={
               {
                 "--sidebar-width": SIDEBAR_WIDTH,
@@ -208,8 +209,9 @@ const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+        <Sheet open={openMobile} onOpenChange={setOpenMobile}>
           <SheetContent
+            suppressHydrationWarning
             data-sidebar="sidebar"
             data-mobile="true"
             className="bg-sidebar text-sidebar-foreground w-[--sidebar-width] p-0 [&>button]:hidden"
