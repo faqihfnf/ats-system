@@ -58,6 +58,7 @@ export function DataTable<TData, TValue>({
       pastRole: true,
       yoe: true,
       actions: true,
+      stage: true,
       // Hidden by default
       phone: false,
       district: false,
@@ -65,7 +66,6 @@ export function DataTable<TData, TValue>({
       pastCompany: false,
       gender: false,
       religion: false,
-      stage: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
 
