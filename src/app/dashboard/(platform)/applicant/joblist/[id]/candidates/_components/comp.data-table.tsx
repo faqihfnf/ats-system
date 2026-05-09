@@ -29,8 +29,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronDown, Columns3, TableProperties } from "lucide-react";
+import { ChevronDown, Columns3, Download } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import * as XLSX from "xlsx";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -73,6 +74,28 @@ export function DataTable<TData, TValue>({
   const [tempColumnVisibility, setTempColumnVisibility] =
     React.useState(columnVisibility);
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+
+  // Export state
+  const [exportPopoverOpen, setExportPopoverOpen] = React.useState(false);
+  const [selectedExportColumns, setSelectedExportColumns] = React.useState<
+    Record<string, boolean>
+  >({
+    fullName: true,
+    aiScore: true,
+    age: true,
+    city: true,
+    education: true,
+    expectedSalary: true,
+    pastRole: true,
+    yoe: true,
+    stage: true,
+    phone: false,
+    district: false,
+    institution: false,
+    pastCompany: false,
+    gender: false,
+    religion: false,
+  });
 
   const table = useReactTable({
     data,
@@ -167,79 +190,303 @@ export function DataTable<TData, TValue>({
     }
   }, [isPopoverOpen, columnVisibility]);
 
+  // Export handlers
+  const areAllExportColumnsSelected = React.useMemo(() => {
+    const exportableColumns = table
+      .getAllColumns()
+      .filter((col) => col.id !== "select" && col.id !== "actions");
+    return exportableColumns.every(
+      (column) => selectedExportColumns[column.id] !== false,
+    );
+  }, [selectedExportColumns, table]);
+
+  const handleToggleExportAll = () => {
+    const exportableColumns = table
+      .getAllColumns()
+      .filter((col) => col.id !== "select" && col.id !== "actions");
+
+    if (areAllExportColumnsSelected) {
+      // Deselect all
+      const allHidden: Record<string, boolean> = {};
+      exportableColumns.forEach((column) => {
+        allHidden[column.id] = false;
+      });
+      setSelectedExportColumns(allHidden);
+    } else {
+      // Select all
+      const allVisible: Record<string, boolean> = {};
+      exportableColumns.forEach((column) => {
+        allVisible[column.id] = true;
+      });
+      setSelectedExportColumns(allVisible);
+    }
+  };
+
+  const handleExportCancel = () => {
+    setExportPopoverOpen(false);
+  };
+
+  const handleExportToExcel = () => {
+    // Get filtered rows
+    const filteredRows = table.getFilteredRowModel().rows;
+
+    // Get selected column IDs
+    const selectedColumnIds = Object.keys(selectedExportColumns).filter(
+      (key) => selectedExportColumns[key],
+    );
+
+    if (selectedColumnIds.length === 0) {
+      alert("Please select at least one column to export");
+      return;
+    }
+
+    // Map column ID to display name
+    const columnData = selectedColumnIds.map((colId) => ({
+      id: colId,
+      header: getDisplayName(colId),
+    }));
+
+    // Build export data
+    const exportData = filteredRows.map((row) => {
+      const rowData: Record<string, any> = {};
+      const candidate = row.original as any;
+
+      columnData.forEach((col) => {
+        let value: any;
+
+        switch (col.id) {
+          case "fullName":
+            value = candidate.fullName;
+            break;
+          case "aiScore":
+            value = candidate.aiMatchPercentage ?? "-";
+            break;
+          case "age":
+            const birthDate = new Date(candidate.birthDate);
+            const age = new Date().getFullYear() - birthDate.getFullYear();
+            value = age;
+            break;
+          case "city":
+            value = candidate.city ?? "-";
+            break;
+          case "education":
+            value = candidate.education?.name ?? "-";
+            break;
+          case "expectedSalary":
+            value = candidate.expectedSalary
+              ? `Rp ${candidate.expectedSalary.toLocaleString("id-ID")}`
+              : "-";
+            break;
+          case "pastRole":
+            value = candidate.lastJobTitle ?? "-";
+            break;
+          case "yoe":
+            const startYear = candidate.jobStartYear;
+            const endYear =
+              candidate.jobEndYear === "present"
+                ? new Date().getFullYear()
+                : parseInt(candidate.jobEndYear || "0");
+            const yoe =
+              startYear && endYear && endYear >= startYear
+                ? endYear - startYear
+                : 0;
+            value = yoe;
+            break;
+          case "stage":
+            value = candidate.currentStage?.name ?? "-";
+            break;
+          case "phone":
+            value = candidate.phone ?? "-";
+            break;
+          case "district":
+            value = candidate.district ?? "-";
+            break;
+          case "institution":
+            value = candidate.institution ?? "-";
+            break;
+          case "pastCompany":
+            value = candidate.lastCompany ?? "-";
+            break;
+          case "gender":
+            value = candidate.gender ?? "-";
+            break;
+          case "religion":
+            value = candidate.religion ?? "-";
+            break;
+          default:
+            value = "-";
+        }
+
+        rowData[col.header] = value;
+      });
+
+      return rowData;
+    });
+
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(workbook, `candidates_export_${timestamp}.xlsx`);
+
+    // Close popover
+    setExportPopoverOpen(false);
+  };
+
   return (
     <div className="space-y-4 p-2">
       {/* Toolbar */}
       <div className="flex items-center justify-between">
-        {/* Column Visibility Popover */}
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Columns3 className="ml-auto h-5 w-5 cursor-pointer" />
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-65 p-2">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b p-3">
-              <h4 className="text-sm font-semibold">Manage Columns</h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary h-auto p-0 text-xs hover:bg-transparent"
-                onClick={handleToggleAll}
-              >
-                {areAllColumnsSelected ? "Clear all" : "Select all"}
-              </Button>
-            </div>
+        <div className="ml-auto flex items-center gap-5">
+          {/* Export Popover */}
+          <Popover open={exportPopoverOpen} onOpenChange={setExportPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Download className="hover:text-primary h-5 w-5 cursor-pointer" />
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-65 p-2">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b p-3">
+                <h4 className="text-sm font-semibold">Export to Excel</h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary h-auto p-0 text-xs hover:bg-transparent"
+                  onClick={handleToggleExportAll}
+                >
+                  {areAllExportColumnsSelected ? "Clear all" : "Select all"}
+                </Button>
+              </div>
 
-            {/* Column List */}
-            <div className="max-h-75 overflow-y-auto p-2">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <div
-                      key={column.id}
-                      className="hover:bg-accent flex items-center space-x-2 rounded-sm px-2 py-1.5"
-                    >
-                      <Checkbox
-                        checked={tempColumnVisibility[column.id] !== false}
-                        onCheckedChange={(value) => {
-                          setTempColumnVisibility((prev) => ({
-                            ...prev,
-                            [column.id]: !!value,
-                          }));
-                        }}
-                        id={`column-${column.id}`}
-                      />
-                      <label
-                        htmlFor={`column-${column.id}`}
-                        className="flex-1 cursor-pointer text-sm"
+              {/* Column List */}
+              <div className="max-h-75 overflow-y-auto p-2">
+                {table
+                  .getAllColumns()
+                  .filter((col) => col.id !== "select" && col.id !== "actions")
+                  .map((column) => {
+                    return (
+                      <div
+                        key={column.id}
+                        className="hover:bg-accent flex items-center space-x-2 rounded-sm px-2 py-1.5"
                       >
-                        {getDisplayName(column.id)}
-                      </label>
-                    </div>
-                  );
-                })}
-            </div>
+                        <Checkbox
+                          checked={selectedExportColumns[column.id] !== false}
+                          onCheckedChange={(value) => {
+                            setSelectedExportColumns((prev) => ({
+                              ...prev,
+                              [column.id]: !!value,
+                            }));
+                          }}
+                          id={`export-${column.id}`}
+                        />
+                        <label
+                          htmlFor={`export-${column.id}`}
+                          className="flex-1 cursor-pointer text-sm"
+                        >
+                          {getDisplayName(column.id)}
+                        </label>
+                      </div>
+                    );
+                  })}
+              </div>
 
-            <Separator />
+              <Separator />
 
-            {/* Footer with Apply/Cancel buttons */}
-            <div className="flex items-center justify-between gap-2 p-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCancel}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleApply} className="flex-1">
-                Apply
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+              {/* Footer with Cancel/Download buttons */}
+              <div className="flex items-center justify-between gap-2 p-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportCancel}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleExportToExcel}
+                  className="flex-1"
+                >
+                  Download
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Column Visibility Popover */}
+          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Columns3 className="hover:text-primary h-5 w-5 cursor-pointer" />
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-65 p-2">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b p-3">
+                <h4 className="text-sm font-semibold">Manage Columns</h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary h-auto p-0 text-xs hover:bg-transparent"
+                  onClick={handleToggleAll}
+                >
+                  {areAllColumnsSelected ? "Clear all" : "Select all"}
+                </Button>
+              </div>
+
+              {/* Column List */}
+              <div className="max-h-75 overflow-y-auto p-2">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <div
+                        key={column.id}
+                        className="hover:bg-accent flex items-center space-x-2 rounded-sm px-2 py-1.5"
+                      >
+                        <Checkbox
+                          checked={tempColumnVisibility[column.id] !== false}
+                          onCheckedChange={(value) => {
+                            setTempColumnVisibility((prev) => ({
+                              ...prev,
+                              [column.id]: !!value,
+                            }));
+                          }}
+                          id={`column-${column.id}`}
+                        />
+                        <label
+                          htmlFor={`column-${column.id}`}
+                          className="flex-1 cursor-pointer text-sm"
+                        >
+                          {getDisplayName(column.id)}
+                        </label>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              <Separator />
+
+              {/* Footer with Apply/Cancel buttons */}
+              <div className="flex items-center justify-between gap-2 p-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancel}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleApply} className="flex-1">
+                  Apply
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       {/* Selected Row Count */}

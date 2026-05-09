@@ -88,6 +88,9 @@ export function JobTable({ data, stages, canManageJobs }: Props) {
                     >
                       {job.position.nama}
                     </Link>
+                    <h4 className="text-sm font-medium">
+                      {job.position.divisi.nama}
+                    </h4>
                     <p className="text-muted-foreground text-xs font-medium">
                       {job.creator.nama} •{" "}
                       {format(new Date(job.createdAt), "d MMM yyyy", {
