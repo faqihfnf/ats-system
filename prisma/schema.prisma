@@ -13,6 +13,7 @@ model Divisi {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   positions Position[]
+  profiles  Profile[]
 
   @@map("divisi")
 }
@@ -46,6 +47,8 @@ model Profile {
   nama      String
   email     String   @unique
   role      Role     @default(RECRUITER)
+  divisiId  String?
+  divisi    Divisi?  @relation(fields: [divisiId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   jobs      Job[]
@@ -56,6 +59,7 @@ model Profile {
 enum Role {
   ADMIN
   RECRUITER
+  USER
 }
 
 model Stage {

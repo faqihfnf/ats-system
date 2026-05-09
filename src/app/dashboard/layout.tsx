@@ -3,8 +3,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/common/toggle-mode";
 import { Separator } from "@/components/ui/separator";
-import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma";
+import { getSessionProfile } from "@/lib/auth/session-profile";
 
 export const dynamic = "force-dynamic";
 
@@ -13,21 +12,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Fetch user data di sini (server component)
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const profile = user
-    ? await prisma.profile.findUnique({ where: { id: user.id } })
-    : null;
-
-  const isAdmin = profile?.role === "ADMIN";
+  const profile = await getSessionProfile();
 
   return (
     <SidebarProvider>
-      <AppSidebar isAdmin={isAdmin} /> {/* ← Pass isAdmin as prop */}
+      <AppSidebar role={profile?.role ?? "RECRUITER"} />
       <div className="ml-52 flex min-h-screen flex-1 flex-col">
         <header className="flex h-16 shrink-0 items-center justify-end border-b px-6">
           <div className="flex gap-3">

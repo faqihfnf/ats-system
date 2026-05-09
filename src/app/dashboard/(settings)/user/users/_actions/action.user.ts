@@ -8,6 +8,14 @@ import { revalidatePath } from "next/cache";
 // Ambil semua user dari profiles
 export async function getUsers() {
   return await prisma.profile.findMany({
+    include: {
+      divisi: {
+        select: {
+          id: true,
+          nama: true,
+        },
+      },
+    },
     orderBy: { createdAt: "asc" },
   });
 }
@@ -19,6 +27,7 @@ export async function createUser(formData: FormData) {
     email: formData.get("email"),
     password: formData.get("password"),
     role: formData.get("role"),
+    divisiId: formData.get("divisiId"),
   });
 
   if (!parsed.success) {
@@ -26,6 +35,17 @@ export async function createUser(formData: FormData) {
   }
 
   const supabase = createAdminClient();
+
+  if (parsed.data.role === "USER") {
+    const divisi = await prisma.divisi.findUnique({
+      where: { id: parsed.data.divisiId },
+      select: { id: true },
+    });
+
+    if (!divisi) {
+      return { error: "Divisi tidak ditemukan" };
+    }
+  }
 
   // Buat user di Supabase Auth
   const { data, error } = await supabase.auth.admin.createUser({
@@ -48,6 +68,7 @@ export async function createUser(formData: FormData) {
       nama: parsed.data.nama,
       role: parsed.data.role,
       email: parsed.data.email,
+      divisiId: parsed.data.role === "USER" ? parsed.data.divisiId : null,
     },
   });
 
@@ -60,10 +81,22 @@ export async function updateUser(id: string, formData: FormData) {
   const parsed = updateUserSchema.safeParse({
     nama: formData.get("nama"),
     role: formData.get("role"),
+    divisiId: formData.get("divisiId"),
   });
 
   if (!parsed.success) {
     return { error: parsed.error.message };
+  }
+
+  if (parsed.data.role === "USER") {
+    const divisi = await prisma.divisi.findUnique({
+      where: { id: parsed.data.divisiId },
+      select: { id: true },
+    });
+
+    if (!divisi) {
+      return { error: "Divisi tidak ditemukan" };
+    }
   }
 
   await prisma.profile.update({
@@ -71,6 +104,7 @@ export async function updateUser(id: string, formData: FormData) {
     data: {
       nama: parsed.data.nama,
       role: parsed.data.role,
+      divisiId: parsed.data.role === "USER" ? parsed.data.divisiId : null,
     },
   });
 

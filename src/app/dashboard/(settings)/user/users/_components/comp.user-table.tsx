@@ -8,11 +8,17 @@ import { DeleteButton } from "./comp.delete-button";
 type User = {
   id: string;
   nama: string;
-  role: "ADMIN" | "RECRUITER";
-    email: string;
+  role: "ADMIN" | "RECRUITER" | "USER";
+  email: string;
+  divisi: { id: string; nama: string } | null;
 };
 
-export function UserTable({ data }: { data: User[] }) {
+type Props = {
+  data: User[];
+  divisions: { id: string; nama: string }[];
+};
+
+export function UserTable({ data, divisions }: Props) {
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
@@ -29,6 +35,7 @@ export function UserTable({ data }: { data: User[] }) {
             <TableHead>Nama</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
+            <TableHead>Divisi</TableHead>
             <TableHead className="w-25 text-center">Edit</TableHead>
             <TableHead className="w-25 text-center">Hapus</TableHead>
           </TableRow>
@@ -39,12 +46,29 @@ export function UserTable({ data }: { data: User[] }) {
               <TableCell className="font-medium">{user.nama}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
-                <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
+                <Badge
+                  variant={
+                    user.role === "ADMIN"
+                      ? "default"
+                      : user.role === "USER"
+                        ? "outline"
+                        : "secondary"
+                  }
+                >
                   {user.role}
                 </Badge>
               </TableCell>
+              <TableCell>{user.divisi?.nama ?? "-"}</TableCell>
               <TableCell className="text-center">
-                <UserForm user={{ id: user.id, nama: user.nama, role: user.role }} />
+                <UserForm
+                  divisions={divisions}
+                  user={{
+                    id: user.id,
+                    nama: user.nama,
+                    role: user.role,
+                    divisiId: user.divisi?.id ?? null,
+                  }}
+                />
               </TableCell>
               <TableCell className="text-center">
                 <DeleteButton id={user.id} nama={user.nama} />

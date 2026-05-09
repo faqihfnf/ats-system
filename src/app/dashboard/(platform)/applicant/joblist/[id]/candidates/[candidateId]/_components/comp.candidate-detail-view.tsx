@@ -41,9 +41,15 @@ type Props = {
   candidate: CandidateWithRelations;
   jobId: string;
   stages: Stage[];
+  canManageCandidateActions: boolean;
 };
 
-export function CandidateDetailView({ candidate, jobId, stages }: Props) {
+export function CandidateDetailView({
+  candidate,
+  jobId,
+  stages,
+  canManageCandidateActions,
+}: Props) {
   const router = useRouter();
   const [showCV, setShowCV] = useState(true);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
@@ -101,20 +107,24 @@ export function CandidateDetailView({ candidate, jobId, stages }: Props) {
           </Button>
         </Link>
         <div className="flex items-center gap-2">
-          {/* Transfer Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowTransferDialog(true)}
-          >
-            <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-600" />
-            Pindahkan
-          </Button>
-          {/* WhatsApp Invite Button */}
-          <Button variant="outline" size="sm" onClick={handleInvite}>
-            <MessageCircle className="mr-2 h-4 w-4 text-green-600" />
-            Undang
-          </Button>
+          {canManageCandidateActions && (
+            <>
+              {/* Transfer Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTransferDialog(true)}
+              >
+                <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-600" />
+                Pindahkan
+              </Button>
+              {/* WhatsApp Invite Button */}
+              <Button variant="outline" size="sm" onClick={handleInvite}>
+                <MessageCircle className="mr-2 h-4 w-4 text-green-600" />
+                Undang
+              </Button>
+            </>
+          )}
           {/* Stage Selector */}
           <div className="flex items-center gap-2">
             <Select
@@ -229,18 +239,21 @@ export function CandidateDetailView({ candidate, jobId, stages }: Props) {
         aiRecommendation={candidate.aiRecommendation}
         aiMatchPercentage={candidate.aiMatchPercentage}
         analyzedAt={candidate.analyzedAt}
+        canAnalyze={canManageCandidateActions}
       />
 
       {/* Transfer Dialog */}
-      <TransferCandidateDialog
-        open={showTransferDialog}
-        onOpenChange={setShowTransferDialog}
-        candidateId={candidate.id}
-        candidateName={candidate.fullName}
-        currentJobId={jobId}
-        currentJobTitle={candidate.job.position.nama}
-        currentStage={candidate.currentStage?.name || "Not Set"}
-      />
+      {canManageCandidateActions && (
+        <TransferCandidateDialog
+          open={showTransferDialog}
+          onOpenChange={setShowTransferDialog}
+          candidateId={candidate.id}
+          candidateName={candidate.fullName}
+          currentJobId={jobId}
+          currentJobTitle={candidate.job.position.nama}
+          currentStage={candidate.currentStage?.name || "Not Set"}
+        />
+      )}
     </div>
   );
 }

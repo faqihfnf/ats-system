@@ -1,10 +1,14 @@
 "use server";
 
 import { analyzeCVWithGemini } from "@/lib/gemini/gemini-service";
+import { canAccessDivision, getSessionProfile } from "@/lib/auth/session-profile";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function getCandidates(jobId: string) {
+  const profile = await getSessionProfile();
+  if (!profile) return null;
+
   const job = await prisma.job.findUnique({
     where: { id: jobId },
     include: {
@@ -27,6 +31,7 @@ export async function getCandidates(jobId: string) {
   });
 
   if (!job) return null;
+  if (!canAccessDivision(profile, job.position.divisiId)) return null;
 
   const candidates = await prisma.application.findMany({
     where: { jobId },
@@ -49,6 +54,7 @@ export async function getCandidates(jobId: string) {
   return {
     job: { ...job, applications: candidates },
     candidates,
+    canManageCandidateActions: profile.role !== "USER",
   };
 }
 
@@ -57,6 +63,33 @@ export async function updateCandidateStage(
   stageId: string,
 ) {
   try {
+    const profile = await getSessionProfile();
+    if (!profile) return { error: "Tidak terautentikasi" };
+
+    const application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      select: {
+        id: true,
+        job: {
+          select: {
+            position: {
+              select: {
+                divisiId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      return { error: "Kandidat tidak ditemukan" };
+    }
+
+    if (!canAccessDivision(profile, application.job.position.divisiId)) {
+      return { error: "Anda tidak memiliki akses ke kandidat ini" };
+    }
+
     await prisma.application.update({
       where: { id: applicationId },
       data: { currentStageId: stageId },
@@ -70,6 +103,9 @@ export async function updateCandidateStage(
 }
 
 export async function getCandidateDetail(candidateId: string) {
+  const profile = await getSessionProfile();
+  if (!profile) return null;
+
   const candidate = await prisma.application.findUnique({
     where: { id: candidateId },
     include: {
@@ -96,11 +132,20 @@ export async function getCandidateDetail(candidateId: string) {
     },
   });
 
+  if (!candidate) return null;
+  if (!canAccessDivision(profile, candidate.job.position.divisiId)) return null;
+
   return candidate;
 }
 
 export async function scoreAndAnalyzeCandidate(candidateId: string) {
   try {
+    const profile = await getSessionProfile();
+    if (!profile) return { error: "Tidak terautentikasi" };
+    if (profile.role === "USER") {
+      return { error: "Role User tidak memiliki akses analisis kandidat" };
+    }
+
     console.log("=== START AI ANALYSIS ===");
     console.log("Candidate ID:", candidateId);
 
@@ -121,6 +166,9 @@ export async function scoreAndAnalyzeCandidate(candidateId: string) {
 
     if (!candidate) {
       return { error: "Candidate not found" };
+    }
+    if (!canAccessDivision(profile, candidate.job.position.divisiId)) {
+      return { error: "Anda tidak memiliki akses ke kandidat ini" };
     }
 
     console.log("Candidate found:", candidate.fullName);
@@ -199,6 +247,24 @@ export async function getCandidateNavigation(
   jobId: string,
 ) {
   try {
+    const profile = await getSessionProfile();
+    if (!profile) return { prev: null, next: null, current: 0, total: 0 };
+
+    const job = await prisma.job.findUnique({
+      where: { id: jobId },
+      select: {
+        position: {
+          select: {
+            divisiId: true,
+          },
+        },
+      },
+    });
+
+    if (!job || !canAccessDivision(profile, job.position.divisiId)) {
+      return { prev: null, next: null, current: 0, total: 0 };
+    }
+
     // Get all candidates for this job, ordered by createdAt
     const candidates = await prisma.application.findMany({
       where: { jobId },
@@ -233,6 +299,29 @@ export async function getCandidateNavigation(
 
 export async function deleteCandidate(candidateId: string) {
   try {
+    const profile = await getSessionProfile();
+    if (!profile) return { error: "Tidak terautentikasi" };
+    if (profile.role === "USER") {
+      return { error: "Role User tidak memiliki akses hapus kandidat" };
+    }
+
+    const candidate = await prisma.application.findUnique({
+      where: { id: candidateId },
+      select: {
+        job: {
+          select: {
+            position: {
+              select: { divisiId: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!candidate || !canAccessDivision(profile, candidate.job.position.divisiId)) {
+      return { error: "Kandidat tidak ditemukan atau tidak dapat diakses" };
+    }
+
     await prisma.application.delete({
       where: { id: candidateId },
     });
@@ -249,6 +338,12 @@ export async function transferCandidate(
   toJobId: string,
 ) {
   try {
+    const profile = await getSessionProfile();
+    if (!profile) return { error: "Tidak terautentikasi" };
+    if (profile.role === "USER") {
+      return { error: "Role User tidak memiliki akses pindah kandidat" };
+    }
+
     // 1. Get first stage
     const firstStage = await prisma.stage.findFirst({
       orderBy: { order: "asc" },
@@ -261,10 +356,41 @@ export async function transferCandidate(
     // 2. Verify target job exists
     const targetJob = await prisma.job.findUnique({
       where: { id: toJobId },
+      select: {
+        id: true,
+        position: {
+          select: {
+            divisiId: true,
+          },
+        },
+      },
     });
 
     if (!targetJob) {
       return { error: "Target job not found" };
+    }
+
+    const sourceCandidate = await prisma.application.findUnique({
+      where: { id: candidateId },
+      select: {
+        job: {
+          select: {
+            position: {
+              select: {
+                divisiId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (
+      !sourceCandidate ||
+      !canAccessDivision(profile, sourceCandidate.job.position.divisiId) ||
+      !canAccessDivision(profile, targetJob.position.divisiId)
+    ) {
+      return { error: "Kandidat tidak dapat dipindahkan lintas akses divisi" };
     }
 
     // 3. Delete all custom question answers (ApplicationAnswer)
@@ -310,6 +436,9 @@ export async function transferCandidate(
 // Get all active jobs for transfer dropdown
 export async function getActiveJobs() {
   try {
+    const profile = await getSessionProfile();
+    if (!profile || profile.role === "USER") return [];
+
     const jobs = await prisma.job.findMany({
       where: {
         status: "OPEN",

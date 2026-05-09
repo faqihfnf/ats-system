@@ -21,9 +21,10 @@ import { JobListItem, Stage } from "@/types/types";
 type Props = {
   data: JobListItem[];
   stages: Stage[];
+  canManageJobs: boolean;
 };
 
-export function JobTable({ data, stages }: Props) {
+export function JobTable({ data, stages, canManageJobs }: Props) {
   // Helper function to count candidates per stage for a job
   function getStageCount(job: JobListItem, stageId: string): number {
     return job.applications.filter((app) => app.currentStageId === stageId)
@@ -60,12 +61,16 @@ export function JobTable({ data, stages }: Props) {
               <TableHead className="w-32 p-4 text-center text-sm font-semibold">
                 Status
               </TableHead>
-              <TableHead className="w-12 p-4 text-center text-sm font-semibold">
-                Edit
-              </TableHead>
-              <TableHead className="w-20 p-4 text-center text-sm font-semibold">
-                Hapus
-              </TableHead>
+              {canManageJobs && (
+                <TableHead className="w-12 p-4 text-center text-sm font-semibold">
+                  Edit
+                </TableHead>
+              )}
+              {canManageJobs && (
+                <TableHead className="w-20 p-4 text-center text-sm font-semibold">
+                  Hapus
+                </TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -136,24 +141,50 @@ export function JobTable({ data, stages }: Props) {
 
                 {/* Status */}
                 <TableCell className="p-4 text-center align-middle">
-                  <StatusDropdown status={job.status} jobId={job.id} />
+                  {canManageJobs ? (
+                    <StatusDropdown status={job.status} jobId={job.id} />
+                  ) : (
+                    <div className="inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-sm">
+                      <div
+                        className={cn(
+                          "size-2 rounded-full",
+                          job.status === "OPEN"
+                            ? "bg-green-600"
+                            : job.status === "CLOSED"
+                              ? "bg-red-600"
+                              : "bg-gray-400",
+                        )}
+                      />
+                      <span>
+                        {job.status === "OPEN"
+                          ? "Active"
+                          : job.status === "CLOSED"
+                            ? "Closed"
+                            : "Draft"}
+                      </span>
+                    </div>
+                  )}
                 </TableCell>
 
                 {/* Action */}
-                <TableCell className="p-4 text-center align-middle">
-                  <Link href={`/dashboard/applicant/joblist/${job.id}/edit`}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 rounded-full hover:bg-slate-100"
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                  </Link>
-                </TableCell>
-                <TableCell className="p-4 text-center align-middle">
-                  <DeleteButton id={job.id} name={job.position.nama} />
-                </TableCell>
+                {canManageJobs && (
+                  <TableCell className="p-4 text-center align-middle">
+                    <Link href={`/dashboard/applicant/joblist/${job.id}/edit`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 rounded-full hover:bg-slate-100"
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                    </Link>
+                  </TableCell>
+                )}
+                {canManageJobs && (
+                  <TableCell className="p-4 text-center align-middle">
+                    <DeleteButton id={job.id} name={job.position.nama} />
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

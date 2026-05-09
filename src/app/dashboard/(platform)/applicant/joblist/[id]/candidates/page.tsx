@@ -59,6 +59,7 @@ export default async function CandidatesPage({ params }: Props) {
           totalScore: candidate.totalScore ?? 0,
         }))}
         stages={stages}
+        canManageCandidateActions={candidatesData.canManageCandidateActions}
       />
     </div>
   );

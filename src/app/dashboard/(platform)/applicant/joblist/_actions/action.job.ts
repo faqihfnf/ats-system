@@ -1,25 +1,55 @@
 "use server";
 
+import { getSessionProfile } from "@/lib/auth/session-profile";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 const jobStatusSchema = z.enum(["DRAFT", "OPEN", "CLOSED"]);
 
-export async function createJob(data: any) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+type JobQuestionPayload = {
+  id?: string;
+  question: string;
+  type: string;
+  required: boolean;
+  options?: string[] | null;
+};
 
-    if (!user) {
+type JobPayload = {
+  positionId: string;
+  branchId: string;
+  employmentStatusId: string;
+  province: string;
+  city: string;
+  minSalary: number;
+  maxSalary: number;
+  showSalary: boolean;
+  description?: string | null;
+  requirements?: string | null;
+  minEducationId: string;
+  minExperienceId: string;
+  minAge: number;
+  maxAge: number;
+  showAge: boolean;
+  gender: string;
+  showGender: boolean;
+  religion: string;
+  showReligion: boolean;
+  questions?: JobQuestionPayload[];
+};
+
+export async function createJob(data: JobPayload) {
+  try {
+    const profile = await getSessionProfile();
+    if (!profile) {
       return { error: "Tidak terautentikasi" };
+    }
+    if (profile.role === "USER") {
+      return { error: "Anda tidak memiliki akses untuk membuat lowongan" };
     }
 
     // Create job dengan custom questions
-    const job = await prisma.job.create({
+    await prisma.job.create({
       data: {
         // Step 1
         positionId: data.positionId,
@@ -52,7 +82,7 @@ export async function createJob(data: any) {
         data.questions.length > 0
           ? {
               customQuestions: {
-                create: data.questions.map((q: any, index: number) => ({
+                create: data.questions.map((q: JobQuestionPayload, index: number) => ({
                   question: q.question,
                   type: q.type,
                   required: q.required,
@@ -69,7 +99,7 @@ export async function createJob(data: any) {
           : {}),
 
         // Meta
-        createdBy: user.id,
+        createdBy: profile.id,
         status: "DRAFT",
       },
       include: {
@@ -79,20 +109,39 @@ export async function createJob(data: any) {
 
     revalidatePath("/dashboard/applicant/joblist");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Create job error:", error);
     return {
-      error: `Terjadi kesalahan saat menyimpan lowongan: ${error.message}`,
+      error: `Terjadi kesalahan saat menyimpan lowongan: ${message}`,
     };
   }
 }
 
 export async function getJobs() {
+  const profile = await getSessionProfile();
+
   const stages = await prisma.stage.findMany({
     orderBy: { order: "asc" },
   });
 
+  if (!profile) {
+    return { jobs: [], stages, canManageJobs: false, role: null };
+  }
+
+  const isUserRole = profile.role === "USER";
+  if (isUserRole && !profile.divisiId) {
+    return { jobs: [], stages, canManageJobs: false, role: profile.role };
+  }
+
   const jobs = await prisma.job.findMany({
+    where: isUserRole
+      ? {
+          position: {
+            divisiId: profile.divisiId!,
+          },
+        }
+      : undefined,
     include: {
       position: {
         include: {
@@ -114,10 +163,18 @@ export async function getJobs() {
     orderBy: { createdAt: "desc" },
   });
 
-  return { jobs, stages };
+  return {
+    jobs,
+    stages,
+    canManageJobs: profile.role !== "USER",
+    role: profile.role,
+  };
 }
 
 export async function getAvailablePositions() {
+  const profile = await getSessionProfile();
+  if (!profile || profile.role === "USER") return [];
+
   const usedPositions = await prisma.job.findMany({
     where: {
       status: {
@@ -147,6 +204,9 @@ export async function getAvailablePositions() {
 }
 
 export async function getAllPositions() {
+  const profile = await getSessionProfile();
+  if (!profile || profile.role === "USER") return [];
+
   return await prisma.position.findMany({
     include: {
       divisi: true,
@@ -158,6 +218,12 @@ export async function getAllPositions() {
 
 export async function deleteJob(id: string) {
   try {
+    const profile = await getSessionProfile();
+    if (!profile) return { error: "Tidak terautentikasi" };
+    if (profile.role === "USER") {
+      return { error: "Anda tidak memiliki akses untuk menghapus lowongan" };
+    }
+
     await prisma.job.delete({ where: { id } });
     revalidatePath("/dashboard/applicant/joblist");
     return { success: true };
@@ -168,6 +234,12 @@ export async function deleteJob(id: string) {
 
 export async function updateJobStatus(id: string, status: string) {
   try {
+    const profile = await getSessionProfile();
+    if (!profile) return { error: "Tidak terautentikasi" };
+    if (profile.role === "USER") {
+      return { error: "Anda tidak memiliki akses untuk mengubah status" };
+    }
+
     const validStatus = jobStatusSchema.parse(status);
 
     await prisma.job.update({
@@ -182,6 +254,9 @@ export async function updateJobStatus(id: string, status: string) {
 }
 
 export async function getJobForEdit(id: string) {
+  const profile = await getSessionProfile();
+  if (!profile || profile.role === "USER") return null;
+
   const job = await prisma.job.findUnique({
     where: { id },
     include: {
@@ -228,15 +303,14 @@ export async function getJobForEdit(id: string) {
   };
 }
 
-export async function updateJob(id: string, data: any) {
+export async function updateJob(id: string, data: JobPayload) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const profile = await getSessionProfile();
+    if (!profile) {
       return { error: "Tidak terautentikasi" };
+    }
+    if (profile.role === "USER") {
+      return { error: "Anda tidak memiliki akses untuk mengubah lowongan" };
     }
 
     // Get existing job with question answer counts
@@ -265,8 +339,8 @@ export async function updateJob(id: string, data: any) {
 
       const incomingQuestionIds =
         data.questions
-          ?.filter((q: any) => q.id) // Only questions dengan ID = existing
-          .map((q: any) => q.id) || [];
+          ?.filter((q: JobQuestionPayload) => q.id) // Only questions dengan ID = existing
+          .map((q: JobQuestionPayload) => q.id) || [];
 
       // Find EXISTING questions being deleted (yang sudah ada di DB)
       const deletedExistingQuestionIds = existingQuestionIds.filter(
@@ -338,7 +412,8 @@ export async function updateJob(id: string, data: any) {
       }
 
       // Update existing questions
-      const existingToUpdate = data.questions?.filter((q: any) => q.id) || [];
+      const existingToUpdate =
+        data.questions?.filter((q: JobQuestionPayload) => q.id) || [];
       for (const q of existingToUpdate) {
         await prisma.customQuestion.update({
           where: { id: q.id },
@@ -355,7 +430,8 @@ export async function updateJob(id: string, data: any) {
       }
 
       // Create new questions (yang belum punya ID)
-      const newQuestions = data.questions?.filter((q: any) => !q.id) || [];
+      const newQuestions =
+        data.questions?.filter((q: JobQuestionPayload) => !q.id) || [];
       if (newQuestions.length > 0) {
         const maxOrder =
           existingQuestions.length > 0
@@ -363,7 +439,7 @@ export async function updateJob(id: string, data: any) {
             : 0;
 
         await prisma.customQuestion.createMany({
-          data: newQuestions.map((q: any, index: number) => ({
+          data: newQuestions.map((q: JobQuestionPayload, index: number) => ({
             jobId: id,
             question: q.question,
             type: q.type,
@@ -436,7 +512,8 @@ export async function updateJob(id: string, data: any) {
           data.questions.length > 0
             ? {
                 customQuestions: {
-                  create: data.questions.map((q: any, index: number) => ({
+                  create: data.questions.map(
+                    (q: JobQuestionPayload, index: number) => ({
                     question: q.question,
                     type: q.type,
                     required: q.required,
@@ -447,7 +524,8 @@ export async function updateJob(id: string, data: any) {
                       q.options.length > 0
                         ? JSON.stringify(q.options)
                         : null,
-                  })),
+                    }),
+                  ),
                 },
               }
             : {}),
@@ -458,10 +536,11 @@ export async function updateJob(id: string, data: any) {
     revalidatePath("/dashboard/applicant/joblist");
     revalidatePath(`/dashboard/applicant/joblist/${id}`);
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Update job error:", error);
     return {
-      error: `Terjadi kesalahan saat mengupdate lowongan: ${error.message}`,
+      error: `Terjadi kesalahan saat mengupdate lowongan: ${message}`,
     };
   }
 }

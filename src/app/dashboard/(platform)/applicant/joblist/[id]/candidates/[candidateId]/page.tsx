@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { CandidateDetailHeader } from "./_components/_sections/comp.candidate-detail-header";
 import { getStages } from "../../../../stages/_actions/action.stage";
+import { getSessionProfile } from "@/lib/auth/session-profile";
 
 type Props = {
   params: Promise<{ id: string; candidateId: string }>;
@@ -25,9 +26,10 @@ type Props = {
 export default async function CandidateDetailPage({ params }: Props) {
   const { id, candidateId } = await params;
 
-  const [candidate, stages] = await Promise.all([
+  const [candidate, stages, profile] = await Promise.all([
     getCandidateDetail(candidateId),
     getStages(),
+    getSessionProfile(),
   ]);
 
   if (!candidate || !stages) {
@@ -94,6 +96,7 @@ export default async function CandidateDetailPage({ params }: Props) {
         candidate={candidate}
         jobId={candidate.jobId} // ✅ Use candidate.jobId
         stages={stages}
+        canManageCandidateActions={profile?.role !== "USER"}
       />
     </div>
   );

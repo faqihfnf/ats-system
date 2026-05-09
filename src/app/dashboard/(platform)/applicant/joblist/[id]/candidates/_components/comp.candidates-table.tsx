@@ -15,13 +15,21 @@ type Props = {
   candidates: Candidate[];
   stages: Stage[];
   jobId: string;
+  canManageCandidateActions: boolean;
 };
 
-export function CandidatesTable({ candidates, stages, jobId }: Props) {
+export function CandidatesTable({
+  candidates,
+  stages,
+  jobId,
+  canManageCandidateActions,
+}: Props) {
   const router = useRouter();
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
 
   async function handleAnalyze(candidateId: string) {
+    if (!canManageCandidateActions) return;
+
     setAnalyzingId(candidateId);
 
     const result = await scoreAndAnalyzeCandidate(candidateId);
@@ -54,6 +62,7 @@ export function CandidatesTable({ candidates, stages, jobId }: Props) {
     ...candidate,
     jobId,
     stages,
+    canManageCandidateActions,
     onStageChange: handleStageChange,
     onAnalyze: handleAnalyze,
     analyzingId,

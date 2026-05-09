@@ -10,6 +10,45 @@ export type CVAnalysisResult = {
   matchPercentage: number;
 };
 
+/**
+ * Fungsi Helper untuk menangani Retry dengan Exponential Backoff.
+ * Berguna untuk mengatasi error 503 (Service Unavailable) atau 429 (Rate Limit).
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  initialDelay = 2000,
+): Promise<T> {
+  let lastError: any;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+
+      // Deteksi error yang layak dicoba kembali
+      const errorMessage = error.message?.toLowerCase() || "";
+      const isRetryable =
+        errorMessage.includes("503") ||
+        errorMessage.includes("429") ||
+        errorMessage.includes("service unavailable") ||
+        errorMessage.includes("too many requests");
+
+      if (isRetryable && i < maxRetries - 1) {
+        const delay = initialDelay * Math.pow(2, i); // Jeda: 2s, 4s, 8s
+        console.warn(
+          `[Gemini] Server sibuk/limit. Mencoba kembali dalam ${delay}ms... (Percobaan ${i + 1}/${maxRetries})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
+}
+
 export async function analyzeCVWithGemini(
   cvUrl: string,
   jobDescription: string,
@@ -18,120 +57,90 @@ export async function analyzeCVWithGemini(
 ): Promise<CVAnalysisResult> {
   try {
     console.log("=== GEMINI ANALYSIS START ===");
-    console.log("CV URL:", cvUrl);
-    console.log("Job Title:", jobTitle);
 
-    // Check API key
     if (!process.env.GEMINI_API_KEY) {
       throw new Error("GEMINI_API_KEY is not set in environment variables");
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    // Gunakan Konfigurasi JSON Mode agar output selalu valid JSON
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    });
 
     console.log("Fetching PDF from URL...");
-
-    // Fetch PDF as base64
     const response = await fetch(cvUrl);
-
     if (!response.ok) {
       throw new Error(
         `Failed to fetch PDF: ${response.status} ${response.statusText}`,
       );
     }
 
-    console.log("PDF fetched successfully, converting to base64...");
-
     const arrayBuffer = await response.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    console.log("PDF size:", arrayBuffer.byteLength, "bytes");
-    console.log("Base64 length:", base64.length);
-
     const prompt = `
-Kamu adalah seorang rekruter profesional yang ahli dalam analisis CV dan screening kandidat.
-
-TUGAS:
-Analisis CV kandidat berikut dan bandingkan dengan lowongan pekerjaan yang tersedia.
+Kamu adalah seorang rekruter profesional. Analisis CV kandidat ini terhadap posisi pekerjaan berikut.
 
 DATA LOWONGAN:
 Posisi: ${jobTitle}
-Deskripsi Pekerjaan: ${jobDescription || "Tidak tersedia"}
-Kualifikasi yang Dibutuhkan: ${jobQualifications || "Tidak tersedia"}
+Deskripsi: ${jobDescription || "N/A"}
+Kualifikasi: ${jobQualifications || "N/A"}
 
-INSTRUKSI ANALISIS:
-1. Baca CV dengan teliti (termasuk layout, format, dan isi)
-2. Identifikasi KELEBIHAN kandidat (maksimal 5 poin, fokus pada kesesuaian dengan posisi)
-3. Identifikasi KEKURANGAN kandidat (maksimal 5 poin, fokus pada gap antara CV dan requirement)
-4. Berikan KESIMPULAN singkat (2-3 kalimat)
-5. Berikan PERSENTASE KESESUAIAN (0-100%) berdasarkan:
-   - Kesesuaian pengalaman kerja dengan posisi (40%)
-   - Kesesuaian pendidikan (20%)
-   - Kesesuaian skill/kompetensi (30%)
-   - Kesesuaian lainnya (10%)
+TUGAS:
+1. Identifikasi KELEBIHAN (maks 5 poin).
+2. Identifikasi KEKURANGAN (maks 5 poin).
+3. Berikan KESIMPULAN (2-3 kalimat).
+4. Hitung PERSENTASE KESESUAIAN (0-100).
+5. Tentukan REKOMENDASI (RECOMMENDED jika >80, SUGGESTED jika 50-80, NOT_RECOMMENDED jika <50).
 
-KRITERIA REKOMENDASI:
-- RECOMMENDED: Kesesuaian > 80% (kandidat sangat cocok)
-- SUGGESTED: Kesesuaian 50-80% (kandidat cukup cocok, perlu pertimbangan lebih lanjut)
-- NOT_RECOMMENDED: Kesesuaian < 50% (kandidat kurang cocok)
-
-FORMAT OUTPUT (WAJIB JSON):
+FORMAT OUTPUT (JSON):
 {
-  "strengths": "• Poin 1\\n• Poin 2\\n• Poin 3",
-  "weaknesses": "• Poin 1\\n• Poin 2\\n• Poin 3",
-  "conclusion": "Kesimpulan singkat dalam 2-3 kalimat",
-  "matchPercentage": 75,
-  "recommendation": "SUGGESTED"
+  "strengths": "string (gunakan bullet points dengan \\n)",
+  "weaknesses": "string (gunakan bullet points dengan \\n)",
+  "conclusion": "string",
+  "matchPercentage": number,
+  "recommendation": "RECOMMENDED" | "SUGGESTED" | "NOT_RECOMMENDED"
 }
-
-PENTING:
-- Output harus PURE JSON tanpa markdown backticks
-- Gunakan bahasa Indonesia yang profesional
-- Fokus pada fakta dari CV, bukan asumsi
-- Berikan analisis yang objektif dan konstruktif
 `;
 
-    console.log("Sending request to Gemini API...");
+    console.log("Sending request to Gemini API with Retry Logic...");
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: "application/pdf",
-          data: base64,
+    // Membungkus panggilan API dengan Retry Logic
+    const result = await retryWithBackoff(async () => {
+      return await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            mimeType: "application/pdf",
+            data: base64,
+          },
         },
-      },
-    ]);
-
-    console.log("Gemini API response received");
+      ]);
+    });
 
     const geminiResponse = await result.response;
     const text = geminiResponse.text();
 
-    console.log("Raw Gemini response:", text);
+    console.log("Raw Gemini response received");
 
-    // Clean response
-    const cleanedText = text.replace(/```json\n?|\n?```/g, "").trim();
-
-    console.log("Cleaned response:", cleanedText);
-
-    // Parse JSON
+    // Karena menggunakan responseMimeType: "application/json",
+    // kita tidak perlu lagi regex cleaning (```json ... ```)
     let analysis;
     try {
-      analysis = JSON.parse(cleanedText);
+      analysis = JSON.parse(text);
     } catch (parseError) {
-      console.error("JSON parse error:", parseError);
-      console.error("Failed to parse:", cleanedText);
-      throw new Error("Failed to parse AI response as JSON");
+      console.error("JSON parse error. Raw text:", text);
+      throw new Error("AI returned invalid JSON format");
     }
 
-    console.log("Parsed analysis:", analysis);
-
-    // Validate and return
-    const result_data = {
+    const result_data: CVAnalysisResult = {
       strengths: analysis.strengths || "Tidak ada data",
       weaknesses: analysis.weaknesses || "Tidak ada data",
       conclusion: analysis.conclusion || "Tidak ada kesimpulan",
-      recommendation: analysis.recommendation || "SUGGESTED",
+      recommendation: analysis.recommendation || "NOT_RECOMMENDED",
       matchPercentage: Math.min(
         100,
         Math.max(0, analysis.matchPercentage || 0),
@@ -139,25 +148,15 @@ PENTING:
     };
 
     console.log("=== GEMINI ANALYSIS SUCCESS ===");
-    console.log("Final result:", result_data);
-
     return result_data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("=== GEMINI ANALYSIS ERROR ===");
-    console.error(
-      "Error type:",
-      error instanceof Error ? error.constructor.name : typeof error,
-    );
-    console.error(
-      "Error message:",
-      error instanceof Error ? error.message : error,
-    );
-    console.error("Full error:", error);
+    console.error("Message:", error.message);
 
     throw new Error(
-      error instanceof Error
-        ? `Gemini API failed: ${error.message}`
-        : "Failed to analyze CV with AI",
+      error.message.includes("503")
+        ? "Server Gemini sedang sangat sibuk. Silakan coba beberapa saat lagi."
+        : `CV Analysis failed: ${error.message}`,
     );
   }
 }

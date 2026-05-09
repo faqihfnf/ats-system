@@ -12,9 +12,15 @@ type Props = {
   job: Job;
   candidates: Candidate[];
   stages: Stage[];
+  canManageCandidateActions: boolean;
 };
 
-export function CandidatesView({ job, candidates, stages }: Props) {
+export function CandidatesView({
+  job,
+  candidates,
+  stages,
+  canManageCandidateActions,
+}: Props) {
   const [selectedStageId, setSelectedStageId] = useState<string | null>(null); // ← Add selected stage
   const [filters, setFilters] = useState<CandidateFilters>({
     search: "",
@@ -169,6 +175,7 @@ export function CandidatesView({ job, candidates, stages }: Props) {
               candidates={filteredCandidates}
               stages={stages}
               jobId={job.id}
+              canManageCandidateActions={canManageCandidateActions}
             />
           </Card>
         </div>

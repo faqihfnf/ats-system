@@ -17,12 +17,12 @@ export default async function Home({ searchParams }: Props) {
   return (
     <main suppressHydrationWarning>
       <Navbar />
-      <HeroSection />
-      <CoreValuesSection />
-      <WhyJoinSection />
-      <TestimonialsSection />
+      {/* <HeroSection /> */}
+      {/* <CoreValuesSection /> */}
+      {/* <WhyJoinSection /> */}
+      {/* <TestimonialsSection /> */}
       <JobListingsSection searchParams={resolvedParams} />
-      <CtaSection />
+      {/* <CtaSection /> */}
       <Footer />
     </main>
   );

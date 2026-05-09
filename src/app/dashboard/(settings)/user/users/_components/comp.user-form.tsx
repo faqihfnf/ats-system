@@ -4,21 +4,42 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2, Pencil, Plus } from "lucide-react";
 import { createUser, updateUser } from "../_actions/action.user";
 import { toast } from "sonner";
 
 type Props = {
-  user?: { id: string; nama: string; role: "ADMIN" | "RECRUITER" };
+  divisions: { id: string; nama: string }[];
+  user?: {
+    id: string;
+    nama: string;
+    role: "ADMIN" | "RECRUITER" | "USER";
+    divisiId: string | null;
+  };
 };
 
-export function UserForm({ user }: Props) {
+export function UserForm({ user, divisions }: Props) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState(user?.role ?? "");
+  const [selectedDivisiId, setSelectedDivisiId] = useState(
+    user?.divisiId ?? "",
+  );
   const isEdit = !!user;
 
   async function handleSubmit(formData: FormData) {
@@ -26,6 +47,7 @@ export function UserForm({ user }: Props) {
     setError(null);
 
     formData.set("role", selectedRole);
+    formData.set("divisiId", selectedRole === "USER" ? selectedDivisiId : "");
 
     const result = isEdit
       ? await updateUser(user.id, formData)
@@ -38,24 +60,29 @@ export function UserForm({ user }: Props) {
       setOpen(false);
       setLoading(false);
       setSelectedRole("");
+      setSelectedDivisiId("");
       setTimeout(() => {
         toast.success(
           isEdit ? "User berhasil diubah" : "User berhasil ditambahkan",
-          { position: "top-right" }
+          { position: "top-right" },
         );
       }, 150);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={(val) => {
-      if (loading) return;
-      setOpen(val);
-      if (!val) {
-        setError(null);
-        setSelectedRole(user?.role ?? "");
-      }
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(val) => {
+        if (loading) return;
+        setOpen(val);
+        if (!val) {
+          setError(null);
+          setSelectedRole(user?.role ?? "");
+          setSelectedDivisiId(user?.divisiId ?? "");
+        }
+      }}
+    >
       <DialogTrigger asChild suppressHydrationWarning>
         {isEdit ? (
           <Button variant="ghost" size="icon" suppressHydrationWarning>
@@ -63,7 +90,7 @@ export function UserForm({ user }: Props) {
           </Button>
         ) : (
           <Button suppressHydrationWarning>
-            <Plus className="size-4 mr-2" />
+            <Plus className="mr-2 size-4" />
             Tambah User
           </Button>
         )}
@@ -82,48 +109,125 @@ export function UserForm({ user }: Props) {
         >
           <div className="space-y-2">
             <Label htmlFor="nama">Nama</Label>
-            <Input id="nama" name="nama" defaultValue={user?.nama} placeholder="Nama lengkap" required disabled={loading} />
+            <Input
+              id="nama"
+              name="nama"
+              defaultValue={user?.nama}
+              placeholder="Nama lengkap"
+              required
+              disabled={loading}
+            />
           </div>
 
           {!isEdit && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" placeholder="nama@email.com" required disabled={loading} />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="nama@email.com"
+                  required
+                  disabled={loading}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" placeholder="Min. 8 karakter" required disabled={loading} />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Min. 8 karakter"
+                  required
+                  disabled={loading}
+                />
               </div>
             </>
           )}
 
           <div className="space-y-2">
             <Label>Role</Label>
-            <Select value={selectedRole} onValueChange={setSelectedRole} disabled={loading}>
+            <Select
+              value={selectedRole}
+              onValueChange={setSelectedRole}
+              disabled={loading}
+            >
               <SelectTrigger className="cursor-pointer">
-                <SelectValue  placeholder="Pilih role..." />
+                <SelectValue placeholder="Pilih role..." />
               </SelectTrigger>
-              <SelectContent >
-                <SelectItem className="cursor-pointer" value="ADMIN">Admin</SelectItem>
-                <SelectItem className="cursor-pointer" value="RECRUITER">Recruiter</SelectItem>
+              <SelectContent>
+                <SelectItem className="cursor-pointer" value="ADMIN">
+                  Admin
+                </SelectItem>
+                <SelectItem className="cursor-pointer" value="RECRUITER">
+                  Recruiter
+                </SelectItem>
+                <SelectItem className="cursor-pointer" value="USER">
+                  User
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {selectedRole === "USER" && (
+            <div className="space-y-2">
+              <Label>Divisi</Label>
+              <Select
+                value={selectedDivisiId}
+                onValueChange={setSelectedDivisiId}
+                disabled={loading || divisions.length === 0}
+              >
+                <SelectTrigger className="cursor-pointer">
+                  <SelectValue placeholder="Pilih divisi..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {divisions.map((divisi) => (
+                    <SelectItem
+                      key={divisi.id}
+                      className="cursor-pointer"
+                      value={divisi.id}
+                    >
+                      {divisi.nama}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {divisions.length === 0 && (
+                <p className="text-muted-foreground text-xs">
+                  Belum ada data divisi.
+                </p>
+              )}
+            </div>
+          )}
+
+          {error && <p className="text-destructive text-sm">{error}</p>}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={loading}
+            >
               Batal
             </Button>
-            <Button type="submit" disabled={loading || !selectedRole}>
+            <Button
+              type="submit"
+              disabled={
+                loading ||
+                !selectedRole ||
+                (selectedRole === "USER" && !selectedDivisiId)
+              }
+            >
               {loading ? (
                 <>
-                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   Menyimpan...
                 </>
-              ) : "Simpan"}
+              ) : (
+                "Simpan"
+              )}
             </Button>
           </div>
         </form>

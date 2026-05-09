@@ -3,7 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Sparkles, MoreHorizontal } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
@@ -29,6 +28,7 @@ import { CandidateActions } from "./comp.candidate-actions";
 export type CandidateColumn = Candidate & {
   jobId: string;
   stages: Stage[];
+  canManageCandidateActions: boolean;
   onStageChange: (candidateId: string, stageId: string) => Promise<void>;
   onAnalyze: (candidateId: string) => Promise<void>;
   analyzingId: string | null;
@@ -140,19 +140,25 @@ export const columns: ColumnDef<CandidateColumn>[] = [
               </div>
             </>
           ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => candidate.onAnalyze(candidate.id)}
-              disabled={isAnalyzing}
-              className="hover:text-primary hover:bg-transparent"
-            >
-              {isAnalyzing ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+            <>
+              {candidate.canManageCandidateActions ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => candidate.onAnalyze(candidate.id)}
+                  disabled={isAnalyzing}
+                  className="hover:text-primary hover:bg-transparent"
+                >
+                  {isAnalyzing ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3 w-3" />
+                  )}
+                </Button>
               ) : (
-                <Sparkles className="h-3 w-3" />
+                <span className="text-muted-foreground text-xs">-</span>
               )}
-            </Button>
+            </>
           )}
         </div>
       );
@@ -359,6 +365,10 @@ export const columns: ColumnDef<CandidateColumn>[] = [
     },
     cell: ({ row }) => {
       const candidate = row.original;
+      if (!candidate.canManageCandidateActions) {
+        return <span className="text-muted-foreground text-xs">-</span>;
+      }
+
       return (
         <CandidateActions
           candidateId={candidate.id}

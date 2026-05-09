@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/breadcrumb";
 
 export default async function JobListPage() {
-  const { jobs, stages } = await getJobs();
+  const { jobs, stages, canManageJobs } = await getJobs();
 
   if (!jobs || !stages) {
     return <div>Error loading data</div>;
@@ -44,15 +44,17 @@ export default async function JobListPage() {
             Kelola lowongan pekerjaan
           </p>
         </div>
-        <Link href="/dashboard/applicant/joblist/create">
-          <Button>
-            <Plus className="mr-2 size-4" />
-            Buat Lowongan
-          </Button>
-        </Link>
+        {canManageJobs && (
+          <Link href="/dashboard/applicant/joblist/create">
+            <Button>
+              <Plus className="mr-2 size-4" />
+              Buat Lowongan
+            </Button>
+          </Link>
+        )}
       </div>
 
-      <JobTable data={jobs} stages={stages} />
+      <JobTable data={jobs} stages={stages} canManageJobs={canManageJobs} />
     </div>
   );
 }

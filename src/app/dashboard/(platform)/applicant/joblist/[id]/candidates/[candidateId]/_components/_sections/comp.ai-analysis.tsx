@@ -31,6 +31,7 @@ type Props = {
   aiRecommendation: string | null;
   aiMatchPercentage: number | null;
   analyzedAt: Date | null;
+  canAnalyze: boolean;
 };
 
 export function AIAnalysis({
@@ -41,6 +42,7 @@ export function AIAnalysis({
   aiRecommendation,
   aiMatchPercentage,
   analyzedAt,
+  canAnalyze,
 }: Props) {
   const router = useRouter();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -48,6 +50,8 @@ export function AIAnalysis({
   const hasAnalysis = aiStrengths !== null && aiWeaknesses !== null;
 
   async function handleAnalyze() {
+    if (!canAnalyze) return;
+
     setIsAnalyzing(true);
 
     try {
@@ -87,19 +91,25 @@ export function AIAnalysis({
             Klik tombol di bawah untuk menganalisis CV kandidat dengan AI dan
             mendapatkan rekomendasi
           </p>
-          <Button onClick={handleAnalyze} disabled={isAnalyzing} size="lg">
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing CV...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Analyze with AI
-              </>
-            )}
-          </Button>
+          {canAnalyze ? (
+            <Button onClick={handleAnalyze} disabled={isAnalyzing} size="lg">
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing CV...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Analyze with AI
+                </>
+              )}
+            </Button>
+          ) : (
+            <p className="text-muted-foreground text-center text-sm">
+              Role User tidak memiliki akses analisis AI.
+            </p>
+          )}
         </CardContent>
       </Card>
     );
@@ -112,21 +122,23 @@ export function AIAnalysis({
           <Sparkles className="h-5 w-5" />
           AI Analysis
         </CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleAnalyze}
-          disabled={isAnalyzing}
-        >
-          {isAnalyzing ? (
-            <>
-              <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-              Re-analyzing...
-            </>
-          ) : (
-            "Re-analyze"
-          )}
-        </Button>
+        {canAnalyze && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAnalyze}
+            disabled={isAnalyzing}
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                Re-analyzing...
+              </>
+            ) : (
+              "Re-analyze"
+            )}
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Disclaimer */}
