@@ -7,10 +7,20 @@ import { z } from "zod";
 
 const jobStatusSchema = z.enum(["DRAFT", "OPEN", "CLOSED"]);
 
+type QuestionType =
+  | "SHORT_TEXT"
+  | "LONG_TEXT"
+  | "NUMBER"
+  | "DATE"
+  | "MULTIPLE_CHOICE"
+  | "CHECKBOX"
+  | "DROPDOWN"
+  | "YES_NO";
+
 type JobQuestionPayload = {
   id?: string;
   question: string;
-  type: string;
+  type: QuestionType;
   required: boolean;
   options?: string[] | null;
 };
@@ -31,9 +41,9 @@ type JobPayload = {
   minAge: number;
   maxAge: number;
   showAge: boolean;
-  gender: string;
+  gender: "MALE" | "FEMALE" | "ANY";
   showGender: boolean;
-  religion: string;
+  religion: "ISLAM" | "KRISTEN" | "KATOLIK" | "HINDU" | "BUDDHA" | "KONGHUCU" | "ANY";
   showReligion: boolean;
   questions?: JobQuestionPayload[];
 };
@@ -82,18 +92,20 @@ export async function createJob(data: JobPayload) {
         data.questions.length > 0
           ? {
               customQuestions: {
-                create: data.questions.map((q: JobQuestionPayload, index: number) => ({
-                  question: q.question,
-                  type: q.type,
-                  required: q.required,
-                  order: index + 1,
-                  options:
-                    q.options &&
-                    Array.isArray(q.options) &&
-                    q.options.length > 0
-                      ? JSON.stringify(q.options)
-                      : null,
-                })),
+                create: data.questions.map(
+                  (q: JobQuestionPayload, index: number) => ({
+                    question: q.question,
+                    type: q.type,
+                    required: q.required,
+                    order: index + 1,
+                    options:
+                      q.options &&
+                      Array.isArray(q.options) &&
+                      q.options.length > 0
+                        ? JSON.stringify(q.options)
+                        : null,
+                  }),
+                ),
               },
             }
           : {}),
@@ -472,7 +484,7 @@ export async function updateJob(id: string, data: JobPayload) {
           minAge: data.minAge,
           maxAge: data.maxAge,
           showAge: data.showAge,
-          gender: data.gender,
+          gender: data.gender as "MALE" | "FEMALE" | "ANY",
           showGender: data.showGender,
           religion: data.religion,
           showReligion: data.showReligion,
@@ -502,7 +514,7 @@ export async function updateJob(id: string, data: JobPayload) {
           minAge: data.minAge,
           maxAge: data.maxAge,
           showAge: data.showAge,
-          gender: data.gender,
+          gender: data.gender as "MALE" | "FEMALE" | "ANY",
           showGender: data.showGender,
           religion: data.religion,
           showReligion: data.showReligion,
@@ -514,16 +526,16 @@ export async function updateJob(id: string, data: JobPayload) {
                 customQuestions: {
                   create: data.questions.map(
                     (q: JobQuestionPayload, index: number) => ({
-                    question: q.question,
-                    type: q.type,
-                    required: q.required,
-                    order: index + 1,
-                    options:
-                      q.options &&
-                      Array.isArray(q.options) &&
-                      q.options.length > 0
-                        ? JSON.stringify(q.options)
-                        : null,
+                      question: q.question,
+                      type: q.type,
+                      required: q.required,
+                      order: index + 1,
+                      options:
+                        q.options &&
+                        Array.isArray(q.options) &&
+                        q.options.length > 0
+                          ? JSON.stringify(q.options)
+                          : null,
                     }),
                   ),
                 },

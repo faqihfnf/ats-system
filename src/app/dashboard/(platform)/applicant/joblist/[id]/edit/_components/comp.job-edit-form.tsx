@@ -123,7 +123,7 @@ export function JobEditForm({
 
     console.log("Final data being sent:", completeData.questions); // ← Debug
 
-    const result = await updateJob(job.id, completeData);
+    const result = await updateJob(job.id, completeData as Parameters<typeof updateJob>[1]);
 
     if (result?.error) {
       toast.error(result.error, { position: "top-right" });
