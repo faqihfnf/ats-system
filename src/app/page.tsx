@@ -7,13 +7,7 @@ import { CtaSection } from "../components/landing-page/call-to-action";
 import JobListingsSection from "@/components/landing-page/job-listing";
 import Footer from "@/components/landing-page/footer";
 
-type Props = {
-  searchParams: Promise<{ divisi?: string }>;
-};
-
-export default async function Home({ searchParams }: Props) {
-  // Tunggu searchParams dari URL
-  const resolvedParams = await searchParams;
+export default function Home() {
   return (
     <main suppressHydrationWarning>
       {/* <Navbar /> */}
@@ -21,7 +15,7 @@ export default async function Home({ searchParams }: Props) {
       {/* <CoreValuesSection /> */}
       {/* <WhyJoinSection /> */}
       {/* <TestimonialsSection /> */}
-      <JobListingsSection searchParams={resolvedParams} />
+      <JobListingsSection />
       {/* <CtaSection /> */}
       <Footer />
     </main>
