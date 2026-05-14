@@ -142,7 +142,7 @@ export async function getJobs() {
   }
 
   const isUserRole = profile.role === "USER";
-  if (isUserRole && !profile.divisiId) {
+  if (isUserRole && profile.divisiIds.length === 0) {
     return { jobs: [], stages, canManageJobs: false, role: profile.role };
   }
 
@@ -150,7 +150,7 @@ export async function getJobs() {
     where: isUserRole
       ? {
           position: {
-            divisiId: profile.divisiId!,
+            divisiId: { in: profile.divisiIds },
           },
         }
       : undefined,

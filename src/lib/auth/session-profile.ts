@@ -6,7 +6,7 @@ export type SessionProfile = {
   nama: string;
   email: string;
   role: "ADMIN" | "RECRUITER" | "USER";
-  divisiId: string | null;
+  divisiIds: string[];
 };
 
 export async function getSessionProfile(): Promise<SessionProfile | null> {
@@ -26,7 +26,11 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
       nama: true,
       email: true,
       role: true,
-      divisiId: true,
+      divisions: {
+        select: {
+          divisiId: true,
+        },
+      },
     },
   });
 
@@ -34,7 +38,13 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     return null;
   }
 
-  return profile as SessionProfile;
+  return {
+    id: profile.id,
+    nama: profile.nama,
+    email: profile.email,
+    role: profile.role,
+    divisiIds: profile.divisions.map((d) => d.divisiId),
+  };
 }
 
 export function canAccessDivision(
@@ -43,5 +53,6 @@ export function canAccessDivision(
 ) {
   if (!profile) return false;
   if (profile.role !== "USER") return true;
-  return !!profile.divisiId && !!divisiId && profile.divisiId === divisiId;
+  if (!divisiId) return false;
+  return profile.divisiIds.includes(divisiId);
 }

@@ -8,12 +8,12 @@ datasource db {
 }
 
 model Divisi {
-  id        String     @id @default(cuid())
-  nama      String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id        String          @id @default(cuid())
+  nama      String          @unique
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
   positions Position[]
-  profiles  Profile[]
+  profileDivisi ProfileDivisi[]
 
   @@map("divisi")
 }
@@ -47,13 +47,23 @@ model Profile {
   nama      String
   email     String   @unique
   role      Role     @default(RECRUITER)
-  divisiId  String?
-  divisi    Divisi?  @relation(fields: [divisiId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   jobs      Job[]
+  divisions ProfileDivisi[]
 
   @@map("profiles")
+}
+
+model ProfileDivisi {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  divisiId  String
+  divisi    Divisi  @relation(fields: [divisiId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, divisiId])
+  @@map("profile_divisi")
 }
 
 enum Role {

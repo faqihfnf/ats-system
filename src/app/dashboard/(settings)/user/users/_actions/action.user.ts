@@ -9,10 +9,15 @@ import { revalidatePath } from "next/cache";
 export async function getUsers() {
   return await prisma.profile.findMany({
     include: {
-      divisi: {
+      divisions: {
         select: {
-          id: true,
-          nama: true,
+          divisiId: true,
+          divisi: {
+            select: {
+              id: true,
+              nama: true,
+            },
+          },
         },
       },
     },
@@ -27,7 +32,7 @@ export async function createUser(formData: FormData) {
     email: formData.get("email"),
     password: formData.get("password"),
     role: formData.get("role"),
-    divisiId: formData.get("divisiId"),
+    divisiIds: formData.get("divisiIds"),
   });
 
   if (!parsed.success) {
@@ -36,14 +41,12 @@ export async function createUser(formData: FormData) {
 
   const supabase = createAdminClient();
 
-  if (parsed.data.role === "USER") {
-    const divisi = await prisma.divisi.findUnique({
-      where: { id: parsed.data.divisiId },
-      select: { id: true },
+  if (parsed.data.role === "USER" && parsed.data.divisiIds.length > 0) {
+    const count = await prisma.divisi.count({
+      where: { id: { in: parsed.data.divisiIds } },
     });
-
-    if (!divisi) {
-      return { error: "Divisi tidak ditemukan" };
+    if (count !== parsed.data.divisiIds.length) {
+      return { error: "Salah satu divisi tidak ditemukan" };
     }
   }
 
@@ -68,7 +71,15 @@ export async function createUser(formData: FormData) {
       nama: parsed.data.nama,
       role: parsed.data.role,
       email: parsed.data.email,
-      divisiId: parsed.data.role === "USER" ? parsed.data.divisiId : null,
+      ...(parsed.data.role === "USER" && parsed.data.divisiIds.length > 0
+        ? {
+            divisions: {
+              create: parsed.data.divisiIds.map((divisiId: string) => ({
+                divisiId,
+              })),
+            },
+          }
+        : {}),
     },
   });
 
@@ -81,32 +92,43 @@ export async function updateUser(id: string, formData: FormData) {
   const parsed = updateUserSchema.safeParse({
     nama: formData.get("nama"),
     role: formData.get("role"),
-    divisiId: formData.get("divisiId"),
+    divisiIds: formData.get("divisiIds"),
   });
 
   if (!parsed.success) {
     return { error: parsed.error.message };
   }
 
-  if (parsed.data.role === "USER") {
-    const divisi = await prisma.divisi.findUnique({
-      where: { id: parsed.data.divisiId },
-      select: { id: true },
+  if (parsed.data.role === "USER" && parsed.data.divisiIds.length > 0) {
+    const count = await prisma.divisi.count({
+      where: { id: { in: parsed.data.divisiIds } },
     });
-
-    if (!divisi) {
-      return { error: "Divisi tidak ditemukan" };
+    if (count !== parsed.data.divisiIds.length) {
+      return { error: "Salah satu divisi tidak ditemukan" };
     }
   }
 
-  await prisma.profile.update({
-    where: { id },
-    data: {
-      nama: parsed.data.nama,
-      role: parsed.data.role,
-      divisiId: parsed.data.role === "USER" ? parsed.data.divisiId : null,
-    },
-  });
+  const divisiIds =
+    parsed.data.role === "USER" ? parsed.data.divisiIds : [];
+
+  // Delete existing divisions then recreate
+  await prisma.$transaction([
+    prisma.profileDivisi.deleteMany({ where: { profileId: id } }),
+    prisma.profile.update({
+      where: { id },
+      data: {
+        nama: parsed.data.nama,
+        role: parsed.data.role,
+        ...(divisiIds.length > 0
+          ? {
+              divisions: {
+                create: divisiIds.map((divisiId: string) => ({ divisiId })),
+              },
+            }
+          : {}),
+      },
+    }),
+  ]);
 
   revalidatePath("/dashboard/user/users");
   return { success: true };

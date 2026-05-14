@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,7 @@ type Props = {
     id: string;
     nama: string;
     role: "ADMIN" | "RECRUITER" | "USER";
-    divisiId: string | null;
+    divisiIds: string[];
   };
 };
 
@@ -37,17 +38,28 @@ export function UserForm({ user, divisions }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState(user?.role ?? "");
-  const [selectedDivisiId, setSelectedDivisiId] = useState(
-    user?.divisiId ?? "",
+  const [selectedDivisiIds, setSelectedDivisiIds] = useState<string[]>(
+    user?.divisiIds ?? [],
   );
   const isEdit = !!user;
+
+  function toggleDivisi(divisiId: string) {
+    setSelectedDivisiIds((prev) =>
+      prev.includes(divisiId)
+        ? prev.filter((id) => id !== divisiId)
+        : [...prev, divisiId],
+    );
+  }
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError(null);
 
     formData.set("role", selectedRole);
-    formData.set("divisiId", selectedRole === "USER" ? selectedDivisiId : "");
+    formData.set(
+      "divisiIds",
+      selectedRole === "USER" ? JSON.stringify(selectedDivisiIds) : "[]",
+    );
 
     const result = isEdit
       ? await updateUser(user.id, formData)
@@ -60,7 +72,7 @@ export function UserForm({ user, divisions }: Props) {
       setOpen(false);
       setLoading(false);
       setSelectedRole("");
-      setSelectedDivisiId("");
+      setSelectedDivisiIds([]);
       setTimeout(() => {
         toast.success(
           isEdit ? "User berhasil diubah" : "User berhasil ditambahkan",
@@ -79,7 +91,7 @@ export function UserForm({ user, divisions }: Props) {
         if (!val) {
           setError(null);
           setSelectedRole(user?.role ?? "");
-          setSelectedDivisiId(user?.divisiId ?? "");
+          setSelectedDivisiIds(user?.divisiIds ?? []);
         }
       }}
     >
@@ -173,30 +185,25 @@ export function UserForm({ user, divisions }: Props) {
           {selectedRole === "USER" && (
             <div className="space-y-2">
               <Label>Divisi</Label>
-              <Select
-                value={selectedDivisiId}
-                onValueChange={setSelectedDivisiId}
-                disabled={loading || divisions.length === 0}
-              >
-                <SelectTrigger className="cursor-pointer">
-                  <SelectValue placeholder="Pilih divisi..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {divisions.map((divisi) => (
-                    <SelectItem
-                      key={divisi.id}
-                      className="cursor-pointer"
-                      value={divisi.id}
-                    >
-                      {divisi.nama}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {divisions.length === 0 && (
+              {divisions.length === 0 ? (
                 <p className="text-muted-foreground text-xs">
                   Belum ada data divisi.
                 </p>
+              ) : (
+                <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
+                  {divisions.map((divisi) => (
+                    <label
+                      key={divisi.id}
+                      className="flex cursor-pointer items-center gap-2 text-sm"
+                    >
+                      <Checkbox
+                        checked={selectedDivisiIds.includes(divisi.id)}
+                        onCheckedChange={() => toggleDivisi(divisi.id)}
+                      />
+                      {divisi.nama}
+                    </label>
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -217,7 +224,7 @@ export function UserForm({ user, divisions }: Props) {
               disabled={
                 loading ||
                 !selectedRole ||
-                (selectedRole === "USER" && !selectedDivisiId)
+                (selectedRole === "USER" && selectedDivisiIds.length === 0)
               }
             >
               {loading ? (

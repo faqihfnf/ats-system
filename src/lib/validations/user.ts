@@ -2,11 +2,17 @@ import { z } from "zod";
 
 const roleSchema = z.enum(["ADMIN", "RECRUITER", "USER"]);
 
-const divisiIdSchema = z.preprocess((value) => {
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-}, z.string().optional());
+const divisiIdsSchema = z.preprocess((value) => {
+  if (Array.isArray(value)) return value.filter((v) => typeof v === "string" && v.trim().length > 0);
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.filter((v: string) => v.trim().length > 0);
+    } catch {}
+    return value.trim().length > 0 ? [value] : [];
+  }
+  return [];
+}, z.array(z.string()).min(0));
 
 export const createUserSchema = z
   .object({
@@ -24,14 +30,14 @@ export const createUserSchema = z
     role: roleSchema.refine((val) => val !== undefined, {
       message: "Role harus dipilih",
     }),
-    divisiId: divisiIdSchema,
+    divisiIds: divisiIdsSchema,
   })
   .superRefine((data, ctx) => {
-    if (data.role === "USER" && !data.divisiId) {
+    if (data.role === "USER" && data.divisiIds.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Divisi wajib dipilih untuk role User",
-        path: ["divisiId"],
+        message: "Minimal 1 divisi wajib dipilih untuk role User",
+        path: ["divisiIds"],
       });
     }
   });
@@ -47,14 +53,14 @@ export const updateUserSchema = z
     role: roleSchema.refine((val) => val !== undefined, {
       message: "Role harus dipilih",
     }),
-    divisiId: divisiIdSchema,
+    divisiIds: divisiIdsSchema,
   })
   .superRefine((data, ctx) => {
-    if (data.role === "USER" && !data.divisiId) {
+    if (data.role === "USER" && data.divisiIds.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Divisi wajib dipilih untuk role User",
-        path: ["divisiId"],
+        message: "Minimal 1 divisi wajib dipilih untuk role User",
+        path: ["divisiIds"],
       });
     }
   });

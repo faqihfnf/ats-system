@@ -15,7 +15,7 @@ export async function getDashboardStats() {
     }
 
     const isUserRole = profile.role === "USER";
-    if (isUserRole && !profile.divisiId) {
+    if (isUserRole && profile.divisiIds.length === 0) {
       return {
         totalJobs: 0,
         newCandidates: 0,
@@ -23,17 +23,15 @@ export async function getDashboardStats() {
       };
     }
 
+    const userFilter = isUserRole
+      ? { position: { divisiId: { in: profile.divisiIds } } }
+      : {};
+
     // 1. Total Active Jobs
     const totalJobs = await prisma.job.count({
       where: {
         status: "OPEN",
-        ...(isUserRole
-          ? {
-              position: {
-                divisiId: profile.divisiId!,
-              },
-            }
-          : {}),
+        ...(isUserRole ? userFilter : {}),
       },
     });
 
@@ -48,24 +46,18 @@ export async function getDashboardStats() {
           gte: startOfMonth,
         },
         ...(isUserRole
-          ? {
-              job: {
-                position: {
-                  divisiId: profile.divisiId!,
-                },
-              },
-            }
+          ? { job: { position: { divisiId: { in: profile.divisiIds } } } }
           : {}),
       },
     });
 
-    // 3. Total Candidates (all time) - UPDATED
+    // 3. Total Candidates (all time)
     const totalCandidates = await prisma.application.count({
       where: isUserRole
         ? {
             job: {
               position: {
-                divisiId: profile.divisiId!,
+                divisiId: { in: profile.divisiIds },
               },
             },
           }
@@ -93,7 +85,7 @@ export async function getCandidatesByStage() {
     if (!profile) return [];
 
     const isUserRole = profile.role === "USER";
-    if (isUserRole && !profile.divisiId) return [];
+    if (isUserRole && profile.divisiIds.length === 0) return [];
 
     const stages = await prisma.stage.findMany({
       orderBy: { order: "asc" },
@@ -103,7 +95,7 @@ export async function getCandidatesByStage() {
             ? {
                 job: {
                   position: {
-                    divisiId: profile.divisiId!,
+                    divisiId: { in: profile.divisiIds },
                   },
                 },
               }
@@ -130,7 +122,7 @@ export async function getLatestApplications() {
     if (!profile) return [];
 
     const isUserRole = profile.role === "USER";
-    if (isUserRole && !profile.divisiId) return [];
+    if (isUserRole && profile.divisiIds.length === 0) return [];
 
     const applications = await prisma.application.findMany({
       take: 10,
@@ -139,7 +131,7 @@ export async function getLatestApplications() {
         ? {
             job: {
               position: {
-                divisiId: profile.divisiId!,
+                divisiId: { in: profile.divisiIds },
               },
             },
           }

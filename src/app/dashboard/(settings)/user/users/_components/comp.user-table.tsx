@@ -10,7 +10,7 @@ type User = {
   nama: string;
   role: "ADMIN" | "RECRUITER" | "USER";
   email: string;
-  divisi: { id: string; nama: string } | null;
+  divisions: { divisiId: string; divisi: { id: string; nama: string } }[];
 };
 
 type Props = {
@@ -58,7 +58,11 @@ export function UserTable({ data, divisions }: Props) {
                   {user.role}
                 </Badge>
               </TableCell>
-              <TableCell>{user.divisi?.nama ?? "-"}</TableCell>
+              <TableCell>
+                {user.divisions.length > 0
+                  ? user.divisions.map((d) => d.divisi.nama).join(", ")
+                  : "-"}
+              </TableCell>
               <TableCell className="text-center">
                 <UserForm
                   divisions={divisions}
@@ -66,7 +70,7 @@ export function UserTable({ data, divisions }: Props) {
                     id: user.id,
                     nama: user.nama,
                     role: user.role,
-                    divisiId: user.divisi?.id ?? null,
+                    divisiIds: user.divisions.map((d) => d.divisiId),
                   }}
                 />
               </TableCell>
