@@ -11,8 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   calculateAge,
@@ -30,8 +36,9 @@ export type CandidateColumn = Candidate & {
   stages: Stage[];
   canManageCandidateActions: boolean;
   onStageChange: (candidateId: string, stageId: string) => Promise<void>;
-  onAnalyze: (candidateId: string) => Promise<void>;
+  onAnalyze: (candidateId: string, modelId: string) => Promise<void>;
   analyzingId: string | null;
+  models: { id: string; name: string; modelId: string }[];
 };
 
 export const columns: ColumnDef<CandidateColumn>[] = [
@@ -125,42 +132,112 @@ export const columns: ColumnDef<CandidateColumn>[] = [
       const candidate = row.original;
       const hasAIScore = candidate.aiMatchPercentage !== null;
       const isAnalyzing = candidate.analyzingId === candidate.id;
+      const [popoverOpen, setPopoverOpen] = useState(false);
 
-      return (
-        <div className="flex flex-col items-center gap-1">
-          {hasAIScore ? (
-            <>
+      // Has score — show score circle (clickable for re-analyze)
+      if (hasAIScore) {
+        return (
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger asChild>
               <div
                 className={cn(
                   "inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-sm font-medium transition-opacity hover:opacity-80",
                   getAIRecommendationBadgeClass(candidate.aiRecommendation),
                 )}
               >
-                {candidate.aiMatchPercentage}%
+                {isAnalyzing ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  `${candidate.aiMatchPercentage}%`
+                )}
               </div>
-            </>
-          ) : (
-            <>
-              {candidate.canManageCandidateActions ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => candidate.onAnalyze(candidate.id)}
-                  disabled={isAnalyzing}
-                  className="hover:text-primary hover:bg-transparent"
-                >
-                  {isAnalyzing ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-3 w-3" />
-                  )}
-                </Button>
+            </PopoverTrigger>
+            <PopoverContent align="center" className="w-56 p-2">
+              <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                Re-analyze — Pilih Model
+              </p>
+              {candidate.models.length === 0 ? (
+                <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                  Belum ada model. Tambahkan di menu Model.
+                </p>
               ) : (
-                <span className="text-muted-foreground text-xs">-</span>
+                <div className="max-h-60 overflow-y-auto">
+                  {candidate.models.map((model) => (
+                    <button
+                      key={model.id}
+                      onClick={() => {
+                        candidate.onAnalyze(candidate.id, model.modelId);
+                        setPopoverOpen(false);
+                      }}
+                      className="flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
+                    >
+                      <span className="font-medium">{model.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {model.modelId}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               )}
-            </>
-          )}
-        </div>
+            </PopoverContent>
+          </Popover>
+        );
+      }
+
+      // No score — show model picker or loading
+      if (!candidate.canManageCandidateActions) {
+        return <span className="text-muted-foreground text-xs">-</span>;
+      }
+
+      if (isAnalyzing) {
+        return (
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-3 w-3 animate-spin text-primary" />
+          </div>
+        );
+      }
+
+      // Model picker popover
+      return (
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hover:text-primary hover:bg-transparent"
+            >
+              <Sparkles className="h-3 w-3" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="center" className="w-56 p-2">
+            <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+              Pilih Model AI
+            </p>
+            {candidate.models.length === 0 ? (
+              <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                Belum ada model. Tambahkan di menu Model.
+              </p>
+            ) : (
+              <div className="max-h-60 overflow-y-auto">
+                {candidate.models.map((model) => (
+                  <button
+                    key={model.id}
+                    onClick={() => {
+                      candidate.onAnalyze(candidate.id, model.modelId);
+                      setPopoverOpen(false);
+                    }}
+                    className="flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
+                  >
+                    <span className="font-medium">{model.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {model.modelId}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
       );
     },
   },

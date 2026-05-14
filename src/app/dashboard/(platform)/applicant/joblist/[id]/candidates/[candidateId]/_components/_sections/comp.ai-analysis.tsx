@@ -4,6 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Sparkles,
   ThumbsUp,
   ThumbsDown,
@@ -13,8 +18,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { scoreAndAnalyzeCandidate } from "../../../_actions/action.candidates";
+import { useState, useEffect } from "react";
+import {
+  scoreAndAnalyzeCandidate,
+  getModelsForScoring,
+} from "../../../_actions/action.candidates";
 import {
   getAIRecommendationBadgeClass,
   getAIRecommendationColor,
@@ -22,6 +30,12 @@ import {
   getAIRecommendationLabel,
 } from "@/lib/helpers/candidate-helper";
 import { cn } from "@/lib/utils";
+
+type AiModel = {
+  id: string;
+  name: string;
+  modelId: string;
+};
 
 type Props = {
   candidateId: string;
@@ -46,16 +60,23 @@ export function AIAnalysis({
 }: Props) {
   const router = useRouter();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [models, setModels] = useState<AiModel[]>([]);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const hasAnalysis = aiStrengths !== null && aiWeaknesses !== null;
 
-  async function handleAnalyze() {
+  useEffect(() => {
+    getModelsForScoring().then(setModels);
+  }, []);
+
+  async function handleAnalyze(modelId: string) {
     if (!canAnalyze) return;
 
     setIsAnalyzing(true);
+    setPopoverOpen(false);
 
     try {
-      const result = await scoreAndAnalyzeCandidate(candidateId);
+      const result = await scoreAndAnalyzeCandidate(candidateId, modelId);
 
       if (result?.error) {
         toast.error(result.error, { position: "top-right" });
@@ -73,6 +94,47 @@ export function AIAnalysis({
     }
   }
 
+  const analyzeButton = isAnalyzing ? (
+    <Button disabled size="lg">
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      Analyzing CV...
+    </Button>
+  ) : (
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+      <PopoverTrigger asChild>
+        <Button size="lg">
+          <Sparkles className="mr-2 h-4 w-4" />
+          Analyze with AI
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="center" className="w-64 p-2">
+        <p className="text-muted-foreground px-2 py-1.5 text-xs font-semibold">
+          Pilih Model AI
+        </p>
+        {models.length === 0 ? (
+          <p className="text-muted-foreground px-2 py-3 text-center text-xs">
+            Belum ada model. Tambahkan di menu Model.
+          </p>
+        ) : (
+          <div className="max-h-60 overflow-y-auto">
+            {models.map((model) => (
+              <button
+                key={model.id}
+                onClick={() => handleAnalyze(model.modelId)}
+                className="hover:bg-accent flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm"
+              >
+                <span className="font-medium">{model.name}</span>
+                <span className="text-muted-foreground text-xs">
+                  {model.modelId}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+
   if (!hasAnalysis) {
     return (
       <Card>
@@ -88,23 +150,10 @@ export function AIAnalysis({
             Analisis CV belum dilakukan
           </p>
           <p className="text-muted-foreground mb-6 max-w-md text-center text-sm">
-            Klik tombol di bawah untuk menganalisis CV kandidat dengan AI dan
-            mendapatkan rekomendasi
+            Pilih model AI dan klik untuk menganalisis CV kandidat
           </p>
           {canAnalyze ? (
-            <Button onClick={handleAnalyze} disabled={isAnalyzing} size="lg">
-              {isAnalyzing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing CV...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Analyze with AI
-                </>
-              )}
-            </Button>
+            analyzeButton
           ) : (
             <p className="text-muted-foreground text-center text-sm">
               Role User tidak memiliki akses analisis AI.
@@ -122,23 +171,46 @@ export function AIAnalysis({
           <Sparkles className="h-5 w-5" />
           AI Analysis
         </CardTitle>
-        {canAnalyze && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleAnalyze}
-            disabled={isAnalyzing}
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                Re-analyzing...
-              </>
-            ) : (
-              "Re-analyze"
-            )}
-          </Button>
-        )}
+        {canAnalyze &&
+          (isAnalyzing ? (
+            <Button variant="outline" size="sm" disabled>
+              <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+              Re-analyzing...
+            </Button>
+          ) : (
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Re-analyze
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 p-2">
+                <p className="text-muted-foreground px-2 py-1.5 text-xs font-semibold">
+                  Pilih Model AI
+                </p>
+                {models.length === 0 ? (
+                  <p className="text-muted-foreground px-2 py-3 text-center text-xs">
+                    Belum ada model. Tambahkan di menu Model.
+                  </p>
+                ) : (
+                  <div className="max-h-60 overflow-y-auto">
+                    {models.map((model) => (
+                      <button
+                        key={model.id}
+                        onClick={() => handleAnalyze(model.modelId)}
+                        className="hover:bg-accent flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm"
+                      >
+                        <span className="font-medium">{model.name}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {model.modelId}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+          ))}
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Disclaimer */}

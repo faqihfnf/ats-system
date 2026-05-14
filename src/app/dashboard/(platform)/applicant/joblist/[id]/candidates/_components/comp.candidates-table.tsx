@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DataTable } from "./comp.data-table";
@@ -8,8 +8,15 @@ import { columns, CandidateColumn } from "./comp.columns";
 import {
   scoreAndAnalyzeCandidate,
   updateCandidateStage,
+  getModelsForScoring,
 } from "../_actions/action.candidates";
 import type { Candidate, Stage } from "@/types/types";
+
+type AiModel = {
+  id: string;
+  name: string;
+  modelId: string;
+};
 
 type Props = {
   candidates: Candidate[];
@@ -26,13 +33,18 @@ export function CandidatesTable({
 }: Props) {
   const router = useRouter();
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+  const [models, setModels] = useState<AiModel[]>([]);
 
-  async function handleAnalyze(candidateId: string) {
+  useEffect(() => {
+    getModelsForScoring().then(setModels);
+  }, []);
+
+  async function handleAnalyze(candidateId: string, modelId: string) {
     if (!canManageCandidateActions) return;
 
     setAnalyzingId(candidateId);
 
-    const result = await scoreAndAnalyzeCandidate(candidateId);
+    const result = await scoreAndAnalyzeCandidate(candidateId, modelId);
 
     if (result?.error) {
       toast.error(result.error, { position: "top-right" });
@@ -66,6 +78,7 @@ export function CandidatesTable({
     onStageChange: handleStageChange,
     onAnalyze: handleAnalyze,
     analyzingId,
+    models,
   }));
 
   if (candidates.length === 0) {

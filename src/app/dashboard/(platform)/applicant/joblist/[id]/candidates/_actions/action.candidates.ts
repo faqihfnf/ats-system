@@ -1,9 +1,16 @@
 "use server";
 
-import { analyzeCVWithGemini } from "@/lib/gemini/gemini-service";
+import { extractTextFromPDF } from "@/lib/pdf/pdf";
+import { analyzeCVWithOpenRouter } from "@/lib/openrouter/openrouter-service";
 import { canAccessDivision, getSessionProfile } from "@/lib/auth/session-profile";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+
+export async function getModelsForScoring() {
+  return await prisma.aiModel.findMany({
+    orderBy: { name: "asc" },
+  });
+}
 
 export async function getCandidates(jobId: string) {
   const profile = await getSessionProfile();
@@ -138,7 +145,7 @@ export async function getCandidateDetail(candidateId: string) {
   return candidate;
 }
 
-export async function scoreAndAnalyzeCandidate(candidateId: string) {
+export async function scoreAndAnalyzeCandidate(candidateId: string, modelId: string) {
   try {
     const profile = await getSessionProfile();
     if (!profile) return { error: "Tidak terautentikasi" };
@@ -148,6 +155,7 @@ export async function scoreAndAnalyzeCandidate(candidateId: string) {
 
     console.log("=== START AI ANALYSIS ===");
     console.log("Candidate ID:", candidateId);
+    console.log("Model ID:", modelId);
 
     // 1. Get candidate data
     const candidate = await prisma.application.findUnique({
@@ -171,34 +179,42 @@ export async function scoreAndAnalyzeCandidate(candidateId: string) {
       return { error: "Anda tidak memiliki akses ke kandidat ini" };
     }
 
-    console.log("Candidate found:", candidate.fullName);
-    console.log("CV URL:", candidate.cvUrl);
-
-    // 2. AI Analysis with Gemini (ONLY THIS)
-    let aiAnalysis = null;
-    let aiError = null;
-
-    if (candidate.cvUrl) {
-      console.log("=== AI ANALYSIS START ===");
-      try {
-        aiAnalysis = await analyzeCVWithGemini(
-          candidate.cvUrl,
-          candidate.job.description || "",
-          candidate.job.requirements || "",
-          candidate.job.position.nama,
-        );
-        console.log("AI Analysis SUCCESS:", aiAnalysis);
-      } catch (error) {
-        console.error("=== AI ANALYSIS FAILED ===");
-        console.error("Error:", error);
-        aiError = error instanceof Error ? error.message : "Unknown error";
-      }
-    } else {
-      console.log("No CV URL, cannot analyze");
+    if (!candidate.cvUrl) {
       return { error: "CV not found, cannot analyze" };
     }
 
-    // 3. Update database (AI analysis only)
+    // 2. Extract text from PDF
+    console.log("=== EXTRACTING PDF TEXT ===");
+    let cvText: string;
+    try {
+      cvText = await extractTextFromPDF(candidate.cvUrl);
+      console.log(`PDF text extracted: ${cvText.length} characters`);
+    } catch (error: any) {
+      console.error("PDF extraction failed:", error.message);
+      return { error: `Gagal mengekstrak teks dari CV: ${error.message}` };
+    }
+
+    // 3. AI Analysis with OpenRouter
+    console.log("=== AI ANALYSIS START ===");
+    let aiAnalysis = null;
+    let aiError = null;
+
+    try {
+      aiAnalysis = await analyzeCVWithOpenRouter(
+        cvText,
+        candidate.job.description || "",
+        candidate.job.requirements || "",
+        candidate.job.position.nama,
+        modelId,
+      );
+      console.log("AI Analysis SUCCESS:", aiAnalysis);
+    } catch (error) {
+      console.error("=== AI ANALYSIS FAILED ===");
+      console.error("Error:", error);
+      aiError = error instanceof Error ? error.message : "Unknown error";
+    }
+
+    // 4. Update database
     console.log("=== UPDATING DATABASE ===");
 
     if (aiAnalysis) {
