@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/popover";
 import { ChevronDown, Columns3, Download } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import * as XLSX from "xlsx";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -226,7 +225,7 @@ export function DataTable<TData, TValue>({
     setExportPopoverOpen(false);
   };
 
-  const handleExportToExcel = () => {
+  const handleExportToExcel = async () => {
     // Get filtered rows
     const filteredRows = table.getFilteredRowModel().rows;
 
@@ -322,6 +321,9 @@ export function DataTable<TData, TValue>({
 
       return rowData;
     });
+
+    // Dynamic import XLSX only when exporting
+    const XLSX = await import("xlsx");
 
     // Create worksheet
     const worksheet = XLSX.utils.json_to_sheet(exportData);

@@ -82,6 +82,7 @@ TUGAS:
 3. Berikan KESIMPULAN (2-3 kalimat).
 4. Hitung PERSENTASE KESESUAIAN (0-100).
 5. Tentukan REKOMENDASI (RECOMMENDED jika >80, SUGGESTED jika 50-80, NOT_RECOMMENDED jika <50).
+6. Jika data bukan sebuah resume/cv, berikan nilai 0% dan jelaskan bahwa data tidak valid. dan pada bagian "strengths" dan "weaknesses" berikan output"Data tidak valid".
 
 FORMAT OUTPUT (JSON saja, tanpa markdown):
 {

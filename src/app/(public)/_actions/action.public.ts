@@ -12,17 +12,19 @@ export async function getPublicJobs(divisiId?: string) {
         },
       }),
     },
-    include: {
+    select: {
+      id: true,
+      city: true,
+      province: true,
+      createdAt: true,
       position: {
-        include: {
-          divisi: true,
-          level: true,
+        select: {
+          nama: true,
+          divisi: { select: { id: true, nama: true } },
+          level: { select: { id: true, nama: true } },
         },
       },
-      branch: true,
-      employmentStatus: true,
-      minEducation: true,
-      minExperience: true,
+      employmentStatus: { select: { name: true } },
     },
     orderBy: { createdAt: "desc" },
   });

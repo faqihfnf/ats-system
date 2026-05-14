@@ -1,22 +1,19 @@
-import { CoreValuesSection } from "../components/landing-page/core-value";
-import { HeroSection } from "../components/landing-page/hero-section";
 import { Navbar } from "../components/landing-page/navbar";
-import { TestimonialsSection } from "../components/landing-page/testimonial";
-import { WhyJoinSection } from "../components/landing-page/why-join";
-import { CtaSection } from "../components/landing-page/call-to-action";
 import JobListingsSection from "@/components/landing-page/job-listing";
 import Footer from "@/components/landing-page/footer";
+import { getPublicJobs, getDivisions, getLevels } from "./(public)/_actions/action.public";
 
-export default function Home() {
+export default async function Home() {
+  const [jobs, divisions, levels] = await Promise.all([
+    getPublicJobs(),
+    getDivisions(),
+    getLevels(),
+  ]);
+
   return (
     <main suppressHydrationWarning>
       <Navbar />
-      {/* <HeroSection /> */}
-      {/* <CoreValuesSection /> */}
-      {/* <WhyJoinSection /> */}
-      {/* <TestimonialsSection /> */}
-      <JobListingsSection />
-      {/* <CtaSection /> */}
+      <JobListingsSection jobs={jobs} divisions={divisions} levels={levels} />
       <Footer />
     </main>
   );

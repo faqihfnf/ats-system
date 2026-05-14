@@ -5,11 +5,25 @@ import { Card } from "@/components/ui/card";
 import { StagesHeader } from "./comp.stages-header";
 import { CandidatesFilter } from "./comp.candidates-filter";
 import { CandidatesTable } from "./comp.candidates-table";
-import { Candidate, CandidateFilters, Job, Stage } from "@/types/types";
+import { Candidate, CandidateFilters, Stage } from "@/types/types";
 import { calculateAge } from "@/lib/helpers/candidate-helper";
 
+type CandidateJob = {
+  id: string;
+  position: {
+    id: string;
+    nama: string;
+    divisiId: string;
+    divisi: { id: string; nama: string };
+    level: { id: string; nama: string };
+  };
+  minEducation: { id: string; name: string };
+  minExperience: { id: string; name: string };
+  creator: { id: string; nama: string };
+};
+
 type Props = {
-  job: Job;
+  job: CandidateJob;
   candidates: Candidate[];
   stages: Stage[];
   canManageCandidateActions: boolean;

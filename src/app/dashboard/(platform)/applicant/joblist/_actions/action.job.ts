@@ -283,6 +283,11 @@ export async function getJobForEdit(id: string) {
       minEducation: true,
       minExperience: true,
       customQuestions: {
+        include: {
+          _count: {
+            select: { applicationAnswers: true },
+          },
+        },
         orderBy: { order: "asc" },
       },
       _count: {
@@ -295,22 +300,12 @@ export async function getJobForEdit(id: string) {
 
   if (!job) return null;
 
-  // Get answer counts for each question
-  const questionsWithAnswerCount = await Promise.all(
-    job.customQuestions.map(async (q) => {
-      const answerCount = await prisma.applicationAnswer.count({
-        where: { questionId: q.id },
-      });
-      return {
-        ...q,
-        answerCount,
-      };
-    }),
-  );
-
   return {
     ...job,
-    customQuestions: questionsWithAnswerCount,
+    customQuestions: job.customQuestions.map((q) => ({
+      ...q,
+      answerCount: q._count.applicationAnswers,
+    })),
     hasApplications: job._count.applications > 0,
   };
 }

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,7 +10,7 @@ export type SessionProfile = {
   divisiIds: string[];
 };
 
-export async function getSessionProfile(): Promise<SessionProfile | null> {
+export const getSessionProfile = cache(async (): Promise<SessionProfile | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -45,7 +46,7 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
     role: profile.role,
     divisiIds: profile.divisions.map((d) => d.divisiId),
   };
-}
+});
 
 export function canAccessDivision(
   profile: SessionProfile | null,

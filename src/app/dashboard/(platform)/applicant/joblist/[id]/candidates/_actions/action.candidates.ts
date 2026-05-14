@@ -18,22 +18,20 @@ export async function getCandidates(jobId: string) {
 
   const job = await prisma.job.findUnique({
     where: { id: jobId },
-    include: {
+    select: {
+      id: true,
       position: {
-        include: {
-          divisi: true,
-          level: true,
-        },
-      },
-      minEducation: true,
-      minExperience: true,
-      creator: {
         select: {
           id: true,
           nama: true,
+          divisiId: true,
+          divisi: { select: { id: true, nama: true } },
+          level: { select: { id: true, nama: true } },
         },
       },
-      customQuestions: true,
+      minEducation: { select: { id: true, name: true } },
+      minExperience: { select: { id: true, name: true } },
+      creator: { select: { id: true, nama: true } },
     },
   });
 

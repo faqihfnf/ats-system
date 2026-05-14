@@ -1,48 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Briefcase, CalendarDays, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { id as idLocale } from "date-fns/locale";
-import {
-  getDivisions,
-  getLevels,
-  getPublicJobs,
-} from "@/app/(public)/_actions/action.public";
 import { FilterDivisiClient } from "./filter-divisi-client";
 import { FilterLevelClient } from "./filter-level-client";
 
-export default function JobListingsSection() {
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [divisions, setDivisions] = useState<any[]>([]);
-  const [levels, setLevels] = useState<any[]>([]);
+type Job = {
+  id: string;
+  city: string;
+  province: string;
+  createdAt: Date;
+  position: {
+    nama: string;
+    divisi: { id: string; nama: string };
+    level: { id: string; nama: string };
+  };
+  employmentStatus: { name: string };
+};
+
+type Props = {
+  jobs: Job[];
+  divisions: { id: string; nama: string }[];
+  levels: { id: string; nama: string }[];
+};
+
+export default function JobListingsSection({ jobs, divisions, levels }: Props) {
   const [selectedDivisi, setSelectedDivisi] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadData() {
-      const [jobsData, divisionsData, levelsData] = await Promise.all([
-        getPublicJobs(),
-        getDivisions(),
-        getLevels(),
-      ]);
-      setJobs(jobsData);
-      setDivisions(divisionsData);
-      setLevels(levelsData);
-      setLoading(false);
-    }
-    loadData();
-  }, []);
 
   const toProperCase = (str: string) => {
     return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  // Filter jobs based on selected divisi and level
   const filteredJobs = jobs.filter((job) => {
     if (selectedDivisi && job.position.divisi.id !== selectedDivisi)
       return false;
@@ -81,69 +73,65 @@ export default function JobListingsSection() {
           </div>
         </div>
 
-        {loading ? (
-          <div className="text-muted-foreground text-center">Loading...</div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {filteredJobs.length === 0 ? (
-              <Card className="text-muted-foreground p-8 text-center">
-                Tidak ada lowongan untuk divisi ini.
-              </Card>
-            ) : (
-              filteredJobs.map((job) => (
-                <Link
-                  key={job.id}
-                  href={`/jobs/${job.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Card className="group hover:border-primary/70 hover:shadow-primary/20 cursor-pointer overflow-hidden transition-shadow duration-200 hover:shadow-lg">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-4">
-                          {/* Judul Pekerjaan */}
-                          <div className="h-14">
-                            <h3 className="text-[16px] font-semibold">
-                              {job.position.nama}
-                            </h3>
-                            <p className="text-primary">
-                              {job.position.divisi.nama} •{" "}
-                              {job.position.level.nama}
-                            </p>
-                          </div>
-
-                          {/* Info Lokasi, Status & Tanggal  */}
-                          <div className="mt-3 grid gap-3 text-slate-500">
-                            <div className="flex items-center gap-2 text-sm">
-                              <MapPin className="size-4 text-slate-600" />
-                              <span className="capitalize">
-                                {toProperCase(job.city)},{" "}
-                                {toProperCase(job.province)}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Briefcase className="text-muted-foreground size-4" />
-                              <span className="mr-8">
-                                {job.employmentStatus.name}
-                              </span>
-                              <CalendarDays className="text-muted-foreground size-4" />
-                              <span>
-                                {format(new Date(job.createdAt), "dd MMM yyyy")}
-                              </span>
-                            </div>
-                          </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {filteredJobs.length === 0 ? (
+            <Card className="text-muted-foreground p-8 text-center">
+              Tidak ada lowongan untuk divisi ini.
+            </Card>
+          ) : (
+            filteredJobs.map((job) => (
+              <Link
+                key={job.id}
+                href={`/jobs/${job.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Card className="group hover:border-primary/70 hover:shadow-primary/20 cursor-pointer overflow-hidden transition-shadow duration-200 hover:shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-4">
+                        {/* Judul Pekerjaan */}
+                        <div className="h-14">
+                          <h3 className="text-[16px] font-semibold">
+                            {job.position.nama}
+                          </h3>
+                          <p className="text-primary">
+                            {job.position.divisi.nama} •{" "}
+                            {job.position.level.nama}
+                          </p>
                         </div>
 
-                        {/* Icon Panah di Kanan */}
-                        <ChevronRight className="group-hover:text-primary size-6 text-slate-300 transition-colors" />
+                        {/* Info Lokasi, Status & Tanggal  */}
+                        <div className="mt-3 grid gap-3 text-slate-500">
+                          <div className="flex items-center gap-2 text-sm">
+                            <MapPin className="size-4 text-slate-600" />
+                            <span className="capitalize">
+                              {toProperCase(job.city)},{" "}
+                              {toProperCase(job.province)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Briefcase className="text-muted-foreground size-4" />
+                            <span className="mr-8">
+                              {job.employmentStatus.name}
+                            </span>
+                            <CalendarDays className="text-muted-foreground size-4" />
+                            <span>
+                              {format(new Date(job.createdAt), "dd MMM yyyy")}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))
-            )}
-          </div>
-        )}
+
+                      {/* Icon Panah di Kanan */}
+                      <ChevronRight className="group-hover:text-primary size-6 text-slate-300 transition-colors" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))
+          )}
+        </div>
       </div>
     </section>
   );
