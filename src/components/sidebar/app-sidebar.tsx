@@ -96,6 +96,11 @@ export function AppSidebar({ role, ...props }: Props) {
               url: "/dashboard/applicant/experience",
               icon: "History",
             },
+            {
+              title: "Models",
+              url: "/dashboard/applicant/models",
+              icon: "Sparkles",
+            },
           ],
         },
         {
@@ -146,7 +151,11 @@ export function AppSidebar({ role, ...props }: Props) {
                   },
                 ]
               : []),
-            { title: "Personal", url: "/dashboard/user/personal", icon: "User" },
+            {
+              title: "Personal",
+              url: "/dashboard/user/personal",
+              icon: "User",
+            },
           ],
         },
       ];
@@ -185,7 +194,9 @@ export function AppSidebar({ role, ...props }: Props) {
 
         {/* Nav items dengan data dari props */}
         <NavMain items={navMain} label="Platform" />
-        {navSettings.length > 0 && <NavMain items={navSettings} label="Settings" />}
+        {navSettings.length > 0 && (
+          <NavMain items={navSettings} label="Settings" />
+        )}
       </SidebarContent>
 
       <SidebarFooter>

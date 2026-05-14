@@ -17,6 +17,7 @@ import {
   Activity, // Status
   GraduationCap, // Education
   History, // Experience
+  Sparkles, // Models
   LayoutDashboard, // Dashboard Psikotest
   Compass, // Explorer
   MessageSquare, // Introduction
@@ -61,6 +62,7 @@ const iconMap: Record<string, LucideIcon> = {
   MessageSquare,
   UserCog,
   User,
+  Sparkles,
 };
 
 export function NavMain({

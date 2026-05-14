@@ -116,6 +116,16 @@ model Experience {
   @@map("experiences")
 }
 
+model AiModel {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  modelId   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ai_models")
+}
+
 model Job {
   id                 String           @id @default(cuid())
   // Informasi Umum (step 1)
