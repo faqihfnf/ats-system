@@ -2,39 +2,37 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import {
-  MapPin,
-  Briefcase,
-  CalendarDays,
-  ChevronRight,
-} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { MapPin, Briefcase, CalendarDays, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import {
   getDivisions,
+  getLevels,
   getPublicJobs,
 } from "@/app/(public)/_actions/action.public";
 import { FilterDivisiClient } from "./filter-divisi-client";
+import { FilterLevelClient } from "./filter-level-client";
 
 export default function JobListingsSection() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [divisions, setDivisions] = useState<any[]>([]);
+  const [levels, setLevels] = useState<any[]>([]);
   const [selectedDivisi, setSelectedDivisi] = useState<string | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
-      const [jobsData, divisionsData] = await Promise.all([
+      const [jobsData, divisionsData, levelsData] = await Promise.all([
         getPublicJobs(),
         getDivisions(),
+        getLevels(),
       ]);
       setJobs(jobsData);
       setDivisions(divisionsData);
+      setLevels(levelsData);
       setLoading(false);
     }
     loadData();
@@ -44,39 +42,47 @@ export default function JobListingsSection() {
     return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  // Filter jobs based on selected divisi
-  const filteredJobs = selectedDivisi
-    ? jobs.filter((job) => job.position.divisi.id === selectedDivisi)
-    : jobs;
+  // Filter jobs based on selected divisi and level
+  const filteredJobs = jobs.filter((job) => {
+    if (selectedDivisi && job.position.divisi.id !== selectedDivisi)
+      return false;
+    if (selectedLevel && job.position.level.id !== selectedLevel) return false;
+    return true;
+  });
 
   return (
     <section className="py-24">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-16 text-center">
-          <p className="text-primary mb-3 text-sm font-semibold tracking-widest uppercase">
-            Lowongan
-          </p>
           <h2 className="text-foreground text-3xl font-bold tracking-tight md:text-4xl">
             Pilih Karir Impian Anda
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg leading-relaxed">
-            Temukan posisi yang sesuai dengan keahlian dan passion Anda. Kami
-            selalu mencari talenta terbaik untuk bergabung.
+            Temukan posisi yang sesuai dengan keahlian dan passion Anda.
+            <br />
+            Kami mencari talenta terbaik untuk bergabung.
           </p>
         </div>
-        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <h2 className="text-2xl font-bold text-slate-900">
+        <div className="mb-8 flex flex-col items-center justify-between gap-4 md:flex-row md:items-center">
+          <h2 className="items-center justify-center text-center text-2xl font-bold text-slate-900">
             Lowongan Tersedia ({filteredJobs.length})
           </h2>
-          <FilterDivisiClient
-            divisions={divisions}
-            selectedDivisi={selectedDivisi}
-            onDivisiChange={setSelectedDivisi}
-          />
+          <div className="grid w-full grid-cols-1 gap-3 md:flex md:w-auto">
+            <FilterDivisiClient
+              divisions={divisions}
+              selectedDivisi={selectedDivisi}
+              onDivisiChange={setSelectedDivisi}
+            />
+            <FilterLevelClient
+              levels={levels}
+              selectedLevel={selectedLevel}
+              onLevelChange={setSelectedLevel}
+            />
+          </div>
         </div>
 
         {loading ? (
-          <div className="text-center text-muted-foreground">Loading...</div>
+          <div className="text-muted-foreground text-center">Loading...</div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {filteredJobs.length === 0 ? (
@@ -100,13 +106,14 @@ export default function JobListingsSection() {
                             <h3 className="text-[16px] font-semibold">
                               {job.position.nama}
                             </h3>
-                            <p className="text-primary mb-5">
-                              {job.position.divisi.nama}
+                            <p className="text-primary">
+                              {job.position.divisi.nama} •{" "}
+                              {job.position.level.nama}
                             </p>
                           </div>
 
                           {/* Info Lokasi, Status & Tanggal  */}
-                          <div className="mt-5 grid gap-3 text-slate-500">
+                          <div className="mt-3 grid gap-3 text-slate-500">
                             <div className="flex items-center gap-2 text-sm">
                               <MapPin className="size-4 text-slate-600" />
                               <span className="capitalize">

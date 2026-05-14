@@ -1,6 +1,12 @@
 "use client";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Divisi = {
   id: string;
@@ -13,7 +19,11 @@ type Props = {
   onDivisiChange: (divisiId: string | null) => void;
 };
 
-export function FilterDivisiClient({ divisions, selectedDivisi, onDivisiChange }: Props) {
+export function FilterDivisiClient({
+  divisions,
+  selectedDivisi,
+  onDivisiChange,
+}: Props) {
   function handleChange(value: string) {
     if (value === "all") {
       onDivisiChange(null);
@@ -24,7 +34,7 @@ export function FilterDivisiClient({ divisions, selectedDivisi, onDivisiChange }
 
   return (
     <Select value={selectedDivisi || "all"} onValueChange={handleChange}>
-      <SelectTrigger className="w-52">
+      <SelectTrigger className="w-full sm:w-52">
         <SelectValue placeholder="Filter Divisi" />
       </SelectTrigger>
       <SelectContent>

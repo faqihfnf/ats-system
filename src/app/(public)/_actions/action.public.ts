@@ -55,3 +55,9 @@ export async function getDivisions() {
     orderBy: { nama: "asc" },
   });
 }
+
+export async function getLevels() {
+  return await prisma.level.findMany({
+    orderBy: { nama: "asc" },
+  });
+}

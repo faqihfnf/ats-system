@@ -33,21 +33,21 @@ export default function Footer() {
             </p>
             <div className="mt-2 flex gap-3">
               <a
-                href="#"
+                href="https://web.facebook.com/papandayancargo"
                 aria-label="Facebook"
                 className="flex h-9 w-9 items-center justify-center rounded border border-white/30 transition-colors hover:bg-white/20"
               >
                 <Facebook size={16} />
               </a>
               <a
-                href="#"
+                href="https://www.youtube.com/@papandayancargo8604"
                 aria-label="YouTube"
                 className="flex h-9 w-9 items-center justify-center rounded border border-white/30 transition-colors hover:bg-white/20"
               >
                 <Youtube size={16} />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/papandayancargo/"
                 aria-label="Instagram"
                 className="flex h-9 w-9 items-center justify-center rounded border border-white/30 transition-colors hover:bg-white/20"
               >

@@ -10,7 +10,7 @@ import Footer from "@/components/landing-page/footer";
 export default function Home() {
   return (
     <main suppressHydrationWarning>
-      {/* <Navbar /> */}
+      <Navbar />
       {/* <HeroSection /> */}
       {/* <CoreValuesSection /> */}
       {/* <WhyJoinSection /> */}
