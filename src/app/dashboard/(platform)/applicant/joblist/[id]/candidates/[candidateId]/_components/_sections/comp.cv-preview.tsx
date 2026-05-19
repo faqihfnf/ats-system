@@ -21,7 +21,7 @@ export function CVPreview({ cvUrl, isPDF }: Props) {
         {isPDF ? (
           <iframe
             src={cvUrl}
-            className="w-full flex-1 rounded border"
+            className="min-h-[calc(180vh-500px)] w-full rounded border"
             title="CV Preview"
           />
         ) : (

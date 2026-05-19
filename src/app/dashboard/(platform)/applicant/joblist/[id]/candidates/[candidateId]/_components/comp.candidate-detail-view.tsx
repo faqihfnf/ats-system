@@ -8,12 +8,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   ArrowRightLeft,
   Download,
   FileText,
   MessageCircle,
+  Info,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -25,6 +27,7 @@ import { WorkExperience } from "./_sections/comp.work-experience";
 import { SalaryInfo } from "./_sections/comp.salary-info";
 import { AdditionalQuestions } from "./_sections/comp.additional-questions";
 import { CVPreview } from "./_sections/comp.cv-preview";
+import { JobInfo } from "./_sections/comp.job-info";
 import { AIAnalysis } from "./_sections/comp.ai-analysis";
 import {
   calculateAge,
@@ -51,7 +54,6 @@ export function CandidateDetailView({
   canManageCandidateActions,
 }: Props) {
   const router = useRouter();
-  const [showCV, setShowCV] = useState(true);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
 
   const initials = candidate.fullName
@@ -146,14 +148,6 @@ export function CandidateDetailView({
 
           {candidate.cvUrl && (
             <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowCV(!showCV)}
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                {showCV ? "Hide CV" : "Show CV"}
-              </Button>
               <Link href={candidate.cvUrl} target="_blank" download>
                 <Button size="sm">
                   <Download className="mr-2 h-4 w-4" />
@@ -165,20 +159,44 @@ export function CandidateDetailView({
         </div>
       </div>
 
-      {/* Top Section: CV Preview + Information */}
+      {/* Top Section: Tabs + Information */}
       <div className="grid grid-cols-4 gap-6">
-        {/* CV Preview (3/4) */}
-        {candidate.cvUrl && showCV && (
-          <div className="col-span-3">
-            <CVPreview cvUrl={candidate.cvUrl} isPDF={isPDF || false} />
-          </div>
-        )}
+        {/* Tabs (3/4) */}
+        <div className="col-span-3">
+          <Tabs defaultValue="cv" className="w-full">
+            <TabsList>
+              <TabsTrigger value="cv" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Preview CV
+              </TabsTrigger>
+              <TabsTrigger value="job-info" className="gap-2">
+                <Info className="h-4 w-4" />
+                Detail Job
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="cv" className="mt-4">
+              {candidate.cvUrl ? (
+                <CVPreview cvUrl={candidate.cvUrl} isPDF={isPDF || false} />
+              ) : (
+                <div className="flex h-96 items-center justify-center rounded-lg border">
+                  <div className="text-center">
+                    <FileText className="text-muted-foreground mx-auto mb-4 h-16 w-16" />
+                    <p className="text-muted-foreground">
+                      Kandidat tidak mengupload CV
+                    </p>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+            <TabsContent value="job-info" className="mt-4">
+              <JobInfo job={candidate.job} />
+            </TabsContent>
+          </Tabs>
+        </div>
 
         {/* Information Sidebar (1/4) */}
-        <div
-          className={candidate.cvUrl && showCV ? "col-span-1" : "col-span-4"}
-        >
-          <div className="space-y-6">
+        <div className="col-span-1">
+          <div className="space-y-6 mt-12">
             <ProfileHeader
               fullName={candidate.fullName}
               initials={initials}

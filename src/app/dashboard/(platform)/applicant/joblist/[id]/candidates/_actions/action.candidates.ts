@@ -124,6 +124,10 @@ export async function getCandidateDetail(candidateId: string) {
               level: true,
             },
           },
+          branch: true,
+          employmentStatus: true,
+          minEducation: true,
+          minExperience: true,
           customQuestions: {
             orderBy: { order: "asc" },
           },
