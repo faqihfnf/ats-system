@@ -15,6 +15,7 @@ import {
   Download,
   FileText,
   MessageCircle,
+  MessageSquare,
   Info,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ import { SalaryInfo } from "./_sections/comp.salary-info";
 import { AdditionalQuestions } from "./_sections/comp.additional-questions";
 import { CVPreview } from "./_sections/comp.cv-preview";
 import { JobInfo } from "./_sections/comp.job-info";
+import { CandidateNotes } from "./_sections/comp.candidate-notes";
 import { AIAnalysis } from "./_sections/comp.ai-analysis";
 import {
   calculateAge,
@@ -40,11 +42,26 @@ import { updateCandidateStage } from "../../_actions/action.candidates";
 import { CandidateWithRelations, Stage } from "@/types/types";
 import { TransferCandidateDialog } from "../../_components/comp.transfer-candidate-dialog";
 
+type Note = {
+  id: string;
+  content: string;
+  createdAt: Date;
+  author: {
+    id: string;
+    nama: string;
+    email: string;
+    role: string;
+  };
+};
+
 type Props = {
   candidate: CandidateWithRelations;
   jobId: string;
   stages: Stage[];
   canManageCandidateActions: boolean;
+  notes: Note[];
+  currentUserId: string;
+  currentUserRole: string;
 };
 
 export function CandidateDetailView({
@@ -52,6 +69,9 @@ export function CandidateDetailView({
   jobId,
   stages,
   canManageCandidateActions,
+  notes,
+  currentUserId,
+  currentUserRole,
 }: Props) {
   const router = useRouter();
   const [showTransferDialog, setShowTransferDialog] = useState(false);
@@ -173,6 +193,10 @@ export function CandidateDetailView({
                 <Info className="h-4 w-4" />
                 Detail Job
               </TabsTrigger>
+              <TabsTrigger value="notes" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Notes {notes.length > 0 && `(${notes.length})`}
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="cv" className="mt-4">
               {candidate.cvUrl ? (
@@ -190,6 +214,14 @@ export function CandidateDetailView({
             </TabsContent>
             <TabsContent value="job-info" className="mt-4">
               <JobInfo job={candidate.job} />
+            </TabsContent>
+            <TabsContent value="notes" className="mt-4">
+              <CandidateNotes
+                applicationId={candidate.id}
+                notes={notes}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
+              />
             </TabsContent>
           </Tabs>
         </div>

@@ -51,6 +51,7 @@ model Profile {
   updatedAt DateTime @updatedAt
   jobs      Job[]
   divisions ProfileDivisi[]
+  notes     CandidateNote[]
 
   @@map("profiles")
 }
@@ -279,6 +280,9 @@ model Application {
   // Custom Question Answers
   answers ApplicationAnswer[]
 
+  // Notes
+  notes CandidateNote[]
+
   // Status tracking
   currentStageId String?
   currentStage   Stage?          @relation(fields: [currentStageId], references: [id])
@@ -326,4 +330,18 @@ model ApplicationAnswer {
   createdAt DateTime @default(now())
 
   @@map("application_answers")
+}
+
+model CandidateNote {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        Profile     @relation(fields: [authorId], references: [id])
+
+  content   String   @db.Text // HTML content from rich text editor
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("candidate_notes")
 }

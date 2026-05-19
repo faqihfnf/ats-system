@@ -5,6 +5,7 @@ import {
   getCandidateDetail,
   getCandidateNavigation,
 } from "../_actions/action.candidates";
+import { getCandidateNotes } from "./_actions/action.notes";
 import { CandidateDetailView } from "./_components/comp.candidate-detail-view";
 import {
   Breadcrumb,
@@ -35,6 +36,9 @@ export default async function CandidateDetailPage({ params }: Props) {
   if (!candidate || !stages) {
     notFound();
   }
+
+  // Fetch notes after confirming candidate exists
+  const notes = await getCandidateNotes(candidateId);
 
   // ✅ DETECT MISMATCH: If URL jobId doesn't match candidate's actual jobId, redirect
   if (candidate.jobId !== id) {
@@ -94,9 +98,12 @@ export default async function CandidateDetailPage({ params }: Props) {
       {/* Detail View */}
       <CandidateDetailView
         candidate={candidate}
-        jobId={candidate.jobId} // ✅ Use candidate.jobId
+        jobId={candidate.jobId}
         stages={stages}
         canManageCandidateActions={profile?.role !== "USER"}
+        notes={notes}
+        currentUserId={profile?.id || ""}
+        currentUserRole={profile?.role || "USER"}
       />
     </div>
   );

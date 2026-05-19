@@ -274,7 +274,7 @@ export function RichTextEditor({ content, onChange }: Props) {
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none min-h-[250px] p-4 focus:outline-none border-x border-b rounded-b-md",
+          "prose prose-sm dark:prose-invert max-w-none min-h-[250px] p-4 focus:outline-none border-x border-b rounded-b-md bg-background",
       },
     },
     onUpdate: ({ editor }) => {
@@ -309,9 +309,9 @@ export function RichTextEditor({ content, onChange }: Props) {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex w-full flex-col bg-white">
+      <div className="flex w-full flex-col">
         {/* Toolbar Utama */}
-        <div className="flex flex-wrap items-center gap-1 rounded-t-md border bg-slate-50/50 p-1">
+        <div className="flex flex-wrap items-center gap-1 rounded-t-md border bg-slate-50/50 dark:bg-slate-800/50 p-1">
           <EditorTooltip label="Text Formatting">
             <Select
               value={getCurrentHeading()}
