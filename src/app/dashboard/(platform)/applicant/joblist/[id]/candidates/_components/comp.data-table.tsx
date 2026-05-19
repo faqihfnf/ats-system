@@ -35,11 +35,13 @@ import { Separator } from "@/components/ui/separator";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  bulkActions?: (selectedRows: TData[]) => React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  bulkActions,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -491,13 +493,20 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      {/* Selected Row Count */}
+      {/* Selected Row Count + Bulk Actions */}
       {table.getFilteredSelectedRowModel().rows.length > 0 && (
-        <div className="bg-muted flex items-center gap-2 rounded-md border px-4 py-2">
+        <div className="bg-muted flex items-center justify-between gap-2 rounded-md border px-4 py-2">
           <p className="text-muted-foreground text-sm">
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
             {table.getFilteredRowModel().rows.length} row(s) selected
           </p>
+          {bulkActions && (
+            <div className="flex items-center gap-2">
+              {bulkActions(
+                table.getFilteredSelectedRowModel().rows.map((row) => row.original)
+              )}
+            </div>
+          )}
         </div>
       )}
 

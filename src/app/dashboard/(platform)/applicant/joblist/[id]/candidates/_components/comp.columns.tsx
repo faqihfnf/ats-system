@@ -411,12 +411,14 @@ export const columns: ColumnDef<CandidateColumn>[] = [
     },
     cell: ({ row }) => {
       const candidate = row.original;
+      const isSelected = row.getIsSelected();
       return (
         <Select
           value={candidate.currentStageId || ""}
           onValueChange={(value) =>
             candidate.onStageChange(candidate.id, value)
           }
+          disabled={isSelected}
         >
           <SelectTrigger className="h-8 text-xs">
             <SelectValue placeholder="Select stage..." />

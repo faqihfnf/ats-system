@@ -107,6 +107,56 @@ export async function updateCandidateStage(
   }
 }
 
+export async function bulkUpdateStage(
+  applicationIds: string[],
+  stageId: string,
+) {
+  try {
+    const profile = await getSessionProfile();
+    if (!profile) return { error: "Tidak terautentikasi" };
+    if (profile.role === "USER") {
+      return { error: "Role User tidak memiliki akses bulk update" };
+    }
+
+    if (applicationIds.length === 0) {
+      return { error: "Tidak ada kandidat yang dipilih" };
+    }
+
+    // Verify all candidates are accessible
+    const applications = await prisma.application.findMany({
+      where: { id: { in: applicationIds } },
+      select: {
+        id: true,
+        job: {
+          select: {
+            position: {
+              select: { divisiId: true },
+            },
+          },
+        },
+      },
+    });
+
+    // Check access for all candidates
+    for (const app of applications) {
+      if (!canAccessDivision(profile, app.job.position.divisiId)) {
+        return { error: "Anda tidak memiliki akses ke beberapa kandidat" };
+      }
+    }
+
+    // Bulk update
+    await prisma.application.updateMany({
+      where: { id: { in: applicationIds } },
+      data: { currentStageId: stageId },
+    });
+
+    return { success: true, count: applicationIds.length };
+  } catch (error) {
+    console.error("Bulk update stage error:", error);
+    return { error: "Gagal mengupdate stage secara bulk" };
+  }
+}
+
 export async function getCandidateDetail(candidateId: string) {
   const profile = await getSessionProfile();
   if (!profile) return null;
