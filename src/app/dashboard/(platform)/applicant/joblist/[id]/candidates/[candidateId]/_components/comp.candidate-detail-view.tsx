@@ -19,7 +19,7 @@ import {
   Info,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { ProfileHeader } from "./_sections/comp.profile-header";
 import { ContactInfo } from "./_sections/comp.contact-info";
 import { PersonalInfo } from "./_sections/comp.personal-info";
@@ -42,24 +42,14 @@ import { updateCandidateStage } from "../../_actions/action.candidates";
 import { CandidateWithRelations, Stage } from "@/types/types";
 import { TransferCandidateDialog } from "../../_components/comp.transfer-candidate-dialog";
 
-type Note = {
-  id: string;
-  content: string;
-  createdAt: Date;
-  author: {
-    id: string;
-    nama: string;
-    email: string;
-    role: string;
-  };
-};
+type CandidateNotesList = ComponentProps<typeof CandidateNotes>["notes"];
 
 type Props = {
   candidate: CandidateWithRelations;
   jobId: string;
   stages: Stage[];
   canManageCandidateActions: boolean;
-  notes: Note[];
+  notes: CandidateNotesList;
   currentUserId: string;
   currentUserRole: string;
 };
