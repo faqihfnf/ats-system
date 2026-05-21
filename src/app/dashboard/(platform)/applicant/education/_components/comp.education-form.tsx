@@ -5,13 +5,22 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Loader2, Pencil, Plus } from "lucide-react";
 import { createEducation, updateEducation } from "../_actions/action.education";
 import { toast } from "sonner";
 
+type EducationCategory = "SCHOOL" | "UNIVERSITY";
+
 type Props = {
-  education?: { id: string; name: string };
+  education?: { id: string; name: string; category: EducationCategory };
 };
 
 export function EducationForm({ education }: Props) {
@@ -19,6 +28,9 @@ export function EducationForm({ education }: Props) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [category, setCategory] = useState<EducationCategory | "">(
+    education?.category || "",
+  );
   const isEdit = !!education;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -26,7 +38,14 @@ export function EducationForm({ education }: Props) {
     setLoading(true);
     setError(null);
 
+    if (!category) {
+      setError("Kategori pendidikan wajib dipilih");
+      setLoading(false);
+      return;
+    }
+
     const formData = new FormData(e.currentTarget);
+    formData.set("category", category);
     const result = isEdit
       ? await updateEducation(education.id, formData)
       : await createEducation(formData);
@@ -51,7 +70,10 @@ export function EducationForm({ education }: Props) {
     <Dialog open={open} onOpenChange={(val) => {
       if (loading) return;
       setOpen(val);
-      if (!val) setError(null);
+      if (!val) {
+        setError(null);
+        setCategory(education?.category || "");
+      }
     }}>
       <DialogTrigger asChild suppressHydrationWarning>
         {isEdit ? (
@@ -80,6 +102,24 @@ export function EducationForm({ education }: Props) {
               required
               disabled={loading}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>Kategori Pendidikan</Label>
+            <Select
+              value={category}
+              onValueChange={(value) =>
+                setCategory(value as EducationCategory | "")
+              }
+              disabled={loading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih kategori pendidikan..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SCHOOL">School</SelectItem>
+                <SelectItem value="UNIVERSITY">University</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-end gap-2">

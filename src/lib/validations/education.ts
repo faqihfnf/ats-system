@@ -7,6 +7,7 @@ export const educationSchema = z.object({
     .min(2, "Nama pendidikan minimal 2 karakter")
     .max(50, "Nama pendidikan maksimal 50 karakter")
     .trim(),
+  category: z.enum(["SCHOOL", "UNIVERSITY"]).optional(),
 });
 
 export type EducationFormValues = z.infer<typeof educationSchema>;

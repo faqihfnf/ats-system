@@ -20,6 +20,7 @@ type Job = {
 type Education = {
   id: string;
   name: string;
+  category: "SCHOOL" | "UNIVERSITY";
 };
 
 type Props = {

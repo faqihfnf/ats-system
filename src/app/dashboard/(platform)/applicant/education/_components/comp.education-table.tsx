@@ -3,13 +3,18 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EducationForm } from "./comp.education-form";
 import { DeleteButton } from "./comp.delete-button";
+import { Badge } from "@/components/ui/badge";
 
 type Education = {
   id: string;
   name: string;
+  category: "SCHOOL" | "UNIVERSITY";
 };
 
 export function EducationTable({ data }: { data: Education[] }) {
+  const getCategoryLabel = (category: Education["category"]) =>
+    category === "SCHOOL" ? "School" : "University";
+
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
@@ -26,6 +31,7 @@ export function EducationTable({ data }: { data: Education[] }) {
         <TableHeader>
           <TableRow>
             <TableHead>Nama Pendidikan</TableHead>
+            <TableHead>Kategori</TableHead>
             <TableHead className="w-25 text-center">Edit</TableHead>
             <TableHead className="w-25 text-center">Hapus</TableHead>
           </TableRow>
@@ -34,6 +40,9 @@ export function EducationTable({ data }: { data: Education[] }) {
           {data.map((item) => (
             <TableRow key={item.id}>
               <TableCell className="font-medium">{item.name}</TableCell>
+              <TableCell>
+                <Badge variant="secondary">{getCategoryLabel(item.category)}</Badge>
+              </TableCell>
               <TableCell className="text-center">
                 <EducationForm education={item} />
               </TableCell>

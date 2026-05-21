@@ -31,9 +31,10 @@ import { cn } from "@/lib/utils";
 type Education = {
   id: string;
   name: string;
+  category: "SCHOOL" | "UNIVERSITY";
 };
 
-type University = {
+type Institution = {
   name: string;
 };
 
@@ -95,40 +96,49 @@ export function StepEducation({
         : initialData.expectedSalary
       : "",
   );
-  const [universities, setUniversities] = useState<University[]>([]);
-  const [loadingUniversities, setLoadingUniversities] = useState(false);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [loadingInstitutions, setLoadingInstitutions] = useState(false);
   const [openCombobox, setOpenCombobox] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const selectedEducationCategory = educations.find(
+    (education) => education.id === selectedEducation,
+  )?.category;
 
-  // Fetch universities when search query changes
-  // Di dalam useEffect pencarian pada StepEducation
+  // Fetch institutions based on selected education category
   useEffect(() => {
+    if (!selectedEducationCategory) {
+      setInstitutions([]);
+      return;
+    }
+
     if (searchQuery.length < 3) {
-      setUniversities([]);
+      setInstitutions([]);
       return;
     }
 
     const debounce = setTimeout(async () => {
-      setLoadingUniversities(true);
+      setLoadingInstitutions(true);
       try {
+        const categoryParam =
+          selectedEducationCategory === "SCHOOL" ? "school" : "university";
+
         const res = await fetch(
-          `/api/institutions?search=${encodeURIComponent(searchQuery)}`,
+          `/api/institutions?search=${encodeURIComponent(searchQuery)}&category=${categoryParam}`,
         );
         const data = await res.json();
 
-        // API Route kita sudah meratakan datanya menjadi array
-        setUniversities(Array.isArray(data) ? data : []);
+        setInstitutions(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error("Failed to fetch universities", error);
-        setUniversities([]);
+        console.error("Failed to fetch institutions", error);
+        setInstitutions([]);
       } finally {
-        setLoadingUniversities(false);
+        setLoadingInstitutions(false);
       }
     }, 500);
 
     return () => clearTimeout(debounce);
-  }, [searchQuery]);
+  }, [searchQuery, selectedEducationCategory]);
 
   // Format rupiah display
   function formatRupiah(value: string | number): string {
@@ -283,17 +293,25 @@ export function StepEducation({
                     onValueChange={setSearchQuery}
                   />
                   <CommandList>
-                    {loadingUniversities && (
+                    {loadingInstitutions && (
                       <CommandEmpty>Loading...</CommandEmpty>
                     )}
-                    {!loadingUniversities && searchQuery.length < 3 && (
+                    {!loadingInstitutions && !selectedEducationCategory && (
+                      <CommandEmpty>
+                        Pilih pendidikan terakhir terlebih dahulu
+                      </CommandEmpty>
+                    )}
+                    {!loadingInstitutions &&
+                      selectedEducationCategory &&
+                      searchQuery.length < 3 && (
                       <CommandEmpty>
                         Ketik minimal 3 karakter untuk mencari
                       </CommandEmpty>
                     )}
-                    {!loadingUniversities &&
+                    {!loadingInstitutions &&
+                      selectedEducationCategory &&
                       searchQuery.length >= 3 &&
-                      universities.length === 0 && (
+                      institutions.length === 0 && (
                         <CommandGroup>
                           <CommandItem
                             value={searchQuery}
@@ -309,12 +327,12 @@ export function StepEducation({
                           </CommandItem>
                         </CommandGroup>
                       )}
-                    {universities.length > 0 && (
+                    {institutions.length > 0 && (
                       <CommandGroup>
-                        {universities.map((uni, idx) => (
+                        {institutions.map((institutionItem, idx) => (
                           <CommandItem
                             key={idx}
-                            value={uni.name}
+                            value={institutionItem.name}
                             onSelect={(currentValue) => {
                               setInstitution(currentValue);
                               setOpenCombobox(false);
@@ -324,12 +342,12 @@ export function StepEducation({
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                institution === uni.name
+                                institution === institutionItem.name
                                   ? "opacity-100"
                                   : "opacity-0",
                               )}
                             />
-                            {uni.name}
+                            {institutionItem.name}
                           </CommandItem>
                         ))}
                         {/* Option to add custom if search has results */}

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { educationSchema } from "@/lib/validations/education";
 import { revalidatePath } from "next/cache";
+import { inferEducationCategory } from "@/lib/education-category";
 
 export async function getEducations() {
   return await prisma.education.findMany({
@@ -13,6 +14,7 @@ export async function getEducations() {
 export async function createEducation(formData: FormData) {
   const parsed = educationSchema.safeParse({
     name: formData.get("name"),
+    category: formData.get("category") || undefined,
   });
 
   if (!parsed.success) {
@@ -20,8 +22,14 @@ export async function createEducation(formData: FormData) {
   }
 
   try {
+    const category =
+      parsed.data.category ?? inferEducationCategory(parsed.data.name);
+
     await prisma.education.create({
-      data: parsed.data,
+      data: {
+        name: parsed.data.name,
+        category,
+      },
     });
     revalidatePath("/dashboard/applicant/education");
     return { success: true };
@@ -36,6 +44,7 @@ export async function createEducation(formData: FormData) {
 export async function updateEducation(id: string, formData: FormData) {
   const parsed = educationSchema.safeParse({
     name: formData.get("name"),
+    category: formData.get("category") || undefined,
   });
 
   if (!parsed.success) {
@@ -43,9 +52,15 @@ export async function updateEducation(id: string, formData: FormData) {
   }
 
   try {
+    const category =
+      parsed.data.category ?? inferEducationCategory(parsed.data.name);
+
     await prisma.education.update({
       where: { id },
-      data: parsed.data,
+      data: {
+        name: parsed.data.name,
+        category,
+      },
     });
     revalidatePath("/dashboard/applicant/education");
     return { success: true };

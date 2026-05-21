@@ -108,6 +108,7 @@ model EmploymentStatus {
 model Education {
   id           String        @id @default(cuid())
   name         String        @unique
+  category     EducationCategory
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   jobs         Job[]
@@ -317,6 +318,11 @@ enum ApplicantStatus {
   HIRED
   REJECTED
   WITHDRAWN
+}
+
+enum EducationCategory {
+  SCHOOL
+  UNIVERSITY
 }
 
 model ApplicationAnswer {
