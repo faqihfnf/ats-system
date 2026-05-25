@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ATS Papandayan Cargo",
+  title: "Karir Papandayan Cargo",
   description: "Recruitment Papandayan Cargo System",
 };
 
