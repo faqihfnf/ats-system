@@ -19,7 +19,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trash2, MessageCircle, ArrowRightLeft, Ellipsis } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Trash2,
+  MessageCircle,
+  ArrowRightLeft,
+  Ellipsis,
+  Brain,
+  Copy,
+  Check,
+  Loader2,
+} from "lucide-react";
 import { useState } from "react";
 import { deleteCandidate } from "../_actions/action.candidates";
 import { toast } from "sonner";
@@ -46,6 +63,10 @@ export function CandidateActions({
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [showDiscDialog, setShowDiscDialog] = useState(false);
+  const [discLink, setDiscLink] = useState("");
+  const [isSendingDisc, setIsSendingDisc] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   function formatWhatsAppNumber(phoneNumber: string): string {
@@ -70,6 +91,42 @@ export function CandidateActions({
     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${message}`;
 
     window.open(whatsappUrl, "_blank");
+  }
+
+  async function handleSendDisc() {
+    setIsSendingDisc(true);
+
+    try {
+      const res = await fetch("/api/disc/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ applicationId: candidateId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Gagal mengirim undangan DISC", {
+          position: "top-right",
+        });
+        setIsSendingDisc(false);
+        return;
+      }
+
+      setDiscLink(data.invitation.testUrl);
+      setShowDiscDialog(true);
+    } catch {
+      toast.error("Terjadi kesalahan", { position: "top-right" });
+    }
+
+    setIsSendingDisc(false);
+  }
+
+  async function handleCopyLink() {
+    await navigator.clipboard.writeText(discLink);
+    setCopied(true);
+    toast.success("Link berhasil disalin", { position: "top-right" });
+    setTimeout(() => setCopied(false), 2000);
   }
 
   async function handleDelete() {
@@ -107,6 +164,12 @@ export function CandidateActions({
             <span>Undang Kandidat</span>
           </DropdownMenuItem>
 
+          {/* Send DISC Test */}
+          <DropdownMenuItem onClick={handleSendDisc} disabled={isSendingDisc}>
+            <Brain className="mr-2 h-4 w-4 text-purple-600" />
+            <span>{isSendingDisc ? "Mengirim..." : "Kirim DISC Test"}</span>
+          </DropdownMenuItem>
+
           {/* Transfer to Another Job */}
           <DropdownMenuItem onClick={() => setShowTransferDialog(true)}>
             <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-600" />
@@ -125,6 +188,30 @@ export function CandidateActions({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* DISC Link Dialog */}
+      <Dialog open={showDiscDialog} onOpenChange={setShowDiscDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Link DISC Test</DialogTitle>
+            <DialogDescription>
+              Undangan DISC berhasil dibuat untuk <strong>{candidateName}</strong>.
+              Salin link di bawah dan kirimkan ke kandidat.
+              Link berlaku 24 jam.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2">
+            <Input value={discLink} readOnly className="text-sm" />
+            <Button size="sm" variant="outline" onClick={handleCopyLink}>
+              {copied ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
