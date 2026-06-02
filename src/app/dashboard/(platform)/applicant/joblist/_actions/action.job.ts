@@ -120,6 +120,7 @@ export async function createJob(data: JobPayload) {
     });
 
     revalidatePath("/dashboard/applicant/joblist");
+    revalidatePath("/");
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
@@ -238,6 +239,7 @@ export async function deleteJob(id: string) {
 
     await prisma.job.delete({ where: { id } });
     revalidatePath("/dashboard/applicant/joblist");
+    revalidatePath("/");
     return { success: true };
   } catch {
     return { error: "Terjadi kesalahan saat menghapus" };
@@ -259,6 +261,7 @@ export async function updateJobStatus(id: string, status: string) {
       data: { status: validStatus },
     });
     revalidatePath("/dashboard/applicant/joblist");
+    revalidatePath("/");
     return { success: true };
   } catch {
     return { error: "Terjadi kesalahan saat mengubah status" };
@@ -542,6 +545,7 @@ export async function updateJob(id: string, data: JobPayload) {
     console.log("=== UPDATE SUCCESS ===");
     revalidatePath("/dashboard/applicant/joblist");
     revalidatePath(`/dashboard/applicant/joblist/${id}`);
+    revalidatePath("/");
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
