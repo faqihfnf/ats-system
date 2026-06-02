@@ -109,14 +109,9 @@ export function AppSidebar({ role, ...props }: Props) {
           icon: "Brain",
           items: [
             {
-              title: "Dashboard",
-              url: "/dashboard/psikotest",
-              icon: "LayoutDashboard",
-            },
-            {
-              title: "Explorer",
-              url: "/dashboard/psikotest/explorer",
-              icon: "Compass",
+              title: "Report",
+              url: "/dashboard/psikotest/report",
+              icon: "FileUser",
             },
           ],
         },

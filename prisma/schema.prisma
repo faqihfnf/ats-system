@@ -52,6 +52,7 @@ model Profile {
   jobs      Job[]
   divisions ProfileDivisi[]
   notes     CandidateNote[]
+  discInvitationsSent DiscInvitation[] @relation("DiscInvitationSentBy")
 
   @@map("profiles")
 }
@@ -284,6 +285,10 @@ model Application {
   // Notes
   notes CandidateNote[]
 
+  // DISC Psikotest
+  discInvitations DiscInvitation[]
+  discResults     DiscResult[]
+
   // Status tracking
   currentStageId String?
   currentStage   Stage?          @relation(fields: [currentStageId], references: [id])
@@ -350,4 +355,89 @@ model CandidateNote {
   updatedAt DateTime @updatedAt
 
   @@map("candidate_notes")
+}
+
+// ==================== DISC PSIKOTEST ====================
+
+model DiscInvitation {
+  id              String     @id @default(cuid())
+  token           String     @unique
+  applicationId   String
+  application     Application @relation(fields: [applicationId], references: [id])
+  sentById        String
+  sentBy          Profile    @relation("DiscInvitationSentBy", fields: [sentById], references: [id])
+  status          DiscStatus @default(PENDING)
+  expiresAt       DateTime                          // sent + 24 jam
+  openedAt        DateTime?                         // pertama dibuka
+  sessionDeadline DateTime?                         // openedAt + 90 menit
+  completedAt     DateTime?
+  tabSwitchCount  Int        @default(0)
+  ipAddress       String?
+  userAgent       String?    @db.Text
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  answers DiscAnswer[]
+  result  DiscResult?
+
+  @@map("disc_invitations")
+}
+
+enum DiscStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+}
+
+model DiscQuestion {
+  id       String  @id @default(cuid())
+  groupNo  Int     @unique               // urutan 1–28
+  wordD    String
+  wordI    String
+  wordS    String
+  wordC    String
+  isActive Boolean @default(true)
+  answers  DiscAnswer[]
+
+  @@map("disc_questions")
+}
+
+model DiscAnswer {
+  id           String        @id @default(cuid())
+  invitationId String
+  invitation   DiscInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     DiscQuestion   @relation(fields: [questionId], references: [id])
+  answerMost   DiscDimension
+  answerLeast  DiscDimension
+  answeredAt   DateTime      @default(now())
+
+  @@unique([invitationId, questionId])
+  @@map("disc_answers")
+}
+
+enum DiscDimension {
+  D
+  I
+  S
+  C
+}
+
+model DiscResult {
+  id           String   @id @default(cuid())
+  invitationId String   @unique
+  invitation   DiscInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  applicationId String
+  application  Application @relation(fields: [applicationId], references: [id])
+  scoreD       Int
+  scoreI       Int
+  scoreS       Int
+  scoreC       Int
+  dominantType String                    // D / I / S / C
+  profileLabel String
+  completedAt  DateTime
+  createdAt    DateTime @default(now())
+
+  @@map("disc_results")
 }
