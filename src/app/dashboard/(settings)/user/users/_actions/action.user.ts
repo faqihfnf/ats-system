@@ -5,24 +5,74 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { createUserSchema, updateUserSchema } from "@/lib/validations/user";
 import { revalidatePath } from "next/cache";
 
-// Ambil semua user dari profiles
+const USERS_PATH = "/dashboard/user/users";
+
+function isAuthUserNotFound(message?: string) {
+  return message?.toLowerCase().includes("user not found") ?? false;
+}
+
+async function getAuthUserIds() {
+  const supabase = createAdminClient();
+  const authUserIds = new Set<string>();
+  const perPage = 1000;
+  let page = 1;
+
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage,
+    });
+
+    if (error) throw error;
+
+    for (const user of data.users) {
+      authUserIds.add(user.id);
+    }
+
+    if (data.users.length < perPage) break;
+    page += 1;
+  }
+
+  return authUserIds;
+}
+
+async function ensureAuthUserExists(id: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.auth.admin.getUserById(id);
+
+  if (error) {
+    return {
+      exists: false,
+      error: isAuthUserNotFound(error.message) ? undefined : error.message,
+    };
+  }
+
+  return { exists: !!data.user };
+}
+
+// Ambil semua user yang masih ada di Supabase Auth
 export async function getUsers() {
-  return await prisma.profile.findMany({
-    include: {
-      divisions: {
-        select: {
-          divisiId: true,
-          divisi: {
-            select: {
-              id: true,
-              nama: true,
+  const [profiles, authUserIds] = await Promise.all([
+    prisma.profile.findMany({
+      include: {
+        divisions: {
+          select: {
+            divisiId: true,
+            divisi: {
+              select: {
+                id: true,
+                nama: true,
+              },
             },
           },
         },
       },
-    },
-    orderBy: { createdAt: "asc" },
-  });
+      orderBy: { createdAt: "asc" },
+    }),
+    getAuthUserIds(),
+  ]);
+
+  return profiles.filter((profile) => authUserIds.has(profile.id));
 }
 
 // Tambah user baru via Supabase Admin + simpan profile
@@ -64,26 +114,31 @@ export async function createUser(formData: FormData) {
     return { error: error.message };
   }
 
-  // Simpan profile ke database
-  await prisma.profile.create({
-    data: {
-      id: data.user.id,
-      nama: parsed.data.nama,
-      role: parsed.data.role,
-      email: parsed.data.email,
-      ...(parsed.data.role === "USER" && parsed.data.divisiIds.length > 0
-        ? {
-            divisions: {
-              create: parsed.data.divisiIds.map((divisiId: string) => ({
-                divisiId,
-              })),
-            },
-          }
-        : {}),
-    },
-  });
+  try {
+    // Simpan profile ke database
+    await prisma.profile.create({
+      data: {
+        id: data.user.id,
+        nama: parsed.data.nama,
+        role: parsed.data.role,
+        email: parsed.data.email,
+        ...(parsed.data.role === "USER" && parsed.data.divisiIds.length > 0
+          ? {
+              divisions: {
+                create: parsed.data.divisiIds.map((divisiId: string) => ({
+                  divisiId,
+                })),
+              },
+            }
+          : {}),
+      },
+    });
+  } catch {
+    await supabase.auth.admin.deleteUser(data.user.id);
+    return { error: "Gagal menyimpan profile user" };
+  }
 
-  revalidatePath("/dashboard/user/users");
+  revalidatePath(USERS_PATH);
   return { success: true };
 }
 
@@ -108,8 +163,18 @@ export async function updateUser(id: string, formData: FormData) {
     }
   }
 
-  const divisiIds =
-    parsed.data.role === "USER" ? parsed.data.divisiIds : [];
+  const divisiIds = parsed.data.role === "USER" ? parsed.data.divisiIds : [];
+
+  const authUser = await ensureAuthUserExists(id);
+  if (authUser.error) return { error: authUser.error };
+  if (!authUser.exists) {
+    await prisma.profile.deleteMany({ where: { id } });
+    revalidatePath(USERS_PATH);
+    return {
+      error:
+        "User sudah tidak ada di Supabase Auth. Profile lokal sudah dibersihkan.",
+    };
+  }
 
   // Delete existing divisions then recreate
   await prisma.$transaction([
@@ -130,7 +195,7 @@ export async function updateUser(id: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath("/dashboard/user/users");
+  revalidatePath(USERS_PATH);
   return { success: true };
 }
 
@@ -141,12 +206,14 @@ export async function deleteUser(id: string) {
 
     // Hapus dari Supabase Auth
     const { error } = await supabase.auth.admin.deleteUser(id);
-    if (error) return { error: error.message };
+    if (error && !isAuthUserNotFound(error.message)) {
+      return { error: error.message };
+    }
 
     // Hapus profile (cascade)
-    await prisma.profile.delete({ where: { id } });
+    await prisma.profile.deleteMany({ where: { id } });
 
-    revalidatePath("/dashboard/user/users");
+    revalidatePath(USERS_PATH);
     return { success: true };
   } catch {
     return { error: "Terjadi kesalahan saat menghapus user" };
