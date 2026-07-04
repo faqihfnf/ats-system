@@ -31,6 +31,13 @@ import {
 import type { Candidate, Stage } from "@/types/types";
 import { CandidateActions } from "./comp.candidate-actions";
 
+const formatApplyDate = (date: Date | string) =>
+  new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
+
 export type CandidateColumn = Candidate & {
   jobId: string;
   stages: Stage[];
@@ -64,6 +71,21 @@ export const columns: ColumnDef<CandidateColumn>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
+  },
+
+  // Apply Date
+  {
+    id: "applyDate",
+    accessorKey: "createdAt",
+    header: "Apply Date",
+    meta: {
+      label: "Apply Date",
+    },
+    cell: ({ row }) => (
+      <span className="text-sm whitespace-nowrap">
+        {formatApplyDate(row.original.createdAt)}
+      </span>
+    ),
   },
 
   // Full Name

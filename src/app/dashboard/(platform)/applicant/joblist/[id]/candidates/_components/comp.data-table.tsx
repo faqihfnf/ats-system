@@ -51,6 +51,7 @@ export function DataTable<TData, TValue>({
     React.useState<VisibilityState>({
       // Default visible columns
       select: true,
+      applyDate: true,
       fullName: true,
       aiScore: true,
       age: true,
@@ -71,6 +72,11 @@ export function DataTable<TData, TValue>({
     });
   const [rowSelection, setRowSelection] = React.useState({});
 
+  const toExcelDateSerial = (date: Date) =>
+    (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) -
+      Date.UTC(1899, 11, 30)) /
+    86400000;
+
   // Temporary state for column visibility (before Apply)
   const [tempColumnVisibility, setTempColumnVisibility] =
     React.useState(columnVisibility);
@@ -81,6 +87,7 @@ export function DataTable<TData, TValue>({
   const [selectedExportColumns, setSelectedExportColumns] = React.useState<
     Record<string, boolean>
   >({
+    applyDate: true,
     fullName: true,
     aiScore: true,
     age: true,
@@ -120,6 +127,7 @@ export function DataTable<TData, TValue>({
   // Map column ID to display name
   const getDisplayName = (id: string): string => {
     const names: Record<string, string> = {
+      applyDate: "Apply Date",
       fullName: "Full Name",
       aiScore: "AI Score",
       age: "Age",
@@ -256,6 +264,14 @@ export function DataTable<TData, TValue>({
         let value: any;
 
         switch (col.id) {
+          case "applyDate":
+            if (candidate.createdAt) {
+              const applyDate = new Date(candidate.createdAt);
+              value = toExcelDateSerial(applyDate);
+            } else {
+              value = null;
+            }
+            break;
           case "fullName":
             value = candidate.fullName;
             break;
@@ -329,6 +345,27 @@ export function DataTable<TData, TValue>({
 
     // Create worksheet
     const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    const applyDateColumnIndex = columnData.findIndex(
+      (col) => col.id === "applyDate",
+    );
+
+    if (applyDateColumnIndex !== -1 && worksheet["!ref"]) {
+      const range = XLSX.utils.decode_range(worksheet["!ref"]);
+
+      for (let rowIndex = range.s.r + 1; rowIndex <= range.e.r; rowIndex++) {
+        const cellAddress = XLSX.utils.encode_cell({
+          r: rowIndex,
+          c: applyDateColumnIndex,
+        });
+        const cell = worksheet[cellAddress];
+
+        if (cell && typeof cell.v === "number") {
+          cell.t = "n";
+          cell.z = "dd-mm-yyyy";
+        }
+      }
+    }
 
     // Create workbook
     const workbook = XLSX.utils.book_new();
