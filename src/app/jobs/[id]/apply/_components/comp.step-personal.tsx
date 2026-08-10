@@ -20,8 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { id as idLocale } from "date-fns/locale";
+import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { RegionCombobox } from "./comp.region-combobox";
 
@@ -43,6 +42,12 @@ export function StepPersonal({ initialData, onNext }: Props) {
   const [birthDate, setBirthDate] = useState<Date | undefined>(
     initialData.birthDate ? new Date(initialData.birthDate) : undefined,
   );
+  const [birthDateInput, setBirthDateInput] = useState(
+    initialData.birthDate
+      ? format(new Date(initialData.birthDate), "dd/MM/yyyy")
+      : "",
+  );
+  const [birthDateInvalid, setBirthDateInvalid] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [religion, setReligion] = useState(initialData.religion || "");
   const [gender, setGender] = useState(initialData.gender || "");
@@ -188,6 +193,37 @@ export function StepPersonal({ initialData, onNext }: Props) {
     fetchVillages();
   }, [selectedDistrict, districts]);
 
+  function handleBirthDateInput(raw: string) {
+    const digits = raw.replace(/\D/g, "").slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 4 && digits.length <= 6) {
+      formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+    } else if (digits.length > 6) {
+      formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+    } else if (digits.length > 2) {
+      formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    }
+    setBirthDateInput(formatted);
+
+    if (formatted.length === 10) {
+      const parsed = parse(formatted, "dd/MM/yyyy", new Date());
+      if (
+        isNaN(parsed.getTime()) ||
+        parsed > new Date() ||
+        parsed < new Date("1900-01-01")
+      ) {
+        setBirthDateInvalid(true);
+        setBirthDate(undefined);
+      } else {
+        setBirthDateInvalid(false);
+        setBirthDate(parsed);
+      }
+    } else {
+      setBirthDateInvalid(false);
+      setBirthDate(undefined);
+    }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setValidationError(null);
@@ -198,6 +234,7 @@ export function StepPersonal({ initialData, onNext }: Props) {
       !phone ||
       !birthPlace ||
       !birthDate ||
+      birthDateInvalid ||
       !religion ||
       !gender ||
       !ktpAddress ||
@@ -207,7 +244,11 @@ export function StepPersonal({ initialData, onNext }: Props) {
       !selectedDistrict ||
       !selectedVillage
     ) {
-      setValidationError("Semua field wajib diisi");
+      setValidationError(
+        birthDateInvalid
+          ? "Format tanggal lahir tidak valid (dd/mm/yyyy)"
+          : "Semua field wajib diisi",
+      );
       return;
     }
 
@@ -296,30 +337,41 @@ export function StepPersonal({ initialData, onNext }: Props) {
           </Label>
           <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start",
-                  !birthDate && "text-muted-foreground",
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {birthDate ? (
-                  format(birthDate, "PPP", { locale: idLocale })
-                ) : (
-                  <span>Tanggal Lahir</span>
-                )}
-              </Button>
+              <div className="relative">
+                <Input
+                  id="birthDate"
+                  value={birthDateInput}
+                  onChange={(e) => handleBirthDateInput(e.target.value)}
+                  onClick={() => setIsOpen(true)}
+                  placeholder="dd/mm/yyyy"
+                  inputMode="numeric"
+                  maxLength={10}
+                  className={cn(
+                    "pr-10 cursor-pointer",
+                    birthDateInvalid &&
+                      "border-destructive focus-visible:ring-destructive",
+                  )}
+                  readOnly={false}
+                />
+                <CalendarIcon className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              </div>
             </PopoverTrigger>
-            <PopoverContent className="w-100" align="start">
+            <PopoverContent
+              className="w-(--radix-popover-trigger-width) p-0"
+              align="start"
+            >
               <Calendar
                 mode="single"
                 selected={birthDate}
                 onSelect={(date) => {
                   setBirthDate(date);
-                  setIsOpen(false); // Menutup kalender otomatis
+                  setBirthDateInput(
+                    date ? format(date, "dd/MM/yyyy") : "",
+                  );
+                  setBirthDateInvalid(false);
+                  setIsOpen(false);
                 }}
-                captionLayout="dropdown" // Menggunakan dropdown bulan & tahun
+                captionLayout="dropdown"
                 fromYear={1960}
                 toYear={new Date().getFullYear()}
                 disabled={(date) =>
@@ -328,8 +380,8 @@ export function StepPersonal({ initialData, onNext }: Props) {
                 initialFocus
                 className="p-4"
                 classNames={{
-                  caption_label: "hidden", // Menghilangkan teks statis agar tidak menumpuk
-                  caption_dropdowns: "flex justify-center gap-2 w-full mb-2", // Memberi jarak pada dropdown
+                  caption_label: "hidden",
+                  caption_dropdowns: "flex justify-center gap-2 w-full mb-2",
                   dropdown:
                     "p-2 cursor-pointer bg-white border border-slate-200 rounded-md text-sm hover:bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none",
                   dropdown_month: "flex-1",
@@ -348,6 +400,11 @@ export function StepPersonal({ initialData, onNext }: Props) {
               />
             </PopoverContent>
           </Popover>
+          {birthDateInvalid && (
+            <p className="text-destructive text-xs">
+              Format tanggal tidak valid (dd/mm/yyyy)
+            </p>
+          )}
         </div>
 
         {/* Religion */}
