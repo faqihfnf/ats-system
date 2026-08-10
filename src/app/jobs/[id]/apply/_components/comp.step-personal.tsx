@@ -23,6 +23,7 @@ import {
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { RegionCombobox } from "./comp.region-combobox";
 
 type Province = { id: string; name: string };
 type City = { id: string; name: string };
@@ -434,24 +435,16 @@ export function StepPersonal({ initialData, onNext }: Props) {
           <Label>
             Provinsi <span className="text-destructive"> *</span>
           </Label>
-          <Select
+          <RegionCombobox
+            options={provinces}
             value={selectedProvince}
-            onValueChange={setSelectedProvince}
+            onChange={setSelectedProvince}
+            placeholder="Pilih Provinsi"
+            searchPlaceholder="Cari provinsi..."
             disabled={loadingProvinces}
-          >
-            <SelectTrigger>
-              <SelectValue
-                placeholder={loadingProvinces ? "Loading..." : "Pilih Provinsi"}
-              />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              {provinces.map((prov) => (
-                <SelectItem key={prov.id} value={prov.name}>
-                  {prov.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            loading={loadingProvinces}
+            emptyText="Provinsi tidak ditemukan."
+          />
         </div>
 
         {/* City */}
@@ -459,24 +452,16 @@ export function StepPersonal({ initialData, onNext }: Props) {
           <Label>
             Kota <span className="text-destructive"> *</span>
           </Label>
-          <Select
+          <RegionCombobox
+            options={cities}
             value={selectedCity}
-            onValueChange={setSelectedCity}
+            onChange={setSelectedCity}
+            placeholder="Pilih Kota"
+            searchPlaceholder="Cari kota..."
             disabled={!selectedProvince || loadingCities}
-          >
-            <SelectTrigger>
-              <SelectValue
-                placeholder={loadingCities ? "Loading..." : "Pilih Kota"}
-              />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              {cities.map((city) => (
-                <SelectItem key={city.id} value={city.name}>
-                  {city.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            loading={loadingCities}
+            emptyText="Kota tidak ditemukan."
+          />
         </div>
 
         {/* District */}
@@ -484,26 +469,16 @@ export function StepPersonal({ initialData, onNext }: Props) {
           <Label>
             Kecamatan <span className="text-destructive"> *</span>
           </Label>
-          <Select
+          <RegionCombobox
+            options={districts}
             value={selectedDistrict}
-            onValueChange={setSelectedDistrict}
+            onChange={setSelectedDistrict}
+            placeholder="Pilih Kecamatan"
+            searchPlaceholder="Cari kecamatan..."
             disabled={!selectedCity || loadingDistricts}
-          >
-            <SelectTrigger>
-              <SelectValue
-                placeholder={
-                  loadingDistricts ? "Loading..." : "Pilih Kecamatan"
-                }
-              />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              {districts.map((district) => (
-                <SelectItem key={district.id} value={district.name}>
-                  {district.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            loading={loadingDistricts}
+            emptyText="Kecamatan tidak ditemukan."
+          />
         </div>
 
         {/* Village */}
@@ -511,24 +486,16 @@ export function StepPersonal({ initialData, onNext }: Props) {
           <Label>
             Kelurahan <span className="text-destructive"> *</span>
           </Label>
-          <Select
+          <RegionCombobox
+            options={villages}
             value={selectedVillage}
-            onValueChange={setSelectedVillage}
+            onChange={setSelectedVillage}
+            placeholder="Pilih Kelurahan"
+            searchPlaceholder="Cari kelurahan..."
             disabled={!selectedDistrict || loadingVillages}
-          >
-            <SelectTrigger>
-              <SelectValue
-                placeholder={loadingVillages ? "Loading..." : "Pilih Kelurahan"}
-              />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              {villages.map((village) => (
-                <SelectItem key={village.id} value={village.name}>
-                  {village.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            loading={loadingVillages}
+            emptyText="Kelurahan tidak ditemukan."
+          />
         </div>
       </div>
 
