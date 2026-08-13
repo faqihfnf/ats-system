@@ -106,13 +106,17 @@ export function StepEducation({
   )?.category;
 
   // Fetch institutions based on selected education category
+  // API baru: sekolah min 3 char, kampus min 2 char
+  const minSearchChars =
+    selectedEducationCategory === "SCHOOL" ? 3 : 2;
+
   useEffect(() => {
     if (!selectedEducationCategory) {
       setInstitutions([]);
       return;
     }
 
-    if (searchQuery.length < 3) {
+    if (searchQuery.length < minSearchChars) {
       setInstitutions([]);
       return;
     }
@@ -138,7 +142,7 @@ export function StepEducation({
     }, 500);
 
     return () => clearTimeout(debounce);
-  }, [searchQuery, selectedEducationCategory]);
+  }, [searchQuery, selectedEducationCategory, minSearchChars]);
 
   // Format rupiah display
   function formatRupiah(value: string | number): string {
@@ -303,14 +307,14 @@ export function StepEducation({
                     )}
                     {!loadingInstitutions &&
                       selectedEducationCategory &&
-                      searchQuery.length < 3 && (
+                      searchQuery.length < minSearchChars && (
                       <CommandEmpty>
-                        Ketik minimal 3 karakter untuk mencari
+                        Ketik minimal {minSearchChars} karakter untuk mencari
                       </CommandEmpty>
                     )}
                     {!loadingInstitutions &&
                       selectedEducationCategory &&
-                      searchQuery.length >= 3 &&
+                      searchQuery.length >= minSearchChars &&
                       institutions.length === 0 && (
                         <CommandGroup>
                           <CommandItem

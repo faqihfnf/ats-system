@@ -10,48 +10,69 @@ export async function GET(request: Request) {
   const category: InstitutionCategory =
     categoryParam === "school" ? "school" : "university";
 
-  if (!query || query.length < 3) {
+  // API baru (apiindonesia.id): minimal 2 karakter untuk kampus, 3 untuk sekolah
+  const minChars = category === "school" ? 3 : 2;
+  if (!query || query.length < minChars) {
     return NextResponse.json([]);
   }
 
   try {
     const baseUrl =
       category === "school"
-        ? "https://use.api.co.id/regional/indonesia/schools"
-        : "https://use.api.co.id/regional/indonesia/universities";
-    const apiKey =
-      category === "school"
-        ? process.env.API_SCHOOL_KEY || process.env.API_UNIVERSITY_KEY || ""
-        : process.env.API_UNIVERSITY_KEY || process.env.API_SCHOOL_KEY || "";
+        ? "https://use.apiindonesia.id/api/v1/sekolah/search"
+        : "https://use.apiindonesia.id/api/v1/kampus/search";
+    const apiKey = process.env.API_EDUCATION_KEY || "";
 
     const url = new URL(baseUrl);
-    url.searchParams.set("name", query);
-    if (category === "university") {
-      url.searchParams.set("size", "20");
-    } else {
-      url.searchParams.set("page", "1");
-    }
+    url.searchParams.set("q", query);
 
     const response = await fetch(url.toString(), {
       headers: {
         "Content-Type": "application/json",
-        "x-api-co-id": apiKey,
+        "x-api-key": apiKey,
       },
     });
 
-    const result = await response.json();
-
-    if (Array.isArray(result?.data)) {
-      const normalizedInstitutions = result.data
-        .map((item: { name?: string }) => ({
-          name: typeof item?.name === "string" ? item.name.trim() : "",
-        }))
-        .filter((item: { name: string }) => item.name.length > 0);
-
-      return NextResponse.json(normalizedInstitutions);
+    if (!response.ok) {
+      console.error(
+        "[institutions] External API error:",
+        response.status,
+        await response.text().catch(() => ""),
+      );
+      return NextResponse.json([]);
     }
 
-    return NextResponse.json([]);
+    const result = await response.json();
+
+    // Struktur resmi apiindonesia.id: { data: [...], meta: {...} }
+    const list: unknown[] = Array.isArray(result?.data)
+      ? result.data
+      : Array.isArray(result)
+        ? result
+        : [];
+
+    const normalizedInstitutions = list
+      .map((item) => {
+        const obj = (item ?? {}) as Record<string, unknown>;
+        const name =
+          typeof obj?.name === "string"
+            ? obj.name
+            : typeof obj?.nama === "string"
+              ? (obj.nama as string)
+              : "";
+        return { name: name.trim() };
+      })
+      .filter((item: { name: string }) => item.name.length > 0)
+      // Hilangkan duplikat berdasarkan nama (case-insensitive), pertahankan urutan
+      .filter(
+        (item, index, self) =>
+          index ===
+          self.findIndex(
+            (i) => i.name.toLowerCase() === item.name.toLowerCase(),
+          ),
+      );
+
+    return NextResponse.json(normalizedInstitutions);
   } catch (error) {
     console.error("Institution API Error:", error);
     return NextResponse.json(
