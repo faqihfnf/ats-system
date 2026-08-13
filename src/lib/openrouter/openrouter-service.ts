@@ -85,6 +85,7 @@ TUGAS:
 6. Jika data bukan sebuah resume/cv, berikan nilai 0% dan jelaskan bahwa data tidak valid. dan pada bagian "strengths" dan "weaknesses" berikan output"Data tidak valid".
 
 FORMAT OUTPUT (JSON saja, tanpa markdown):
+OUTPUT HARUS DALAM BAHASA INDONESIA, DAN HARUS SESUAI FORMAT BERIKUT!!!!:
 {
   "strengths": "string (gunakan bullet points dengan \\n)",
   "weaknesses": "string (gunakan bullet points dengan \\n)",
