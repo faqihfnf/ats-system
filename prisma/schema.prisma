@@ -52,6 +52,7 @@ model Profile {
   jobs      Job[]
   divisions ProfileDivisi[]
   notes     CandidateNote[]
+  stageChanges StageHistory[] @relation("StageHistoryChangedBy")
   discInvitationsSent DiscInvitation[] @relation("DiscInvitationSentBy")
 
   @@map("profiles")
@@ -75,14 +76,38 @@ enum Role {
 }
 
 model Stage {
-  id           String        @id @default(cuid())
-  name         String        @unique
-  order        Int           @default(0)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  applications Application[]
+  id                String         @id @default(cuid())
+  name              String         @unique
+  order             Int            @default(0)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  applications      Application[]
+  stageHistoryFrom  StageHistory[] @relation("StageHistoryFrom")
+  stageHistoryTo    StageHistory[] @relation("StageHistoryTo")
 
   @@map("stages")
+}
+
+// Riwayat perpindahan stage kandidat (append-only audit log)
+model StageHistory {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  fromStageId   String?
+  fromStage     Stage?      @relation("StageHistoryFrom", fields: [fromStageId], references: [id])
+
+  toStageId     String
+  toStage       Stage       @relation("StageHistoryTo", fields: [toStageId], references: [id])
+
+  changedById   String
+  changedBy     Profile     @relation("StageHistoryChangedBy", fields: [changedById], references: [id])
+
+  note          String?     // keterangan opsional per perpindahan
+  createdAt     DateTime    @default(now())
+
+  @@index([applicationId, createdAt])
+  @@map("stage_histories")
 }
 
 model Branch {
@@ -284,6 +309,9 @@ model Application {
 
   // Notes
   notes CandidateNote[]
+
+  // Stage History
+  stageHistories StageHistory[]
 
   // DISC Psikotest
   discInvitations DiscInvitation[]

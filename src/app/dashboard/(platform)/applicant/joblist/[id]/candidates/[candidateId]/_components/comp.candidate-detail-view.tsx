@@ -14,6 +14,7 @@ import {
   ArrowRightLeft,
   Download,
   FileText,
+  History,
   MessageCircle,
   MessageSquare,
   Info,
@@ -30,6 +31,7 @@ import { AdditionalQuestions } from "./_sections/comp.additional-questions";
 import { CVPreview } from "./_sections/comp.cv-preview";
 import { JobInfo } from "./_sections/comp.job-info";
 import { CandidateNotes } from "./_sections/comp.candidate-notes";
+import { StageHistoryTimeline } from "./_sections/comp.stage-history-timeline";
 import { AIAnalysis } from "./_sections/comp.ai-analysis";
 import {
   calculateAge,
@@ -39,7 +41,11 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { updateCandidateStage } from "../../_actions/action.candidates";
-import { CandidateWithRelations, Stage } from "@/types/types";
+import {
+  CandidateWithRelations,
+  Stage,
+  StageHistoryEntry,
+} from "@/types/types";
 import { TransferCandidateDialog } from "../../_components/comp.transfer-candidate-dialog";
 
 type CandidateNotesList = ComponentProps<typeof CandidateNotes>["notes"];
@@ -50,6 +56,7 @@ type Props = {
   stages: Stage[];
   canManageCandidateActions: boolean;
   notes: CandidateNotesList;
+  stageHistory: StageHistoryEntry[];
   currentUserId: string;
   currentUserRole: string;
 };
@@ -60,6 +67,7 @@ export function CandidateDetailView({
   stages,
   canManageCandidateActions,
   notes,
+  stageHistory,
   currentUserId,
   currentUserRole,
 }: Props) {
@@ -187,6 +195,10 @@ export function CandidateDetailView({
                 <MessageSquare className="h-4 w-4" />
                 Notes {notes.length > 0 && `(${notes.length})`}
               </TabsTrigger>
+              <TabsTrigger value="stage-history" className="gap-2">
+                <History className="h-4 w-4" />
+                History {stageHistory.length > 0 && `(${stageHistory.length})`}
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="cv" className="mt-4">
               {candidate.cvUrl ? (
@@ -213,12 +225,15 @@ export function CandidateDetailView({
                 currentUserRole={currentUserRole}
               />
             </TabsContent>
+            <TabsContent value="stage-history" className="mt-4">
+              <StageHistoryTimeline history={stageHistory} />
+            </TabsContent>
           </Tabs>
         </div>
 
         {/* Information Sidebar (1/4) */}
         <div className="col-span-1">
-          <div className="space-y-6 mt-12">
+          <div className="mt-12 space-y-6">
             <ProfileHeader
               fullName={candidate.fullName}
               initials={initials}

@@ -95,9 +95,29 @@ export async function updateCandidateStage(
       return { error: "Anda tidak memiliki akses ke kandidat ini" };
     }
 
-    await prisma.application.update({
-      where: { id: applicationId },
-      data: { currentStageId: stageId },
+    // Update stage + catat history dalam satu transaction
+    await prisma.$transaction(async (tx) => {
+      const prev = await tx.application.findUnique({
+        where: { id: applicationId },
+        select: { currentStageId: true },
+      });
+
+      // Skip jika stage tidak berubah — hindari history duplikat
+      if (prev?.currentStageId === stageId) return;
+
+      await tx.application.update({
+        where: { id: applicationId },
+        data: { currentStageId: stageId },
+      });
+
+      await tx.stageHistory.create({
+        data: {
+          applicationId,
+          fromStageId: prev?.currentStageId ?? null,
+          toStageId: stageId,
+          changedById: profile.id,
+        },
+      });
     });
 
     return { success: true };
@@ -144,13 +164,40 @@ export async function bulkUpdateStage(
       }
     }
 
-    // Bulk update
-    await prisma.application.updateMany({
-      where: { id: { in: applicationIds } },
-      data: { currentStageId: stageId },
+    // Bulk update + catat history per kandidat dalam satu transaction
+    const updatedCount = await prisma.$transaction(async (tx) => {
+      let count = 0;
+
+      for (const applicationId of applicationIds) {
+        const prev = await tx.application.findUnique({
+          where: { id: applicationId },
+          select: { currentStageId: true },
+        });
+
+        // Skip jika kandidat tidak ditemukan atau stage tidak berubah
+        if (!prev || prev.currentStageId === stageId) continue;
+
+        await tx.application.update({
+          where: { id: applicationId },
+          data: { currentStageId: stageId },
+        });
+
+        await tx.stageHistory.create({
+          data: {
+            applicationId,
+            fromStageId: prev.currentStageId ?? null,
+            toStageId: stageId,
+            changedById: profile.id,
+          },
+        });
+
+        count++;
+      }
+
+      return count;
     });
 
-    return { success: true, count: applicationIds.length };
+    return { success: true, count: updatedCount };
   } catch (error) {
     console.error("Bulk update stage error:", error);
     return { error: "Gagal mengupdate stage secara bulk" };
@@ -466,12 +513,18 @@ export async function transferCandidate(
       where: { applicationId: candidateId },
     });
 
-    // 4. Update candidate to new job and reset stage
-    await prisma.application.update({
-      where: { id: candidateId },
-      data: {
-        jobId: toJobId,
-        currentStageId: firstStage.id,
+    // 4. Update candidate to new job, reset stage, dan catat history transfer
+    await prisma.$transaction(async (tx) => {
+      const prev = await tx.application.findUnique({
+        where: { id: candidateId },
+        select: { currentStageId: true },
+      });
+
+      await tx.application.update({
+        where: { id: candidateId },
+        data: {
+          jobId: toJobId,
+          currentStageId: firstStage.id,
         // Reset AI Scoring
         totalScore: 0,
         educationScore: 0,
@@ -489,6 +542,17 @@ export async function transferCandidate(
         aiMatchPercentage: null,
         analyzedAt: null,
       },
+    });
+
+      await tx.stageHistory.create({
+        data: {
+          applicationId: candidateId,
+          fromStageId: prev?.currentStageId ?? null,
+          toStageId: firstStage.id,
+          changedById: profile.id,
+          note: `Dipindahkan dari lowongan lain ke lowongan ini`,
+        },
+      });
     });
 
     revalidatePath(`/dashboard/applicant/joblist/${fromJobId}/candidates`);

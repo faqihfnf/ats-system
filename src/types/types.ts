@@ -202,6 +202,16 @@ export type Stage = {
 export type StageWithCount = Stage & {
   count: number;
 };
+// STAGE HISTORY TYPE
+
+export type StageHistoryEntry = {
+  id: string;
+  fromStage: { id: string; name: string } | null;
+  toStage: { id: string; name: string };
+  changedBy: { id: string; nama: string; email: string; role: string };
+  note: string | null;
+  createdAt: Date;
+};
 
 // CUSTOM QUESTION & ANSWER TYPES
 

@@ -19,7 +19,15 @@ export async function submitApplication(jobId: string, data: any) {
       orderBy: { order: "asc" },
     });
 
-    // Create application
+    // Form apply bersifat publik (tanpa session), jadi gunakan profile ADMIN
+    // pertama sebagai aktor "Sistem" untuk pencatatan history awal
+    const systemProfile = await prisma.profile.findFirst({
+      where: { role: "ADMIN" },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+
+    // Create application + initial stage history
     await prisma.application.create({
       data: {
         jobId,
@@ -56,6 +64,19 @@ export async function submitApplication(jobId: string, data: any) {
         cvUrl: data.cvUrl,
         currentStageId: firstStage?.id,
         status: "ACTIVE",
+        // Catat riwayat awal: masuk ke stage pertama
+        ...(firstStage && systemProfile
+          ? {
+              stageHistories: {
+                create: {
+                  fromStageId: null,
+                  toStageId: firstStage.id,
+                  changedById: systemProfile.id,
+                  note: "Melamar (masuk stage awal)",
+                },
+              },
+            }
+          : {}),
         // ← Fix: hanya create answers jika ada
         ...(data.answers && data.answers.length > 0
           ? {
