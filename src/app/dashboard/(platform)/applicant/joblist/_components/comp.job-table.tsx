@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -17,6 +18,7 @@ import { id as idLocale } from "date-fns/locale";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { JobListItem, Stage } from "@/types/types";
+import { DataTablePagination } from "@/components/data-table/comp.data-table-pagination";
 
 type Props = {
   data: JobListItem[];
@@ -25,6 +27,23 @@ type Props = {
 };
 
 export function JobTable({ data, stages, canManageJobs }: Props) {
+  // Pagination state — default 10 rows per page
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
+  const pageCount = Math.ceil(data.length / pageSize);
+
+  // Clamp pageIndex saat data menyusut (derived, tanpa useEffect)
+  const safePageIndex = Math.min(
+    pageIndex,
+    Math.max(0, pageCount - 1),
+  );
+
+  const paginatedData = data.slice(
+    safePageIndex * pageSize,
+    (safePageIndex + 1) * pageSize,
+  );
+
   // Helper function to count candidates per stage for a job
   function getStageCount(job: JobListItem, stageId: string): number {
     return job.applications.filter((app) => app.currentStageId === stageId)
@@ -74,7 +93,7 @@ export function JobTable({ data, stages, canManageJobs }: Props) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((job) => (
+            {paginatedData.map((job) => (
               <TableRow
                 key={job.id}
                 className="border-b transition-colors last:border-0"
@@ -192,6 +211,21 @@ export function JobTable({ data, stages, canManageJobs }: Props) {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Pagination */}
+      <div className="border-t p-2">
+        <DataTablePagination
+          pageIndex={safePageIndex}
+          pageCount={pageCount}
+          pageSize={pageSize}
+          totalRows={data.length}
+          onPageChange={setPageIndex}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setPageIndex(0);
+          }}
+        />
       </div>
     </div>
   );

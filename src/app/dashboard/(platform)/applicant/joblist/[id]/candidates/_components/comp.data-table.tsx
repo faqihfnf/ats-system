@@ -22,15 +22,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronDown, Columns3, Download } from "lucide-react";
+import { Columns3, Download } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { DataTablePagination } from "@/components/data-table/comp.data-table-pagination";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -71,6 +71,12 @@ export function DataTable<TData, TValue>({
       religion: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
+
+  // Pagination state (controlled) — default 10 rows per page
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const toExcelDateSerial = (date: Date) =>
     (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) -
@@ -116,11 +122,13 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onPaginationChange: setPagination,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination,
     },
   });
 
@@ -540,7 +548,9 @@ export function DataTable<TData, TValue>({
           {bulkActions && (
             <div className="flex items-center gap-2">
               {bulkActions(
-                table.getFilteredSelectedRowModel().rows.map((row) => row.original)
+                table
+                  .getFilteredSelectedRowModel()
+                  .rows.map((row) => row.original),
               )}
             </div>
           )}
@@ -600,30 +610,15 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-end space-x-2">
-        {/* <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div> */}
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      <DataTablePagination
+        pageIndex={table.getState().pagination.pageIndex}
+        pageCount={table.getPageCount()}
+        pageSize={table.getState().pagination.pageSize}
+        totalRows={table.getFilteredRowModel().rows.length}
+        selectedRows={table.getFilteredSelectedRowModel().rows.length}
+        onPageChange={(i) => setPagination((p) => ({ ...p, pageIndex: i }))}
+        onPageSizeChange={(s) => setPagination({ pageIndex: 0, pageSize: s })}
+      />
     </div>
   );
 }
