@@ -559,8 +559,8 @@ export function DataTable<TData, TValue>({
 
       {/* Table */}
       <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+        <Table containerClassName="max-h-[650px]">
+          <TableHeader className="bg-background [&_tr]:bg-background sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
