@@ -62,6 +62,8 @@ export function CandidatesFilter({
       maxAge: "",
       location: "",
       yoe: "",
+      applyDateFrom: "",
+      applyDateTo: "",
     });
     setMinSalaryDisplay("");
     setMaxSalaryDisplay("");
@@ -72,7 +74,7 @@ export function CandidatesFilter({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-xl">Filter & Sort</CardTitle>
-        <Button variant="ghost" size="lg" onClick={handleReset}>
+        <Button variant="outline" size="lg" onClick={handleReset}>
           Reset
         </Button>
       </CardHeader>
@@ -89,6 +91,37 @@ export function CandidatesFilter({
               onFiltersChange({ ...filters, search: e.target.value })
             }
           />
+        </div>
+        {/* Apply Date Range */}
+        <div className="space-y-2">
+          <Label>Apply Date</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              type="date"
+              value={filters.applyDateFrom}
+              max={filters.applyDateTo || undefined}
+              onChange={(e) =>
+                onFiltersChange({
+                  ...filters,
+                  applyDateFrom: e.target.value,
+                })
+              }
+            />
+            <Input
+              type="date"
+              value={filters.applyDateTo}
+              min={filters.applyDateFrom || undefined}
+              onChange={(e) =>
+                onFiltersChange({
+                  ...filters,
+                  applyDateTo: e.target.value,
+                })
+              }
+            />
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Dari — Sampai tanggal melamar
+          </p>
         </div>
         {/* Education */}
         <div className="space-y-2">

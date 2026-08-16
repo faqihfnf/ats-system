@@ -242,4 +242,6 @@ export type CandidateFilters = {
   maxAge: string;
   location: string;
   yoe: string;
+  applyDateFrom: string; // format: YYYY-MM-DD
+  applyDateTo: string; // format: YYYY-MM-DD
 };

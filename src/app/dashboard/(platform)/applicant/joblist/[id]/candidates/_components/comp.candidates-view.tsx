@@ -47,6 +47,8 @@ export function CandidatesView({
     maxAge: "",
     location: "",
     yoe: "",
+    applyDateFrom: "",
+    applyDateTo: "",
   });
 
   // Calculate candidate counts per stage
@@ -118,6 +120,27 @@ export function CandidatesView({
 
       if (!cityMatch && !districtMatch) {
         return false;
+      }
+    }
+
+    // Filter by apply date range
+    if (filters.applyDateFrom || filters.applyDateTo) {
+      const applyDate = new Date(candidate.createdAt);
+      // Normalisasi ke tanggal saja (tanpa jam) untuk perbandingan akurat
+      const applyDateOnly = new Date(
+        applyDate.getFullYear(),
+        applyDate.getMonth(),
+        applyDate.getDate(),
+      );
+
+      if (filters.applyDateFrom) {
+        const fromDate = new Date(filters.applyDateFrom + "T00:00:00");
+        if (applyDateOnly < fromDate) return false;
+      }
+
+      if (filters.applyDateTo) {
+        const toDate = new Date(filters.applyDateTo + "T23:59:59");
+        if (applyDateOnly > toDate) return false;
       }
     }
 
