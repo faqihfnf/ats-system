@@ -92,6 +92,11 @@ export function AppSidebar({ role, ...props }: Props) {
               icon: "GraduationCap",
             },
             {
+              title: "Sources",
+              url: "/dashboard/applicant/sources",
+              icon: "Share2",
+            },
+            {
               title: "Experience",
               url: "/dashboard/applicant/experience",
               icon: "History",

@@ -17,6 +17,7 @@ import {
   Activity, // Status
   GraduationCap, // Education
   History, // Experience
+  Share2, // Sources
   Sparkles, // Models
   LayoutDashboard, // Dashboard Psikotest
   Compass, // Explorer
@@ -57,6 +58,7 @@ const iconMap: Record<string, LucideIcon> = {
   Activity,
   GraduationCap,
   History,
+  Share2,
   LayoutDashboard,
   Compass,
   MessageSquare,

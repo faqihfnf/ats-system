@@ -53,6 +53,7 @@ model Profile {
   divisions ProfileDivisi[]
   notes     CandidateNote[]
   stageChanges StageHistory[] @relation("StageHistoryChangedBy")
+  applicantImports ApplicantImport[] @relation("ApplicantImportBy")
   discInvitationsSent DiscInvitation[] @relation("DiscInvitationSentBy")
 
   @@map("profiles")
@@ -108,6 +109,48 @@ model StageHistory {
 
   @@index([applicationId, createdAt])
   @@map("stage_histories")
+}
+
+// ==================== APPLICANT SOURCE & IMPORT ====================
+
+enum ApplicantSourceCategory {
+  CAREER_SITE
+  JOB_PORTAL
+  SOCIAL_MEDIA
+  REFERRAL
+  OTHER
+}
+
+model ApplicantSource {
+  id           String                   @id @default(cuid())
+  code         String                   @unique
+  name         String                   @unique
+  category     ApplicantSourceCategory
+  isActive     Boolean                  @default(true)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  applications Application[]
+
+  @@map("applicant_sources")
+}
+
+model ApplicantImport {
+  id              String   @id @default(cuid())
+  jobId           String
+  job             Job      @relation(fields: [jobId], references: [id])
+
+  importedById    String
+  importedBy      Profile  @relation("ApplicantImportBy", fields: [importedById], references: [id])
+
+  excelFileName   String
+  zipFileName     String
+  totalApplicants Int
+  createdAt       DateTime @default(now())
+
+  applications Application[]
+
+  @@map("applicant_imports")
 }
 
 model Branch {
@@ -200,6 +243,7 @@ model Job {
   customQuestions CustomQuestion[]
 
   applications Application[]
+  applicantImports ApplicantImport[]
 
   status    JobStatus @default(DRAFT)
   createdAt DateTime  @default(now())
@@ -302,7 +346,17 @@ model Application {
   expectedSalary Int
 
   // Upload CV
-  cvUrl String?
+  cvUrl             String?
+  originalCvFileName String?
+
+  // Sumber kandidat (import / career web)
+  sourceId            String
+  source              ApplicantSource @relation(fields: [sourceId], references: [id])
+  externalApplicantId String?
+
+  // Import batch (audit record)
+  importId String?
+  import   ApplicantImport? @relation(fields: [importId], references: [id])
 
   // Custom Question Answers
   answers ApplicationAnswer[]
@@ -343,6 +397,8 @@ model Application {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([sourceId])
+  @@index([jobId, externalApplicantId])
   @@map("applications")
 }
 

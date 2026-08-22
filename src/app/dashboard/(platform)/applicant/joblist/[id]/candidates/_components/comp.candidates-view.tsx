@@ -7,6 +7,9 @@ import { CandidatesFilter } from "./comp.candidates-filter";
 import { CandidatesTable } from "./comp.candidates-table";
 import { Candidate, CandidateFilters, Stage } from "@/types/types";
 import { calculateAge } from "@/lib/helpers/candidate-helper";
+import Link from "next/link";
+import { Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type CandidateJob = {
   id: string;
@@ -179,12 +182,22 @@ export function CandidatesView({
 
   return (
     <div className="space-y-6">
-      {/* Job Header */}
-      <div>
-        <h1 className="mb-1 text-3xl font-semibold">{job.position.nama}</h1>
-        <p className="text-muted-foreground text-sm">
-          {job.position.divisi.nama} • {job.position.level.nama}
-        </p>
+      {/* Job Header + Import Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="mb-1 text-3xl font-semibold">{job.position.nama}</h1>
+          <p className="text-muted-foreground text-sm">
+            {job.position.divisi.nama} • {job.position.level.nama}
+          </p>
+        </div>
+        {canManageCandidateActions && (
+          <Link href={`/dashboard/applicant/joblist/${job.id}/candidates/import`}>
+            <Button variant="outline">
+              <Upload className="mr-2 h-4 w-4" />
+              Import Applicant
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Stages Header */}

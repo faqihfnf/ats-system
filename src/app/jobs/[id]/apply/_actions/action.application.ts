@@ -27,6 +27,12 @@ export async function submitApplication(jobId: string, data: any) {
       select: { id: true },
     });
 
+    // Pelamar dari form web selalu bersumber CAREER_WEB (tidak dari client)
+    const careerWebSource = await prisma.applicantSource.findUnique({
+      where: { code: "CAREER_WEB" },
+      select: { id: true },
+    });
+
     // Create application + initial stage history
     await prisma.application.create({
       data: {
@@ -62,6 +68,7 @@ export async function submitApplication(jobId: string, data: any) {
         currentSalary: data.currentSalary,
         expectedSalary: data.expectedSalary,
         cvUrl: data.cvUrl,
+        sourceId: careerWebSource!.id,
         currentStageId: firstStage?.id,
         status: "ACTIVE",
         // Catat riwayat awal: masuk ke stage pertama
