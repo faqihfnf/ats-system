@@ -31,25 +31,25 @@ export function StatsCards({ stats }: Props) {
         </Card>
       </Link>
 
-      {/* New Candidates (This Month) */}
+      {/* New Candidates (Selected Period) */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">New Candidates</CardTitle>
+            <CardTitle className="text-sm font-medium">Applicants in Period</CardTitle>
           <Users className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.newCandidates}</div>
           <p className="text-muted-foreground text-xs">
-            Applications this month
+              Applications in selected period
           </p>
         </CardContent>
       </Card>
 
-      {/* Total Candidates (All Time) - UPDATED */}
+      {/* Total Candidates (Selected Period) */}
       <Card className="border-primary/20 bg-primary/5">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Total Candidates
+            Candidates in Period
           </CardTitle>
           <UserCheck className="text-primary h-4 w-4" />
         </CardHeader>
@@ -58,7 +58,7 @@ export function StatsCards({ stats }: Props) {
             {stats.totalCandidates}
           </div>
           <p className="text-muted-foreground text-xs">
-            All applications in database
+            Applications in selected period
           </p>
         </CardContent>
       </Card>

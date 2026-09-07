@@ -3,7 +3,20 @@
 import { getSessionProfile } from "@/lib/auth/session-profile";
 import { prisma } from "@/lib/prisma";
 
-export async function getDashboardStats() {
+export type DashboardPeriod = {
+  from?: string;
+  to?: string;
+};
+
+function periodWhere(period: DashboardPeriod) {
+  if (!period.from && !period.to) return {};
+  const where: { gte?: Date; lte?: Date } = {};
+  if (period.from) where.gte = new Date(`${period.from}T00:00:00.000`);
+  if (period.to) where.lte = new Date(`${period.to}T23:59:59.999`);
+  return { createdAt: where };
+}
+
+export async function getDashboardStats(period: DashboardPeriod = {}) {
   try {
     const profile = await getSessionProfile();
     if (!profile) {
@@ -36,15 +49,9 @@ export async function getDashboardStats() {
     });
 
     // 2. New Candidates (this month)
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
     const newCandidates = await prisma.application.count({
       where: {
-        createdAt: {
-          gte: startOfMonth,
-        },
+        ...periodWhere(period),
         ...(isUserRole
           ? { job: { position: { divisiId: { in: profile.divisiIds } } } }
           : {}),
@@ -53,15 +60,18 @@ export async function getDashboardStats() {
 
     // 3. Total Candidates (all time)
     const totalCandidates = await prisma.application.count({
-      where: isUserRole
-        ? {
+      where: {
+        ...periodWhere(period),
+        ...(isUserRole
+          ? {
             job: {
               position: {
                 divisiId: { in: profile.divisiIds },
               },
             },
           }
-        : undefined,
+          : {}),
+      },
     });
 
     return {
@@ -79,7 +89,7 @@ export async function getDashboardStats() {
   }
 }
 
-export async function getCandidatesByStage() {
+export async function getCandidatesByStage(period: DashboardPeriod = {}) {
   try {
     const profile = await getSessionProfile();
     if (!profile) return [];
@@ -93,13 +103,14 @@ export async function getCandidatesByStage() {
         applications: {
           where: isUserRole
             ? {
+                ...periodWhere(period),
                 job: {
                   position: {
                     divisiId: { in: profile.divisiIds },
                   },
                 },
               }
-            : undefined,
+            : periodWhere(period),
           select: { id: true },
         },
       },
@@ -116,7 +127,7 @@ export async function getCandidatesByStage() {
   }
 }
 
-export async function getLatestApplications() {
+export async function getLatestApplications(period: DashboardPeriod = {}) {
   try {
     const profile = await getSessionProfile();
     if (!profile) return [];
@@ -127,15 +138,18 @@ export async function getLatestApplications() {
     const applications = await prisma.application.findMany({
       take: 10,
       orderBy: { createdAt: "desc" },
-      where: isUserRole
-        ? {
+      where: {
+        ...periodWhere(period),
+        ...(isUserRole
+          ? {
             job: {
               position: {
                 divisiId: { in: profile.divisiIds },
               },
             },
           }
-        : undefined,
+          : {}),
+      },
       include: {
         job: {
           include: {
@@ -151,4 +165,44 @@ export async function getLatestApplications() {
     console.error("Get latest applications error:", error);
     return [];
   }
+}
+
+export async function getApplicantTrend(period: DashboardPeriod = {}) {
+  const profile = await getSessionProfile();
+  if (!profile || (profile.role === "USER" && profile.divisiIds.length === 0)) return [];
+  const rows = await prisma.application.findMany({
+    where: {
+      ...periodWhere(period),
+      ...(profile.role === "USER"
+        ? { job: { position: { divisiId: { in: profile.divisiIds } } } }
+        : {}),
+    },
+    select: { createdAt: true },
+    orderBy: { createdAt: "asc" },
+  });
+  const grouped = new Map<string, number>();
+  rows.forEach(({ createdAt }) => {
+    const key = createdAt.toISOString().slice(0, 10);
+    grouped.set(key, (grouped.get(key) ?? 0) + 1);
+  });
+  return [...grouped].map(([date, count]) => ({ date, count }));
+}
+
+export async function getApplicantsBySource(period: DashboardPeriod = {}) {
+  const profile = await getSessionProfile();
+  if (!profile || (profile.role === "USER" && profile.divisiIds.length === 0)) return [];
+  const rows = await prisma.application.findMany({
+    where: {
+      ...periodWhere(period),
+      ...(profile.role === "USER"
+        ? { job: { position: { divisiId: { in: profile.divisiIds } } } }
+        : {}),
+    },
+    select: { source: { select: { name: true } } },
+  });
+  const grouped = new Map<string, number>();
+  rows.forEach(({ source }) => grouped.set(source.name, (grouped.get(source.name) ?? 0) + 1));
+  return [...grouped]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
 }
