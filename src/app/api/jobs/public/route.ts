@@ -12,6 +12,7 @@ export async function GET() {
       select: {
         id: true,
         createdAt: true,
+        updatedAt: true,
         position: {
           select: {
             nama: true,

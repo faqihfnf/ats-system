@@ -89,6 +89,7 @@ export type CandidateWithRelations = Candidate & {
     province: string;
     city: string;
     createdAt: Date;
+    updatedAt: Date;
     status: string;
     position: {
       nama: string;
@@ -110,6 +111,7 @@ export type Job = {
   id: string;
   status: string;
   createdAt: Date;
+  updatedAt: Date;
   description: string | null;
   requirements: string | null;
   minSalary: number;
@@ -147,6 +149,7 @@ export type JobListItem = {
   id: string;
   status: string;
   createdAt: Date;
+  updatedAt: Date;
   position: {
     nama: string;
     divisi: { nama: string };

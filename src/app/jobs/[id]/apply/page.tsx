@@ -94,7 +94,7 @@ export default async function JobApplyPage({ params }: Props) {
               <div className="flex items-center gap-2 text-sm md:justify-center">
                 <CalendarDays className="text-muted-foreground size-4" />
                 <span>
-                  {format(new Date(job.createdAt), "d MMM yyyy", {
+                  {format(new Date(job.updatedAt), "d MMM yyyy", {
                     locale: idLocale,
                   })}
                 </span>

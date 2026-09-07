@@ -166,7 +166,7 @@ export function CandidateDetailView({
 
           {candidate.cvUrl && (
             <>
-              <Link href={candidate.cvUrl} target="_blank" download>
+              <Link href={`/api/applications/${candidate.id}/cv`} target="_blank" download>
                 <Button size="sm">
                   <Download className="mr-2 h-4 w-4" />
                   Download CV

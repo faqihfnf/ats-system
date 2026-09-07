@@ -112,7 +112,7 @@ export function JobTable({ data, stages, canManageJobs }: Props) {
                     </h4>
                     <p className="text-muted-foreground text-xs font-medium">
                       {job.creator.nama} •{" "}
-                      {format(new Date(job.createdAt), "d MMM yyyy", {
+                      {format(new Date(job.updatedAt), "d MMM yyyy", {
                         locale: idLocale,
                       })}
                     </p>

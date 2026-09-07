@@ -108,9 +108,9 @@ export function JobInfo({ job }: Props) {
           <div className="flex items-center gap-3">
             <CalendarDays className="text-muted-foreground size-5" />
             <div>
-              <p className="text-muted-foreground text-sm">Tanggal Dibuat</p>
+              <p className="text-muted-foreground text-sm">Tanggal Diperbarui</p>
               <p className="font-medium">
-                {format(new Date(job.createdAt), "d MMMM yyyy", {
+                {format(new Date(job.updatedAt), "d MMMM yyyy", {
                   locale: idLocale,
                 })}
               </p>

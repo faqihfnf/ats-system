@@ -12,7 +12,7 @@ type Job = {
   id: string;
   city: string;
   province: string;
-  createdAt: Date;
+  updatedAt: Date;
   position: {
     nama: string;
     divisi: { id: string; nama: string };
@@ -117,7 +117,7 @@ export default function JobListingsSection({ jobs, divisions, levels }: Props) {
                             </span>
                             <CalendarDays className="text-muted-foreground size-4" />
                             <span>
-                              {format(new Date(job.createdAt), "dd MMM yyyy")}
+                              {format(new Date(job.updatedAt), "dd MMM yyyy")}
                             </span>
                           </div>
                         </div>

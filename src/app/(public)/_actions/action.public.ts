@@ -17,6 +17,7 @@ export async function getPublicJobs(divisiId?: string) {
       city: true,
       province: true,
       createdAt: true,
+      updatedAt: true,
       position: {
         select: {
           nama: true,
@@ -26,7 +27,7 @@ export async function getPublicJobs(divisiId?: string) {
       },
       employmentStatus: { select: { name: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { updatedAt: "desc" },
   });
 
   return jobs;
