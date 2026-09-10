@@ -256,12 +256,15 @@ export async function importApplicants(
         // Rename PDF di storage agar pakai application.id sebenarnya
         // (opsional — untuk MVP biarkan path tempAppId, sudah unik)
       }
+    }, {
+      maxWait: 10000,
+      timeout: 60000,
     });
   } catch (e) {
     // Rollback database + hapus PDF
     await cleanupUploadedPdfs(uploadedPdfs.map((p) => p.path));
     console.error("Import transaction error:", e);
-    return { success: false, error: `Gagal menyimpan data: ${(e as Error).message}` };
+    return { success: false, error: "Import gagal saat menyimpan data. Tidak ada kandidat yang disimpan." };
   }
 
   revalidatePath(`/dashboard/applicant/joblist/${jobId}/candidates`);

@@ -53,7 +53,7 @@ export function ApplicationForm({ job, educations }: Props) {
     if (completeData.cvFile) {
       toast.info("Uploading CV...", { position: "top-right" });
 
-      const result = await uploadCV(completeData.cvFile);
+      const result = await uploadCV(completeData.cvFile, completeData.fullName);
 
       if (result.error) {
         toast.error(result.error, { position: "top-right" });
@@ -62,6 +62,7 @@ export function ApplicationForm({ job, educations }: Props) {
       }
 
       completeData.cvUrl = result.url;
+      completeData.originalCvFileName = result.originalFileName;
       delete completeData.cvFile; // Remove file object
     }
 

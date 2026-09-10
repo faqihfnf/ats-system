@@ -67,7 +67,8 @@ export async function submitApplication(jobId: string, data: any) {
         // Gaji
         currentSalary: data.currentSalary,
         expectedSalary: data.expectedSalary,
-        cvUrl: data.cvUrl,
+         cvUrl: data.cvUrl,
+         originalCvFileName: data.originalCvFileName,
         sourceId: careerWebSource!.id,
         currentStageId: firstStage?.id,
         status: "ACTIVE",
