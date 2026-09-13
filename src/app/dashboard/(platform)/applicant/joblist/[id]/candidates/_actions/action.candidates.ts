@@ -1,7 +1,7 @@
 "use server";
 
 import { extractTextFromPDF } from "@/lib/pdf/pdf";
-import { analyzeCVWithOpenRouter } from "@/lib/openrouter/openrouter-service";
+import { analyzeCVWithSumoPod } from "@/lib/sumopod/sumopod-service";
 import { canAccessDivision, getSessionProfile } from "@/lib/auth/session-profile";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -293,13 +293,13 @@ export async function scoreAndAnalyzeCandidate(candidateId: string, modelId: str
       return { error: `Gagal mengekstrak teks dari CV: ${error.message}` };
     }
 
-    // 3. AI Analysis with OpenRouter
+    // 3. AI Analysis with SumoPod
     console.log("=== AI ANALYSIS START ===");
     let aiAnalysis = null;
     let aiError = null;
 
     try {
-      aiAnalysis = await analyzeCVWithOpenRouter(
+      aiAnalysis = await analyzeCVWithSumoPod(
         cvText,
         candidate.job.description || "",
         candidate.job.requirements || "",

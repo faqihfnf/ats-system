@@ -76,7 +76,7 @@ export function ModelForm({ model }: Props) {
               id="name"
               name="name"
               defaultValue={model?.name}
-              placeholder="contoh: DeepSeek V4 Flash"
+              placeholder="contoh: GPT-4o Mini"
               required
               disabled={loading}
             />
@@ -87,12 +87,12 @@ export function ModelForm({ model }: Props) {
               id="modelId"
               name="modelId"
               defaultValue={model?.modelId}
-              placeholder="contoh: deepseek/deepseek-v4-flash:free"
+              placeholder="contoh: gpt-4o-mini"
               required
               disabled={loading}
             />
             <p className="text-xs text-muted-foreground">
-              Salin dari OpenRouter (contoh: deepseek/deepseek-v4-flash:free)
+              Salin dari SumoPod (contoh: gpt-4o-mini)
             </p>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
