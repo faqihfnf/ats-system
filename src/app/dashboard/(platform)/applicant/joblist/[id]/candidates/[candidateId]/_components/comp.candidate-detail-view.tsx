@@ -241,6 +241,7 @@ export function CandidateDetailView({
               currentStage={candidate.currentStage?.name || null}
               status={candidate.status}
               appliedDate={candidate.createdAt}
+              source={candidate.source.name}
             />
 
             <ContactInfo

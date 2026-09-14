@@ -11,6 +11,7 @@ type Props = {
   currentStage: string | null;
   status: string;
   appliedDate: Date;
+  source: string;
 };
 
 export function ProfileHeader({
@@ -20,6 +21,7 @@ export function ProfileHeader({
   currentStage,
   status,
   appliedDate,
+  source,
 }: Props) {
   return (
     <Card>
@@ -36,11 +38,12 @@ export function ProfileHeader({
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Badge>{currentStage || "No Stage"}</Badge>
-            <Badge variant="outline">{status}</Badge>
+            {/* <Badge variant="outline">{status}</Badge> */}
           </div>
           <p className="text-muted-foreground text-xs">
             Applied {format(appliedDate, "PPP", { locale: idLocale })}
           </p>
+          <p className="text-muted-foreground text-xs">Source: {source}</p>
         </div>
       </CardContent>
     </Card>
