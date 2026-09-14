@@ -65,6 +65,23 @@ export async function updateStage(id: string, formData: FormData) {
 
 export async function deleteStage(id: string) {
   try {
+    const [candidateCount, historyCount] = await Promise.all([
+      prisma.application.count({ where: { currentStageId: id } }),
+      prisma.stageHistory.count({ where: { toStageId: id } }),
+    ]);
+
+    if (candidateCount > 0) {
+      return {
+        error: `Stage tidak dapat dihapus karena masih ditempati oleh ${candidateCount} kandidat. Pindahkan kandidat ke stage lain terlebih dahulu.`,
+      };
+    }
+
+    if (historyCount > 0) {
+      return {
+        error: `Stage tidak dapat dihapus karena sudah tercatat di riwayat perpindahan stage (${historyCount} riwayat).`,
+      };
+    }
+
     await prisma.stage.delete({ where: { id } });
     revalidatePath("/dashboard/stages");
     return { success: true };

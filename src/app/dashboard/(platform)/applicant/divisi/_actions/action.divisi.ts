@@ -64,6 +64,16 @@ export async function updateDivisi(id: string, formData: FormData) {
 
 export async function deleteDivisi(id: string) {
   try {
+    const positionCount = await prisma.position.count({
+      where: { divisiId: id },
+    });
+
+    if (positionCount > 0) {
+      return {
+        error: `Divisi tidak dapat dihapus karena masih dipakai oleh ${positionCount} posisi.`,
+      };
+    }
+
     await prisma.divisi.delete({
       where: { id },
     });

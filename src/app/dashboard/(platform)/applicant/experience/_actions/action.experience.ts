@@ -61,6 +61,16 @@ export async function updateExperience(id: string, formData: FormData) {
 
 export async function deleteExperience(id: string) {
   try {
+    const jobCount = await prisma.job.count({
+      where: { minExperienceId: id },
+    });
+
+    if (jobCount > 0) {
+      return {
+        error: `Pengalaman tidak dapat dihapus karena masih dipakai oleh ${jobCount} lowongan.`,
+      };
+    }
+
     await prisma.experience.delete({ where: { id } });
     revalidatePath("/dashboard/applicant/experience");
     return { success: true };

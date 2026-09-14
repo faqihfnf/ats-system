@@ -237,6 +237,16 @@ export async function deleteJob(id: string) {
       return { error: "Anda tidak memiliki akses untuk menghapus lowongan" };
     }
 
+    const applicationCount = await prisma.application.count({
+      where: { jobId: id },
+    });
+
+    if (applicationCount > 0) {
+      return {
+        error: `Lowongan tidak dapat dihapus karena sudah ada ${applicationCount} pelamar. Tutup lowongan ini saja jika tidak ingin menerima pelamar baru.`,
+      };
+    }
+
     await prisma.job.delete({ where: { id } });
     revalidatePath("/dashboard/applicant/joblist");
     revalidatePath("/");

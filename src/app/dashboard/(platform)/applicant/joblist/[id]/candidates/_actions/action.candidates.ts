@@ -451,6 +451,17 @@ export async function deleteCandidate(candidateId: string) {
       return { error: "Kandidat tidak ditemukan atau tidak dapat diakses" };
     }
 
+    // Cegah delete jika kandidat sudah pernah diundang tes DISC
+    const discInvitationCount = await prisma.discInvitation.count({
+      where: { applicationId: candidateId },
+    });
+
+    if (discInvitationCount > 0) {
+      return {
+        error: `Kandidat tidak dapat dihapus karena sudah memiliki ${discInvitationCount} undangan tes DISC. Hapus undangan DISC-nya terlebih dahulu di menu Psikotest.`,
+      };
+    }
+
     await prisma.application.delete({
       where: { id: candidateId },
     });

@@ -61,6 +61,14 @@ export async function updateBranch(id: string, formData: FormData) {
 
 export async function deleteBranch(id: string) {
   try {
+    const jobCount = await prisma.job.count({ where: { branchId: id } });
+
+    if (jobCount > 0) {
+      return {
+        error: `Cabang tidak dapat dihapus karena masih dipakai oleh ${jobCount} lowongan.`,
+      };
+    }
+
     await prisma.branch.delete({ where: { id } });
     revalidatePath("/dashboard/applicant/branch");
     return { success: true };

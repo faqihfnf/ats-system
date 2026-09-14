@@ -59,6 +59,16 @@ export async function updateStatus(id: string, formData: FormData) {
 
 export async function deleteStatus(id: string) {
   try {
+    const jobCount = await prisma.job.count({
+      where: { employmentStatusId: id },
+    });
+
+    if (jobCount > 0) {
+      return {
+        error: `Status pekerjaan tidak dapat dihapus karena masih dipakai oleh ${jobCount} lowongan.`,
+      };
+    }
+
     await prisma.employmentStatus.delete({ where: { id } });
     revalidatePath("/dashboard/applicant/status");
     return { success: true };

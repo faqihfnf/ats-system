@@ -64,6 +64,16 @@ export async function updateLevel(id: string, formData: FormData) {
 
 export async function deleteLevel(id: string) {
   try {
+    const positionCount = await prisma.position.count({
+      where: { levelId: id },
+    });
+
+    if (positionCount > 0) {
+      return {
+        error: `Level tidak dapat dihapus karena masih dipakai oleh ${positionCount} posisi.`,
+      };
+    }
+
     await prisma.level.delete({
       where: { id },
     });

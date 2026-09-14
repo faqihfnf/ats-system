@@ -83,6 +83,14 @@ export async function updatePosition(id: string, formData: FormData) {
 
 export async function deletePosition(id: string) {
   try {
+    const jobCount = await prisma.job.count({ where: { positionId: id } });
+
+    if (jobCount > 0) {
+      return {
+        error: `Posisi tidak dapat dihapus karena masih dipakai oleh ${jobCount} lowongan.`,
+      };
+    }
+
     await prisma.position.delete({
       where: { id },
     });

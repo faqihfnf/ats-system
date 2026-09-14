@@ -74,6 +74,20 @@ export async function updateEducation(id: string, formData: FormData) {
 
 export async function deleteEducation(id: string) {
   try {
+    const [jobCount, applicationCount] = await Promise.all([
+      prisma.job.count({ where: { minEducationId: id } }),
+      prisma.application.count({ where: { educationId: id } }),
+    ]);
+
+    if (jobCount > 0 || applicationCount > 0) {
+      const reasons = [];
+      if (jobCount > 0) reasons.push(`${jobCount} lowongan`);
+      if (applicationCount > 0) reasons.push(`${applicationCount} kandidat`);
+      return {
+        error: `Pendidikan tidak dapat dihapus karena masih dipakai oleh ${reasons.join(" dan ")}.`,
+      };
+    }
+
     await prisma.education.delete({ where: { id } });
     revalidatePath("/dashboard/applicant/education");
     return { success: true };
