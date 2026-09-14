@@ -2,9 +2,13 @@ export const dynamic = "force-dynamic";
 
 import { getDiscInvitations } from "./_actions/action.disc-report";
 import { DiscReportTable } from "./_components/comp.disc-report-table";
+import { getSessionProfile } from "@/lib/auth/session-profile";
 
 export default async function DiscReportPage() {
-  const invitations = await getDiscInvitations();
+  const [invitations, profile] = await Promise.all([
+    getDiscInvitations(),
+    getSessionProfile(),
+  ]);
 
   return (
     <div className="w-full space-y-6">
@@ -15,7 +19,10 @@ export default async function DiscReportPage() {
         </p>
       </div>
 
-      <DiscReportTable invitations={invitations} />
+      <DiscReportTable
+        invitations={invitations}
+        canManageInvitations={profile?.role !== "USER"}
+      />
     </div>
   );
 }

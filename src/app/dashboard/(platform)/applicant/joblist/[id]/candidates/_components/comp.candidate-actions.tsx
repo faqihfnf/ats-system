@@ -137,7 +137,7 @@ export function CandidateActions({
     if (result?.error) {
       toast.error(result.error, { position: "top-right" });
     } else {
-      toast.success("", {
+      toast.success(`${candidateName} berhasil dihapus`, {
         position: "top-right",
       });
       router.refresh();

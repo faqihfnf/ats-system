@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,10 +14,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Eye, AlertTriangle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import { deleteDiscInvitation } from "../_actions/action.disc-report";
 
 type Invitation = {
   id: string;
@@ -51,6 +65,7 @@ type Invitation = {
 
 type Props = {
   invitations: Invitation[];
+  canManageInvitations: boolean;
 };
 
 function StatusBadge({ status, expiresAt }: { status: string; expiresAt: Date }) {
@@ -90,7 +105,31 @@ function DominantTypeBadge({ type, label }: { type: string; label: string }) {
   );
 }
 
-export function DiscReportTable({ invitations }: Props) {
+export function DiscReportTable({ invitations, canManageInvitations }: Props) {
+  const router = useRouter();
+  const [deleteTarget, setDeleteTarget] = useState<Invitation | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+
+    setIsDeleting(true);
+    const result = await deleteDiscInvitation(deleteTarget.id);
+
+    if (result?.error) {
+      toast.error(result.error, { position: "top-right" });
+    } else {
+      toast.success(
+        `Undangan DISC ${deleteTarget.application.fullName} berhasil dihapus`,
+        { position: "top-right" },
+      );
+      router.refresh();
+    }
+
+    setIsDeleting(false);
+    setDeleteTarget(null);
+  }
+
   if (invitations.length === 0) {
     return (
       <Card>
@@ -171,21 +210,63 @@ export function DiscReportTable({ invitations }: Props) {
                   <span className="text-sm">{inv.sentBy.nama}</span>
                 </TableCell>
                 <TableCell className="text-right">
-                  {inv.result ? (
-                    <Link href={`/dashboard/psikotest/result/${inv.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
+                  <div className="flex items-center justify-end gap-1">
+                    {inv.result ? (
+                      <Link href={`/dashboard/psikotest/result/${inv.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                    {canManageInvitations && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeleteTarget(inv)}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    </Link>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  )}
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the DISC invitation for{" "}
+              <strong>{deleteTarget?.application.fullName}</strong>
+              {deleteTarget?.result
+                ? " along with its completed test result"
+                : ""}
+              . This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

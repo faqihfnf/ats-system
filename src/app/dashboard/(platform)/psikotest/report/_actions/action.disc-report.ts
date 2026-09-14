@@ -48,6 +48,34 @@ export async function getDiscInvitations() {
   return invitations;
 }
 
+export async function deleteDiscInvitation(invitationId: string) {
+  try {
+    const profile = await getSessionProfile();
+    if (!profile) return { error: "Tidak terautentikasi" };
+    if (profile.role === "USER") {
+      return { error: "Role User tidak memiliki akses hapus undangan DISC" };
+    }
+
+    const invitation = await prisma.discInvitation.findUnique({
+      where: { id: invitationId },
+      select: { id: true },
+    });
+
+    if (!invitation) {
+      return { error: "Undangan DISC tidak ditemukan" };
+    }
+
+    await prisma.discInvitation.delete({
+      where: { id: invitationId },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Delete DISC invitation error:", error);
+    return { error: "Gagal menghapus undangan DISC" };
+  }
+}
+
 export async function getDiscResultDetail(invitationId: string) {
   const profile = await getSessionProfile();
   if (!profile || profile.role === "USER") return null;
