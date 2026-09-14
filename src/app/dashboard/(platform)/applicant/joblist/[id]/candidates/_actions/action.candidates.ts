@@ -43,6 +43,13 @@ export async function getCandidates(jobId: string) {
     include: {
       education: true,
       currentStage: true,
+      source: {
+        select: {
+          id: true,
+          name: true,
+          category: true,
+        },
+      },
       job: {
         select: {
           position: {
@@ -213,6 +220,13 @@ export async function getCandidateDetail(candidateId: string) {
     include: {
       education: true,
       currentStage: true,
+      source: {
+        select: {
+          id: true,
+          name: true,
+          category: true,
+        },
+      },
       job: {
         include: {
           position: {

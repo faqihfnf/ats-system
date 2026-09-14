@@ -62,6 +62,7 @@ export function DataTable<TData, TValue>({
       yoe: true,
       actions: true,
       stage: true,
+      source: true,
       // Hidden by default
       phone: false,
       district: false,
@@ -151,6 +152,7 @@ export function DataTable<TData, TValue>({
       gender: "Gender",
       religion: "Religion",
       stage: "Stage",
+      source: "Source",
     };
     return names[id] || id;
   };

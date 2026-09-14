@@ -60,6 +60,11 @@ export type Candidate = {
     id: string;
     name: string;
   } | null;
+  source: {
+    id: string;
+    name: string;
+    category: string;
+  };
   job?: {
     // ← Make optional since not always included
     position: {

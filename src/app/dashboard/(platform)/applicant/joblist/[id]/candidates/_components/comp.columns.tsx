@@ -175,11 +175,11 @@ export const columns: ColumnDef<CandidateColumn>[] = [
               </div>
             </PopoverTrigger>
             <PopoverContent align="center" className="w-56 p-2">
-              <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+              <p className="text-muted-foreground px-2 py-1.5 text-xs font-semibold">
                 Re-analyze — Pilih Model
               </p>
               {candidate.models.length === 0 ? (
-                <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                <p className="text-muted-foreground px-2 py-3 text-center text-xs">
                   Belum ada model. Tambahkan di menu Model.
                 </p>
               ) : (
@@ -191,10 +191,10 @@ export const columns: ColumnDef<CandidateColumn>[] = [
                         candidate.onAnalyze(candidate.id, model.modelId);
                         setPopoverOpen(false);
                       }}
-                      className="flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
+                      className="hover:bg-accent flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm"
                     >
                       <span className="font-medium">{model.name}</span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         {model.modelId}
                       </span>
                     </button>
@@ -214,7 +214,7 @@ export const columns: ColumnDef<CandidateColumn>[] = [
       if (isAnalyzing) {
         return (
           <div className="flex items-center justify-center">
-            <Loader2 className="h-3 w-3 animate-spin text-primary" />
+            <Loader2 className="text-primary h-3 w-3 animate-spin" />
           </div>
         );
       }
@@ -232,11 +232,11 @@ export const columns: ColumnDef<CandidateColumn>[] = [
             </Button>
           </PopoverTrigger>
           <PopoverContent align="center" className="w-56 p-2">
-            <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+            <p className="text-muted-foreground px-2 py-1.5 text-xs font-semibold">
               Pilih Model AI
             </p>
             {candidate.models.length === 0 ? (
-              <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+              <p className="text-muted-foreground px-2 py-3 text-center text-xs">
                 Belum ada model. Tambahkan di menu Model.
               </p>
             ) : (
@@ -248,10 +248,10 @@ export const columns: ColumnDef<CandidateColumn>[] = [
                       candidate.onAnalyze(candidate.id, model.modelId);
                       setPopoverOpen(false);
                     }}
-                    className="flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
+                    className="hover:bg-accent flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm"
                   >
                     <span className="font-medium">{model.name}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-muted-foreground text-xs">
                       {model.modelId}
                     </span>
                   </button>
@@ -455,6 +455,18 @@ export const columns: ColumnDef<CandidateColumn>[] = [
         </Select>
       );
     },
+  },
+
+  // Source
+  {
+    id: "source",
+    header: "Source",
+    meta: {
+      label: "Source",
+    },
+    cell: ({ row }) => (
+      <span className="text-sm">{row.original.source.name}</span>
+    ),
   },
 
   // Actions
