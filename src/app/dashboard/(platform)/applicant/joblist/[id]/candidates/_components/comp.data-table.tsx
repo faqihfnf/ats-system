@@ -124,6 +124,11 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onPaginationChange: setPagination,
+    // Default TanStack: pageIndex reset ke 0 setiap row model dihitung ulang
+    // (termasuk saat `data` hanya berganti referensi, mis. ketika analisa AI
+    // berjalan atau setelah router.refresh()). Matikan agar halaman aktif tidak
+    // ikut lompat ke halaman 1.
+    autoResetPageIndex: false,
     state: {
       sorting,
       columnFilters,
@@ -132,6 +137,18 @@ export function DataTable<TData, TValue>({
       pagination,
     },
   });
+
+  // Karena auto reset dimatikan, jaga agar pageIndex tidak melewati jumlah
+  // halaman yang tersedia (mis. setelah filter dipersempit atau data berkurang).
+  const pageCount = table.getPageCount();
+  React.useEffect(() => {
+    if (pagination.pageIndex > 0 && pagination.pageIndex > pageCount - 1) {
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: Math.max(0, pageCount - 1),
+      }));
+    }
+  }, [pageCount, pagination.pageIndex]);
 
   // Map column ID to display name
   const getDisplayName = (id: string): string => {
