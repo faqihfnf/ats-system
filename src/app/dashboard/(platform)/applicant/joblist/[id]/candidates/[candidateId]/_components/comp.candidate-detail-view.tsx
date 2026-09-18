@@ -18,6 +18,8 @@ import {
   MessageCircle,
   MessageSquare,
   Info,
+  Paperclip,
+  Upload,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, type ComponentProps } from "react";
@@ -31,6 +33,8 @@ import { AdditionalQuestions } from "./_sections/comp.additional-questions";
 import { CVPreview } from "./_sections/comp.cv-preview";
 import { JobInfo } from "./_sections/comp.job-info";
 import { CandidateNotes } from "./_sections/comp.candidate-notes";
+import { CandidateDocuments } from "./_sections/comp.candidate-documents";
+import { UploadDocumentDialog } from "./comp.upload-document-dialog";
 import { StageHistoryTimeline } from "./_sections/comp.stage-history-timeline";
 import { AIAnalysis } from "./_sections/comp.ai-analysis";
 import {
@@ -49,6 +53,9 @@ import {
 import { TransferCandidateDialog } from "../../_components/comp.transfer-candidate-dialog";
 
 type CandidateNotesList = ComponentProps<typeof CandidateNotes>["notes"];
+type CandidateDocumentsList = ComponentProps<
+  typeof CandidateDocuments
+>["documents"];
 
 type Props = {
   candidate: CandidateWithRelations;
@@ -56,6 +63,7 @@ type Props = {
   stages: Stage[];
   canManageCandidateActions: boolean;
   notes: CandidateNotesList;
+  documents: CandidateDocumentsList;
   stageHistory: StageHistoryEntry[];
   currentUserId: string;
   currentUserRole: string;
@@ -67,12 +75,14 @@ export function CandidateDetailView({
   stages,
   canManageCandidateActions,
   notes,
+  documents,
   stageHistory,
   currentUserId,
   currentUserRole,
 }: Props) {
   const router = useRouter();
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
 
   const initials = candidate.fullName
     .split(" ")
@@ -164,6 +174,18 @@ export function CandidateDetailView({
             </Select>
           </div>
 
+          {/* Upload Dokumen Pendukung */}
+          {canManageCandidateActions && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowUploadDialog(true)}
+            >
+              <Upload className="mr-2 h-4 w-4 text-orange-600" />
+              Upload Dokumen
+            </Button>
+          )}
+
           {candidate.cvUrl && (
             <>
               <Link href={`/api/applications/${candidate.id}/cv`} target="_blank" download>
@@ -199,6 +221,10 @@ export function CandidateDetailView({
                 <History className="h-4 w-4" />
                 History {stageHistory.length > 0 && `(${stageHistory.length})`}
               </TabsTrigger>
+              <TabsTrigger value="additional-data" className="gap-2">
+                <Paperclip className="h-4 w-4" />
+                Additional Data {documents.length > 0 && `(${documents.length})`}
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="cv" className="mt-4">
               {candidate.cvUrl ? (
@@ -227,6 +253,14 @@ export function CandidateDetailView({
             </TabsContent>
             <TabsContent value="stage-history" className="mt-4">
               <StageHistoryTimeline history={stageHistory} />
+            </TabsContent>
+            <TabsContent value="additional-data" className="mt-4">
+              <CandidateDocuments
+                applicationId={candidate.id}
+                documents={documents}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
+              />
             </TabsContent>
           </Tabs>
         </div>
@@ -308,6 +342,16 @@ export function CandidateDetailView({
           currentJobId={jobId}
           currentJobTitle={candidate.job.position.nama}
           currentStage={candidate.currentStage?.name || "Not Set"}
+        />
+      )}
+
+      {/* Upload Document Dialog */}
+      {canManageCandidateActions && (
+        <UploadDocumentDialog
+          open={showUploadDialog}
+          onOpenChange={setShowUploadDialog}
+          applicationId={candidate.id}
+          existingCount={documents.length}
         />
       )}
     </div>

@@ -52,6 +52,7 @@ model Profile {
   jobs      Job[]
   divisions ProfileDivisi[]
   notes     CandidateNote[]
+  uploadedDocuments ApplicationDocument[] @relation("ApplicationDocumentUploadedBy")
   stageChanges StageHistory[] @relation("StageHistoryChangedBy")
   applicantImports ApplicantImport[] @relation("ApplicantImportBy")
   discInvitationsSent DiscInvitation[] @relation("DiscInvitationSentBy")
@@ -364,6 +365,9 @@ model Application {
   // Notes
   notes CandidateNote[]
 
+  // Dokumen pendukung (Additional Data)
+  documents ApplicationDocument[]
+
   // Stage History
   stageHistories StageHistory[]
 
@@ -439,6 +443,26 @@ model CandidateNote {
   updatedAt DateTime @updatedAt
 
   @@map("candidate_notes")
+}
+
+// Dokumen pendukung kandidat (PDF) yang diupload oleh ADMIN / RECRUITER
+model ApplicationDocument {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  uploadedById  String
+  uploadedBy    Profile     @relation("ApplicationDocumentUploadedBy", fields: [uploadedById], references: [id])
+
+  label            String? // label bebas dari user, mis. "Ijazah S1"
+  originalFileName String
+  storagePath      String // path di bucket, dipakai saat menghapus file
+  url              String // public URL untuk preview iframe
+  fileSize         Int // ukuran file dalam bytes
+
+  createdAt DateTime @default(now())
+
+  @@index([applicationId, createdAt])
+  @@map("application_documents")
 }
 
 // ==================== DISC PSIKOTEST ====================

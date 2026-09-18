@@ -4,48 +4,52 @@ import { canAccessDivision, getSessionProfile } from "@/lib/auth/session-profile
 import { sanitizeFilePart } from "@/lib/helpers/file-helper";
 
 type Props = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; documentId: string }>;
 };
 
 export async function GET(_request: Request, { params }: Props) {
-  const { id } = await params;
+  const { id, documentId } = await params;
   const profile = await getSessionProfile();
 
   if (!profile) {
     return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
   }
 
-  const candidate = await prisma.application.findUnique({
-    where: { id },
+  const document = await prisma.applicationDocument.findUnique({
+    where: { id: documentId },
     select: {
-      fullName: true,
-      cvUrl: true,
-      job: {
+      applicationId: true,
+      label: true,
+      originalFileName: true,
+      url: true,
+      application: {
         select: {
-          position: { select: { nama: true, divisiId: true } },
+          fullName: true,
+          job: {
+            select: {
+              position: { select: { divisiId: true } },
+            },
+          },
         },
       },
     },
   });
 
-  if (!candidate) {
-    return NextResponse.json({ error: "Kandidat tidak ditemukan" }, { status: 404 });
+  if (!document || document.applicationId !== id) {
+    return NextResponse.json({ error: "Dokumen tidak ditemukan" }, { status: 404 });
   }
 
-  if (!canAccessDivision(profile, candidate.job.position.divisiId)) {
+  if (!canAccessDivision(profile, document.application.job.position.divisiId)) {
     return NextResponse.json({ error: "Tidak memiliki akses" }, { status: 403 });
   }
 
-  if (!candidate.cvUrl) {
-    return NextResponse.json({ error: "CV tidak tersedia" }, { status: 404 });
-  }
-
-  const response = await fetch(candidate.cvUrl);
+  const response = await fetch(document.url);
   if (!response.ok || !response.body) {
-    return NextResponse.json({ error: "Gagal mengambil CV" }, { status: 502 });
+    return NextResponse.json({ error: "Gagal mengambil dokumen" }, { status: 502 });
   }
 
-  const filename = `${sanitizeFilePart(candidate.fullName)}-${sanitizeFilePart(candidate.job.position.nama)}-KarirPPD.pdf`;
+  const docName = document.label ?? document.originalFileName.replace(/\.pdf$/i, "");
+  const filename = `${sanitizeFilePart(document.application.fullName)}-${sanitizeFilePart(docName)}.pdf`;
 
   return new NextResponse(response.body, {
     status: 200,

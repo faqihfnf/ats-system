@@ -6,6 +6,7 @@ import {
   getCandidateNavigation,
 } from "../_actions/action.candidates";
 import { getCandidateNotes } from "./_actions/action.notes";
+import { getCandidateDocuments } from "./_actions/action.documents";
 import { getCandidateStageHistory } from "./_actions/action.stage-history";
 import { CandidateDetailView } from "./_components/comp.candidate-detail-view";
 import {
@@ -38,9 +39,10 @@ export default async function CandidateDetailPage({ params }: Props) {
     notFound();
   }
 
-  // Fetch notes & stage history after confirming candidate exists
-  const [notes, stageHistory] = await Promise.all([
+  // Fetch notes, documents & stage history after confirming candidate exists
+  const [notes, documents, stageHistory] = await Promise.all([
     getCandidateNotes(candidateId),
+    getCandidateDocuments(candidateId),
     getCandidateStageHistory(candidateId),
   ]);
 
@@ -106,6 +108,7 @@ export default async function CandidateDetailPage({ params }: Props) {
         stages={stages}
         canManageCandidateActions={profile?.role !== "USER"}
         notes={notes}
+        documents={documents}
         stageHistory={stageHistory}
         currentUserId={profile?.id || ""}
         currentUserRole={profile?.role || "USER"}
